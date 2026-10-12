@@ -1,4 +1,6 @@
-# Sapient Edge — AI Deep Learning Atlas (v5)
+# Sapient Edge — AI Learning Atlas (v8)
+
+**A free, offline "Khan Academy for AI engineering", centered on agentic AI.** 129 full lessons, each with an intuition, a step-by-step walkthrough, a diagram, a worked example, common mistakes, an enterprise case, key takeaways, a quiz with explanations, and annotated resources. There are 11 interactive explainers. Mastery levels go Familiar → Proficient → Mastered.
 
 **0→100 expert learning paths for 13 enterprise agentic-AI roles**, organized as 7 tracks plus a Shared Core.
 
@@ -8,24 +10,48 @@
 
 Everything is centered on agentic AI and on the data engineering agents depend on. It's an atlas, not a link dump. Every subject and every topic has an original explainer. There are 57 concept cards with diagrams and worked examples (the math is checked), plus quizzes, hands-on labs, capstones, learning paths (including a **Universal Agentic Path** that covers all 13 roles in order) and a glossary. Current as of October 2026.
 
-![Roles view](docs/screenshots/09-desktop-roles.png)
+![Home course map](docs/screenshots/16-desktop-home.png)
+
+![A lesson](docs/screenshots/17-desktop-lesson.png)
 
 ## At a glance
 
-| | v3 | v7 |
-|---|---|---|
-| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** |
-| Tracks (+ Shared Core) | 5 | **7** |
-| Subjects | 91 | **129** |
-| Topics (each with its own explainer) | 198 | **328** |
-| Subtopics | 990 | **1,644** |
-| Quiz questions (≥3 per subject, with explanations) | 283 | **412** |
-| Unique resource URLs (link-checked) | 130 | **275** |
-| Concept cards (diagram + worked example) | 41 | **57** |
-| Capstone projects | 6 | **8** |
-| Project ladder builds (4 tiers) | – | **28** |
-| Learning paths | 5 | **7** |
-| Glossary terms | 104 | **143** |
+| | v3 | v7 | v8 |
+|---|---|---|---|
+| Full lessons (intuition, how, diagram, example, mistakes, enterprise, takeaways, quiz, annotated resources) | – | – | **129** |
+| Per-lesson diagrams (with alt text) | – | 0 | **129** |
+| Interactive explainers (dependency-free JS/SVG) | – | – | **11** |
+| Subtopic explanations | – | 0 | **782** |
+| Annotated resources (why + level) | – | 0 | **275** |
+| Words of teaching content (curriculum JSON) | – | 82,537 | **151,084** |
+| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** | 13 |
+| Tracks (+ Shared Core) | 5 | **7** | 7 |
+| Subjects | 91 | **129** | 129 |
+| Topics (each with its own explainer) | 198 | **328** | 328 |
+| Subtopics | 990 | **1,644** | 1,644 |
+| Quiz questions (≥3 per subject, with explanations) | 283 | **412** | 412 |
+| Unique resource URLs (link-checked) | 130 | **275** | 275 |
+| Concept cards (diagram + worked example) | 41 | **57** | 57 |
+| Capstone projects | 6 | **8** | 8 |
+| Project ladder builds (4 tiers) | – | **28** | 28 |
+| Learning paths | 5 | **7** | 7 |
+| Glossary terms | 104 | **143** | 143 |
+
+## What's new in v8: learn on-site
+
+- **Every subject is now a full lesson.** Each has: 💡 Intuition → ⚙️ How it works → 🗺️ Diagram → 🧪 Interactive explainer (where relevant) → 🧮 Worked example or code → 📚 Topics (with subtopic explanations) → ⚠️ Common mistakes → 🏢 In the enterprise → ✅ Key takeaways → 📝 Quiz → 🔗 Annotated resources (why to read each one, plus its level) → lab and prev/next.
+- **11 interactive explainers**, all dependency-free JS + SVG and keyboard accessible: softmax & temperature, tokenization, self-attention, KV cache memory, static vs continuous batching, quantization, RAG retrieval, agent loop, eval math (pass@k / pass^k / sample size), model routing, context budget. Find them all under **Explainers** (`#/playground`).
+- **Learner UX:**
+  - Home course map.
+  - Mastery levels per lesson (Familiar / Proficient / Mastered, earned through quizzes), reading time and prev/next.
+  - Deep-linkable routes (`#/lesson/<id>`, `#/track/<id>`, …).
+  - Mobile reading typography; skip link, focus rings and diagram alt text.
+  - XP, ranks and new badges.
+- **Pedagogy:** see [`docs/pedagogy.md`](docs/pedagogy.md) for what we borrowed from Khan Academy, DeepLearning.AI, Hugging Face, fast.ai, Google MLCC and Microsoft Learn.
+- **Quality bar enforced by the build:** `scripts/build_v8.py` fails if any lesson is missing a section. Lesson content lives in `scripts/v8/lessons/*.py`, and resource notes in `scripts/v8/resnotes.py`.
+- **QA:** all 129 lessons load in headless Chrome on desktop (1440px) and mobile (390px). Every diagram renders, every explainer mounts, there are 0 console errors and no horizontal overflow.
+
+![Lesson diagram and explainer](docs/screenshots/19-desktop-lesson-diagram-widget.png)
 
 ### New in v7: Suraj Sharma's 12 stages
 This version goes deeper on the stages of Suraj Sharma's "6 months to become an AI Engineer in the Agentic Era" that the atlas covered only thinly:
@@ -75,7 +101,10 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 | Path | Purpose |
 |------|---------|
 | `index.html` | App shell (curriculum + concepts embedded) |
-| `assets/js/app.js` | UI logic |
+| `assets/js/app.js` | UI logic (routes, lessons, mastery, XP/badges) |
+| `assets/js/widgets.js` | 11 interactive explainers (no dependencies) |
+| `scripts/build_v8.py` | Current build: runs the v7→v3 chain, merges `scripts/v8/lessons/*` and resource notes, validates the lesson bar, re-embeds `index.html` |
+| `docs/pedagogy.md` | Lesson design and rationale |
 | `assets/img/` | SVG illustrations (track heroes, level art) |
 | `assets/vendor/mermaid.min.js` | Bundled Mermaid (offline diagrams) |
 | `data/curriculum.json`, `data/concepts.json` | Full content (also per-track `data/_*.json` and `data/_roles.json`) |
@@ -85,7 +114,11 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 
 ## Link check
 
-All 275 resource URLs were checked on 2026-10-12, and 271 passed the automated check. The 4 exceptions are known false negatives. ISO/IEC 42001 (iso.org) returns 403 to scripted clients. Two genai.owasp.org pages return 403 to scripted clients. The Stanford CS336 site timed out at 20 s but answers with a 301 when given a longer timeout. EUR-Lex returns a 202 bot challenge to scripts. See `docs/resources_linkcheck.csv`.
+All 275 resource URLs were re-checked on 2026-10-12 for v8, and 272 passed the automated check. None of the 3 exceptions is a dead link:
+
+- ISO/IEC 42001 (iso.org) returns 403 to scripted clients.
+- docs.vllm.ai returned 429 (rate-limited after many requests to the same host).
+- The Stanford CS336 site timed out at 20 s, but answers with a 301 when given a longer timeout. See `docs/resources_linkcheck.csv`.
 
 ## GitHub Pages
 

@@ -120,7 +120,7 @@ https://docs.temporal.io/,200,https://docs.temporal.io/,Temporal documentation
 https://docs.unitycatalog.io/,200,https://docs.unitycatalog.io/,Unity Catalog (open source)
 https://docs.unstructured.io/open-source/introduction/overview,200,https://docs.unstructured.io/open-source/introduction/overview,Unstructured open-source docs
 https://docs.vllm.ai/en/latest/,200,https://docs.vllm.ai/en/latest/,vLLM documentation
-https://docs.vllm.ai/en/latest/contributing/benchmarks.html,200,https://docs.vllm.ai/en/latest/contributing/,vLLM benchmarking docs
+https://docs.vllm.ai/en/latest/contributing/benchmarks.html,429,https://docs.vllm.ai/en/latest/contributing/benchmarks.html,vLLM benchmarking docs
 https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,200,https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer/,vLLM Run:ai Model Streamer
 https://dspy.ai/,200,https://dspy.ai/,DSPy
 https://e2b.dev/docs,200,https://docs.e2b.dev/,E2B
@@ -130,8 +130,8 @@ https://fairlearn.org/,200,https://fairlearn.org/,Fairlearn
 https://firecracker-microvm.github.io/,200,https://firecracker-microvm.github.io/,Firecracker
 https://fullstackdeeplearning.com/,200,https://fullstackdeeplearning.com/,Full Stack Deep Learning
 https://gateway-api-inference-extension.sigs.k8s.io/,200,https://gateway-api-inference-extension.sigs.k8s.io/,Gateway API Inference Extension
-https://genai.owasp.org/initiatives/agentic-security-initiative/,403,https://genai.owasp.org/initiatives/agentic-security-initiative/,OWASP GenAI Security Project: Agentic threats
-https://genai.owasp.org/llm-top-10/,403,https://genai.owasp.org/llm-top-10/,OWASP Top 10 for LLM Applications
+https://genai.owasp.org/initiatives/agentic-security-initiative/,200,https://genai.owasp.org/initiatives/agentic-security-initiative/,OWASP GenAI Security Project: Agentic threats
+https://genai.owasp.org/llm-top-10/,200,https://genai.owasp.org/llm-top-10/,OWASP Top 10 for LLM Applications
 https://github.com/AnswerDotAI/byaldi,200,https://github.com/AnswerDotAI/byaldi,Byaldi (ColPali made easy)
 https://github.com/Azure/PyRIT,200,https://github.com/Azure/PyRIT,Microsoft PyRIT
 https://github.com/Dao-AILab/flash-attention,200,https://github.com/Dao-AILab/flash-attention,FlashAttention GitHub
@@ -185,7 +185,7 @@ https://langchain-ai.github.io/langgraph/concepts/memory/,200,https://langchain-
 https://langchain-ai.github.io/langgraph/concepts/persistence/,200,https://langchain-ai.github.io/langgraph/concepts/persistence/,LangGraph persistence
 https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/,200,https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/,LangGraph agentic RAG tutorial
 https://langfuse.com/docs,200,https://langfuse.com/docs,Langfuse docs
-https://learn.microsoft.com/en-us/azure/ai-foundry/,200,https://learn.microsoft.com/en-us/azure/foundry/,Azure AI Foundry
+https://learn.microsoft.com/en-us/azure/ai-foundry/,200,https://learn.microsoft.com/en-us/azure/ai-foundry/,Azure AI Foundry
 https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview,Azure AI Content Safety
 https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0,Azure AI Document Intelligence
 https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,200,https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,Azure AI architecture

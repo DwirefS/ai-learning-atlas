@@ -10,5 +10,28 @@
   "capstones": 8,
   "roles": 13,
   "projects": 28,
-  "tracks": 8
+  "tracks": 8,
+  "version": "8.0.0",
+  "words_before_v8": 82537,
+  "words": 151084,
+  "words_with_concepts": 163106,
+  "lessons": 129,
+  "lesson_diagrams": 129,
+  "concept_diagrams": 57,
+  "subtopic_explanations": 782,
+  "widgets": [
+    "agentloop",
+    "attention",
+    "batching",
+    "budget",
+    "eval",
+    "kvcache",
+    "quant",
+    "rag",
+    "routing",
+    "softmax",
+    "tokenizer"
+  ],
+  "lessons_with_widget": 29,
+  "annotated_resources": 275
 }
