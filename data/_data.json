@@ -18,29 +18,29 @@
               "title": "Apache Iceberg docs",
               "url": "https://iceberg.apache.org/docs/latest/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Apache Iceberg docs that complements the Data Engineering Foundations for AI lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Apache Iceberg docs: open table format with snapshots, schema and partition evolution, time travel and catalogs."
             },
             {
               "title": "Delta Lake documentation",
               "url": "https://docs.delta.io/latest/index.html",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Delta Lake documentation that complements the Data Engineering Foundations for AI lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Delta Lake docs: ACID tables on object storage, time travel, MERGE/upserts, change data feed and schema enforcement."
             },
             {
               "title": "Fundamentals of Data Engineering (O'Reilly)",
               "url": "https://www.oreilly.com/library/view/fundamentals-of-data-engineering/9781098108298/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "why": "Reis and Housley (O'Reilly, page gated): the data engineering lifecycle (generation, storage, ingestion, transformation, serving) and its undercurrents."
             },
             {
               "title": "dbt documentation",
               "url": "https://docs.getdbt.com/docs/introduction",
               "kind": "docs",
               "level": "intro",
-              "why": "dbt documentation; approachable guides to modeling and testing data."
+              "why": "What is dbt: SQL-based transformations with tests, docs, lineage and version control. The analytics engineering workflow."
             }
           ],
           "project": "Build a mini lakehouse locally: load a public dataset into Iceberg tables with DuckDB or Spark, create bronze/silver/gold layers with dbt, and write a one-page data dictionary an LLM can read. Ask an LLM 10 questions with and without the dictionary in context and record the accuracy difference.",
@@ -193,7 +193,10 @@
               "Match the store to the question."
             ],
             "diagram": "flowchart LR\n  SRC[Sources] --> BR[Bronze: raw]\n  BR --> SI[Silver: cleaned]\n  SI --> GO[Gold: business-ready]\n  GO --> WH[(Warehouse / lakehouse)]\n  SI --> IDX[(Search / vector index)]\n  OLTP[(OLTP)] --> REP[(Read replica)]\n  WH --> AG[Agent tools]\n  IDX --> AG\n  REP --> AG",
-            "diagramAlt": "Diagram: sources flow through bronze, silver and gold layers into a lakehouse; silver data also feeds a search index; an OLTP read replica, the lakehouse and the index all serve agent tools."
+            "diagramAlt": "Diagram: sources flow through bronze, silver and gold layers into a lakehouse; silver data also feeds a search index; an OLTP read replica, the lakehouse and the index all serve agent tools.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import sqlite3\n# Idempotent incremental load (upsert on key + watermark) — the core of reliable pipelines.\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"CREATE TABLE docs(id TEXT PRIMARY KEY, body TEXT, updated_at TEXT)\")\ndef load(batch):\n    db.executemany(\"INSERT INTO docs VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET body=excluded.body, \"\n                   \"updated_at=excluded.updated_at WHERE excluded.updated_at > docs.updated_at\", batch)\nload([(\"a\", \"v1\", \"2026-10-01\"), (\"b\", \"v1\", \"2026-10-01\")])\nload([(\"a\", \"v2\", \"2026-10-02\"), (\"a\", \"v2\", \"2026-10-02\")])     # replays are safe\nload([(\"b\", \"stale\", \"2026-09-01\")])                              # older data does not overwrite\nprint(db.execute(\"SELECT * FROM docs ORDER BY id\").fetchall())"
           }
         },
         {
@@ -206,22 +209,22 @@
               "title": "dbt Semantic Layer",
               "url": "https://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl",
               "kind": "docs",
-              "level": "intro",
-              "why": "dbt documentation; approachable guides to modeling and testing data."
+              "level": "intermediate",
+              "why": "dbt Semantic Layer (MetricFlow): define metrics once and query them consistently from BI tools, APIs or AI agents."
             },
             {
               "title": "Cube semantic layer docs",
               "url": "https://cube.dev/docs/product/introduction",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Cube semantic layer docs that complements the Data Modeling and the Semantic Layer lesson with another author's explanation and examples."
+              "why": "Cube docs: an open-source-based semantic layer with caching and APIs (SQL, REST, GraphQL) for BI, embedded analytics and agents."
             },
             {
               "title": "Kimball dimensional modeling techniques",
               "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Kimball dimensional modeling techniques that complements the Data Modeling and the Semantic Layer lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Kimball Group's dimensional modeling techniques: facts, dimensions, grain, slowly changing dimensions and conformed dimensions."
             }
           ],
           "project": "Define 8 metrics (revenue, active customers, churn, etc.) in a semantic layer over your lakehouse. Build two agent tools: raw text-to-SQL and 'query_metric(metric, dimensions, filters)'. Run 30 business questions through both and compare accuracy and latency.",
@@ -375,7 +378,17 @@
               "Read-only, limited, validated SQL with execution-accuracy evals."
             ],
             "diagram": "flowchart LR\n  Q[Question] --> R{Metric known?}\n  R -->|yes| SL[Semantic layer: metric + dims + time grain]\n  R -->|no| T2S[Text-to-SQL]\n  T2S --> PR[Schema pruning + examples]\n  PR --> VAL[Parse + validate SQL]\n  VAL --> RO[Read-only role, limits, timeout]\n  SL --> ANS[Answer]\n  RO --> ANS",
-            "diagramAlt": "Diagram: a question uses the semantic layer if a metric exists, otherwise text-to-SQL with schema pruning, examples, validation and a read-only role with limits, producing an answer."
+            "diagramAlt": "Diagram: a question uses the semantic layer if a metric exists, otherwise text-to-SQL with schema pruning, examples, validation and a read-only role with limits, producing an answer.",
+            "case": {
+              "org": "LinkedIn",
+              "title": "Practical Text-to-SQL for Data Analytics (LinkedIn Engineering)",
+              "url": "https://www.linkedin.com/blog/engineering/ai/practical-text-to-sql-for-data-analytics",
+              "summary": "LinkedIn built SQL Bot inside its DARWIN data science platform. It finds the right tables, writes and fixes queries, and runs them under the user's permissions. It builds a knowledge graph from DataHub (schemas, field descriptions, top values, partition keys, metric vs dimension classification). About 60% of benchmark questions turned out to have multiple valid answers, and ignoring that under-reported recall by 10–15%.",
+              "lesson": "Text-to-SQL quality comes from metadata (descriptions, semantics, examples) and honest evals that accept several correct answers."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# A semantic-layer metric (dbt MetricFlow style): one governed definition agents and BI both use\nsemantic_models:\n  - name: orders\n    model: ref('fct_orders')\n    entities: [{name: order_id, type: primary}, {name: customer_id, type: foreign}]\n    dimensions: [{name: ordered_at, type: time, type_params: {time_granularity: day}}]\n    measures: [{name: revenue, agg: sum, expr: amount_usd}]\nmetrics:\n  - name: revenue\n    label: Revenue (USD)\n    type: simple\n    type_params: {measure: revenue}"
           }
         }
       ]
@@ -394,22 +407,22 @@
               "title": "Debezium documentation",
               "url": "https://debezium.io/documentation/reference/stable/index.html",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Debezium documentation that complements the CDC and Streaming: Fresh Context for Agents lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Debezium docs: log-based CDC connectors (MySQL, Postgres and others), the event envelope (before/after/op), snapshots and Kafka Connect deployment."
             },
             {
               "title": "Apache Kafka documentation",
               "url": "https://kafka.apache.org/documentation/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Apache Kafka documentation that complements the CDC and Streaming: Fresh Context for Agents lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Apache Kafka docs: topics, partitions, consumer groups, delivery semantics, Connect and Streams. The backbone of CDC pipelines."
             },
             {
               "title": "Apache Flink documentation",
               "url": "https://nightlies.apache.org/flink/flink-docs-stable/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Apache Flink documentation that complements the CDC and Streaming: Fresh Context for Agents lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Apache Flink docs: stateful stream processing with event time, watermarks, exactly-once checkpoints and SQL."
             }
           ],
           "project": "Run Postgres + Debezium + Kafka (or Redpanda) in Docker Compose. Stream a 'tickets' table into an Iceberg table and a pgvector index. Update and delete rows and measure end-to-end freshness (p50/p95 seconds) and confirm deleted tickets disappear from retrieval.",
@@ -562,7 +575,17 @@
               "Sync deletes and ACL changes, not just inserts."
             ],
             "diagram": "flowchart LR\n  DB[(Database)] --> LOG[WAL / binlog]\n  LOG --> CDC[CDC connector: snapshot + stream]\n  CDC --> K[(Event stream)]\n  K --> PROC[Stream processing]\n  PROC --> HASH{Content changed?}\n  HASH -->|yes| EMB[Re-embed + upsert]\n  HASH -->|no| META[Update metadata]\n  K --> DEL[Deletes / ACL changes]\n  EMB --> IDX[(Index)]\n  META --> IDX\n  DEL --> IDX",
-            "diagramAlt": "Diagram: database log changes flow through a CDC connector into an event stream, processed so that changed content is re-embedded, metadata updated and deletes or ACL changes applied to the index."
+            "diagramAlt": "Diagram: database log changes flow through a CDC connector into an event stream, processed so that changed content is re-embedded, metadata updated and deletes or ACL changes applied to the index.",
+            "case": {
+              "org": "Shopify",
+              "title": "Capturing Every Change From Shopify's Sharded Monolith (Shopify Engineering, 2021)",
+              "url": "https://shopify.engineering/capturing-every-change-shopify-sharded-monolith",
+              "summary": "Shopify replaced query-based batch extraction with log-based CDC using Debezium and Kafka Connect over the 100+ MySQL shards behind its core monolith. Debezium's default of one topic per table per shard did not fit, so the team had to design how topics map to tables across shards.",
+              "lesson": "Log-based CDC gives you every change without hammering the database. Plan topic and schema layout up front, especially for sharded sources."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Apply a CDC change stream (Debezium-style envelopes) to keep a retrieval index fresh.\nindex = {}\nevents = [{\"op\": \"c\", \"after\": {\"id\": 1, \"text\": \"Refunds in 30 days\"}},\n          {\"op\": \"u\", \"before\": {\"id\": 1}, \"after\": {\"id\": 1, \"text\": \"Refunds in 45 days\"}},\n          {\"op\": \"c\", \"after\": {\"id\": 2, \"text\": \"Free shipping over $50\"}},\n          {\"op\": \"d\", \"before\": {\"id\": 2}, \"after\": None}]\nfor e in events:\n    if e[\"op\"] in (\"c\", \"u\", \"r\"): index[e[\"after\"][\"id\"]] = e[\"after\"][\"text\"]   # re-embed here\n    elif e[\"op\"] == \"d\": index.pop(e[\"before\"][\"id\"], None)                      # delete from vector store too\nprint(index)"
           }
         },
         {
@@ -576,21 +599,21 @@
               "url": "https://docs.unstructured.io/open-source/introduction/overview",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Unstructured open-source docs that complements the Unstructured Data Pipelines at Scale lesson with another author's explanation and examples."
+              "why": "Unstructured open-source library: partition documents (PDF, HTML, DOCX, email) into elements, then clean and chunk them for RAG."
             },
             {
               "title": "Docling (IBM) document conversion",
               "url": "https://github.com/docling-project/docling",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "IBM's Docling: converts PDF, DOCX, PPTX and images into structured Markdown/JSON with layout, tables and reading order. Strong default for document RAG ingestion."
             },
             {
               "title": "Apache Tika",
               "url": "https://tika.apache.org/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Apache Tika that complements the Unstructured Data Pipelines at Scale lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Apache Tika: detect and extract text and metadata from over a thousand file types. A classic ingestion building block."
             }
           ],
           "project": "Build a pipeline over 500 mixed documents (PDF, DOCX, HTML, scanned images). Compare two parsers on 30 hand-checked pages for table and heading fidelity. Store chunk → source page → ACL lineage, deduplicate near-duplicates with MinHash, and report retrieval recall@10 on a 40-question golden set before and after improvements.",
@@ -744,7 +767,17 @@
               "Version, swap by alias, and monitor."
             ],
             "diagram": "flowchart LR\n  FILES[Files] --> CLS{Document class}\n  CLS -->|digital| TXT[Text extraction]\n  CLS -->|scan| OCR[OCR]\n  CLS -->|complex| VLM[Layout / VLM parse]\n  TXT --> CH[Structure-aware chunks + headers]\n  OCR --> CH\n  VLM --> CH\n  CH --> ENR[Metadata + PII tags]\n  ENR --> DD[Dedup]\n  DD --> IDXV2[(Index v2)]\n  IDXV2 --> AL[Alias swap]",
-            "diagramAlt": "Diagram: files are classified and routed to text extraction, OCR or VLM parsing, chunked with headers, enriched with metadata and PII tags, deduplicated, indexed as a new version and swapped in by alias."
+            "diagramAlt": "Diagram: files are classified and routed to text extraction, OCR or VLM parsing, chunked with headers, enriched with metadata and PII tags, deduplicated, indexed as a new version and swapped in by alias.",
+            "case": {
+              "org": "Anthropic",
+              "title": "Introducing Contextual Retrieval (Sep 2024)",
+              "url": "https://www.anthropic.com/news/contextual-retrieval",
+              "summary": "Anthropic prepends a short, model-generated context to each chunk before embedding it and indexing it for BM25. In their experiments, contextual embeddings cut the top-20 retrieval failure rate by 35% (5.7% → 3.7%). Adding contextual BM25 brought it to 49% (→ 2.9%), and adding reranking to 67% (→ 1.9%).",
+              "lesson": "Many retrieval failures are chunks that lost their context. Fix the chunk and combine lexical plus semantic search with reranking before you reach for a bigger model."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import hashlib\n# Chunk documents with overlap and content hashes so re-ingestion only re-embeds what changed.\ndef chunks(text, size=200, overlap=40):\n    step = size - overlap\n    return [text[i:i+size] for i in range(0, max(len(text) - overlap, 1), step)]\nseen = set()\ndef ingest(doc_id, text):\n    new = 0\n    for c in chunks(text):\n        h = hashlib.sha256(c.encode()).hexdigest()\n        if h not in seen: seen.add(h); new += 1          # embed + upsert only new chunks\n    return new\nbody = \"Policy text. \" * 60\nprint(\"first ingest:\", ingest(\"p1\", body), \"chunks;\", \"re-ingest:\", ingest(\"p1\", body), \"chunks\")"
           }
         },
         {
@@ -757,22 +790,22 @@
               "title": "Open Data Contract Standard (Bitol)",
               "url": "https://bitol-io.github.io/open-data-contract-standard/latest/",
               "kind": "docs",
-              "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "level": "intermediate",
+              "why": "Open Data Contract Standard (Bitol): a YAML spec for datasets, schemas, quality rules, pricing, roles and SLAs."
             },
             {
               "title": "Great Expectations docs",
               "url": "https://docs.greatexpectations.io/docs/home/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Great Expectations docs that complements the Data Contracts and Data Quality for Agents lesson with another author's explanation and examples."
+              "why": "Great Expectations (GX Core): define expectations for data, validate batches and render data docs."
             },
             {
               "title": "Soda documentation",
               "url": "https://docs.soda.io/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Soda documentation that complements the Data Contracts and Data Quality for Agents lesson with another author's explanation and examples."
+              "why": "Soda docs: data quality checks (SodaCL), monitoring and contracts, now with AI features and MCP."
             }
           ],
           "project": "Write an ODCS contract for a 'customers' gold table with schema, freshness and quality rules. Enforce it in CI with dbt tests or Soda, break it deliberately (rename a column, stale load), and make the agent's tool return 'data unavailable: contract failed' instead of an answer.",
@@ -928,7 +961,10 @@
               "Agents must check data health before acting."
             ],
             "diagram": "flowchart LR\n  DS[Dataset] --> CON[Contract: schema, meaning, SLA, owner]\n  DS --> CHK[Checks: validity, freshness, volume, drift]\n  CHK --> HEALTH[(Health status in catalog)]\n  HEALTH --> TOOL{Agent tool pre-check}\n  TOOL -->|green| USE[Use data]\n  TOOL -->|red| UNAV[Data unavailable + block actions]\n  CHK --> ALERT[Alerts via lineage]",
-            "diagramAlt": "Diagram: a dataset has a contract and checks whose health status is stored in the catalog; agent tools pre-check health and either use the data or report unavailable and block actions, with alerts routed via lineage."
+            "diagramAlt": "Diagram: a dataset has a contract and checks whose health status is stored in the catalog; agent tools pre-check health and either use the data or report unavailable and block actions, with alerts routed via lineage.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# A data contract check that blocks bad batches before they reach agents.\ncontract = {\"required\": {\"ticket_id\": str, \"created_at\": str, \"status\": str},\n            \"allowed_status\": {\"open\", \"closed\", \"pending\"}, \"max_null_rate\": 0.01}\nbatch = [{\"ticket_id\": \"T1\", \"created_at\": \"2026-10-01\", \"status\": \"open\"},\n         {\"ticket_id\": \"T2\", \"created_at\": \"2026-10-01\", \"status\": \"OPEN\"},\n         {\"ticket_id\": None, \"created_at\": \"2026-10-02\", \"status\": \"closed\"}]\nerrors = []\nfor i, r in enumerate(batch):\n    for col, t in contract[\"required\"].items():\n        if not isinstance(r.get(col), t): errors.append((i, col, \"type/null\"))\n    if r.get(\"status\") not in contract[\"allowed_status\"]: errors.append((i, \"status\", r.get(\"status\")))\nprint(\"QUARANTINE\" if errors else \"PUBLISH\", errors)"
           }
         }
       ]
@@ -948,28 +984,28 @@
               "url": "https://openlineage.io/docs/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on OpenLineage that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
+              "why": "OpenLineage: an open standard for lineage events (runs, jobs, datasets) emitted by Airflow, Spark, dbt and others."
             },
             {
               "title": "DataHub documentation",
               "url": "https://docs.datahub.com/docs/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on DataHub documentation that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "DataHub docs: metadata ingestion, search, lineage, ownership, glossary and its event-based metadata architecture."
             },
             {
               "title": "Unity Catalog (open source)",
               "url": "https://docs.unitycatalog.io/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Unity Catalog (open source) that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Unity Catalog (open source): a universal catalog for tables, files, functions and models with governance across engines."
             },
             {
               "title": "OpenMetadata docs",
               "url": "https://docs.open-metadata.org/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on OpenMetadata docs that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "OpenMetadata docs: unified discovery, lineage, data quality and governance with many connectors."
             }
           ],
           "project": "Stand up OpenMetadata or DataHub, ingest your lakehouse, add descriptions and PII classifications, and emit OpenLineage from your dbt and embedding jobs so lineage reaches the vector index. Build an MCP tool 'find_dataset(question)' that searches the catalog and returns the best gold table with its description and owner.",
@@ -1123,7 +1159,17 @@
               "Prefer certified, healthy, permitted assets at runtime."
             ],
             "diagram": "flowchart LR\n  SYS[Systems] -->|auto ingest| CAT[(Catalog: technical, business, ops, governance)]\n  PIPE[Pipelines] -->|OpenLineage| CAT\n  CAT --> AGENT[Agent: search certified assets]\n  AGENT --> CHK{Health + classification OK?}\n  CHK -->|yes| USE[Use + cite]\n  CHK -->|no| SKIP[Skip / escalate]\n  AGENT --> TEL[Usage telemetry] --> STEW[Stewards]",
-            "diagramAlt": "Diagram: systems and pipelines feed the catalog with metadata and lineage; agents search certified assets, check health and classification, use and cite them or skip, and telemetry goes to stewards."
+            "diagramAlt": "Diagram: systems and pipelines feed the catalog with metadata and lineage; agents search certified assets, check health and classification, use and cite them or skip, and telemetry goes to stewards.",
+            "case": {
+              "org": "LinkedIn / DataHub",
+              "title": "DataHub: Popular metadata architectures explained",
+              "url": "https://www.linkedin.com/blog/engineering/data-management/datahub-popular-metadata-architectures-explained",
+              "summary": "The post describes three generations of data catalog architecture. Crawl-based catalogs pull metadata periodically and go stale. Service-based catalogs offer push APIs. Event-based catalogs stream metadata changes as a log. It explains why push and streaming keep metadata fresh and trustworthy at scale, which led to DataHub's design at LinkedIn.",
+              "lesson": "If agents will rely on the catalog at runtime, freshness matters. Prefer push or event-based metadata over nightly crawls."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Column-level lineage as a graph; answer \"what breaks downstream if this column changes?\"\nedges = {\"raw.tickets.body\": [\"stg.tickets.body_clean\"],\n         \"stg.tickets.body_clean\": [\"ai.ticket_chunks.text\", \"mart.ticket_stats.avg_len\"],\n         \"ai.ticket_chunks.text\": [\"vector.support_index\"]}\ndef downstream(node, seen=None):\n    seen = seen or set()\n    for n in edges.get(node, []):\n        if n not in seen: seen.add(n); downstream(n, seen)\n    return seen\nprint(sorted(downstream(\"raw.tickets.body\")))"
           }
         },
         {
@@ -1137,28 +1183,28 @@
               "url": "https://modelcontextprotocol.io/specification/2025-06-18",
               "kind": "spec",
               "level": "reference",
-              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
+              "why": "MCP specification (2025-06-18 revision): includes the OAuth-based authorization model and structured tool output. Compare with the newer revision."
             },
             {
               "title": "MCP authorization spec",
               "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization",
               "kind": "spec",
-              "level": "reference",
-              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
+              "level": "advanced",
+              "why": "MCP authorization spec: OAuth 2.1 flows, protected resource metadata, dynamic client registration and token audience rules for remote MCP servers."
             },
             {
               "title": "OAuth 2.0 Token Exchange (RFC 8693)",
               "url": "https://www.rfc-editor.org/rfc/rfc8693",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on OAuth 2.0 Token Exchange (RFC 8693) that complements the Connecting Agents to Enterprise Data: APIs, MCP and Text-to-Data lesson with another author's explanation and examples."
+              "level": "advanced",
+              "why": "RFC 8693 token exchange: swap a user's token for a narrowly scoped token for a downstream service. This is how agents act on behalf of users safely."
             },
             {
               "title": "Anthropic: Writing effective tools for agents",
               "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
               "kind": "guide",
               "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "why": "Anthropic on writing tools for agents: choose the right tools, namespace them, return meaningful context, and optimize descriptions with evals."
             }
           ],
           "project": "Build an MCP server over a sample CRM (or SQLite stand-in) exposing search_accounts, get_account, query_metric and a write tool create_task that requires approval. Propagate a user token, enforce per-user row access, cap response size, and log every call. Measure task success on 20 scenarios with two different MCP clients.",
@@ -1342,7 +1388,17 @@
               "Paginate, limit, confirm and audit."
             ],
             "diagram": "flowchart LR\n  Q[User question] --> RT{Type}\n  RT -->|documents| RET[Retrieve tool]\n  RT -->|numbers / records| QRY[Query tool: SQL / semantic layer]\n  RT -->|change| ACT[Action tool: draft + confirm]\n  ID[User token -> scoped token] -.-> RET\n  ID -.-> QRY\n  ID -.-> ACT\n  RET --> AUD[(Audit per call)]\n  QRY --> AUD\n  ACT --> AUD",
-            "diagramAlt": "Diagram: user questions are routed to retrieve, query or action tools, all called with a scoped token derived from the user's identity and audited per call."
+            "diagramAlt": "Diagram: user questions are routed to retrieve, query or action tools, all called with a scoped token derived from the user's identity and audited per call.",
+            "case": {
+              "org": "LinkedIn",
+              "title": "Practical Text-to-SQL for Data Analytics (LinkedIn Engineering)",
+              "url": "https://www.linkedin.com/blog/engineering/ai/practical-text-to-sql-for-data-analytics",
+              "summary": "LinkedIn built SQL Bot inside its DARWIN data science platform. It finds the right tables, writes and fixes queries, and runs them under the user's permissions. It builds a knowledge graph from DataHub (schemas, field descriptions, top values, partition keys, metric vs dimension classification). About 60% of benchmark questions turned out to have multiple valid answers, and ignoring that under-reported recall by 10–15%.",
+              "lesson": "Text-to-SQL quality comes from metadata (descriptions, semantics, examples) and honest evals that accept several correct answers."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import sqlite3\n# Guardrails for text-to-SQL: read-only, single SELECT, allow-listed tables, row limit.\nALLOWED = {\"orders\", \"customers\"}\ndef safe_sql(sql):\n    s = sql.strip().rstrip(\";\")\n    if \";\" in s or not s.lower().startswith(\"select\"): raise ValueError(\"only one SELECT allowed\")\n    tables = {w for w in s.replace(\",\", \" \").split() if w.isidentifier()} & {\"orders\", \"customers\", \"salaries\"}\n    if tables - ALLOWED: raise ValueError(f\"table not allowed: {tables - ALLOWED}\")\n    return f\"SELECT * FROM ({s}) LIMIT 100\"\ndb = sqlite3.connect(\"file::memory:?mode=memory\", uri=True)\ndb.execute(\"CREATE TABLE orders(id, amount)\"); db.execute(\"INSERT INTO orders VALUES (1, 9.5)\")\nprint(db.execute(safe_sql(\"SELECT id, amount FROM orders\")).fetchall())\ntry: safe_sql(\"SELECT * FROM salaries\")\nexcept ValueError as e: print(\"blocked:\", e)"
           }
         },
         {
@@ -1355,29 +1411,29 @@
               "title": "Microsoft Graph permissions overview",
               "url": "https://learn.microsoft.com/en-us/graph/permissions-overview",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "level": "reference",
+              "why": "Microsoft Graph permissions: delegated vs application permissions, least-privilege scopes and consent for agent access to M365 data."
             },
             {
               "title": "OpenFGA (relationship-based access control)",
               "url": "https://openfga.dev/docs/fga",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on OpenFGA (relationship-based access control) that complements the Permission-Aware Retrieval and Data Security lesson with another author's explanation and examples."
+              "why": "OpenFGA docs: Zanzibar-inspired relationship-based access control modeling (with role and attribute options) and check APIs."
             },
             {
               "title": "Google Zanzibar paper",
               "url": "https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Google Zanzibar paper that complements the Permission-Aware Retrieval and Data Security lesson with another author's explanation and examples."
+              "level": "advanced",
+              "why": "Google's Zanzibar paper: a global, consistent authorization system for trillions of ACLs at millions of checks per second with p95 under 10 ms."
             },
             {
               "title": "OWASP Top 10 for LLM Applications",
               "url": "https://genai.owasp.org/llm-top-10/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP GenAI Security Project's 2025 Top 10 for LLM and GenAI apps, including the new system prompt leakage, vector/embedding weaknesses and unbounded consumption."
             }
           ],
           "project": "Index 200 documents with three permission groups. Implement retrieval with pre-filtering on ACL metadata and with an OpenFGA check, then attack it: query as a low-privilege user, poison the semantic cache, and revoke a group mid-session. Report leaks found, fixes and the latency overhead of each authorization method.",
@@ -1530,7 +1586,17 @@
               "Every derived store needs the same permissions."
             ],
             "diagram": "flowchart LR\n  SRC[Source docs + ACLs] --> ING[Ingest ACLs + labels]\n  ING --> IDX[(Index with principal IDs)]\n  U[User] --> PR[Resolve principals + groups]\n  PR --> PF[Pre-filtered search]\n  IDX --> PF\n  PF --> REBAC{Fine-grained check: ReBAC}\n  REBAC --> RES[Results]\n  REV[Revocations] --> ING",
-            "diagramAlt": "Diagram: source documents and ACLs are ingested into an index with principal IDs; a user's resolved principals drive a pre-filtered search, a fine-grained ReBAC check refines results, and revocations update the index."
+            "diagramAlt": "Diagram: source documents and ACLs are ingested into an index with principal IDs; a user's resolved principals drive a pre-filtered search, a fine-grained ReBAC check refines results, and revocations update the index.",
+            "case": {
+              "org": "Google",
+              "title": "Zanzibar: Google's Consistent, Global Authorization System (USENIX ATC 2019)",
+              "url": "https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/",
+              "summary": "Zanzibar stores relationship-based ACLs for many Google services. It handles trillions of ACLs and millions of authorization checks per second, with 95th-percentile latency under 10 ms and more than 99.999% availability over three years. Its ordering guarantees keep checks consistent as ACLs change.",
+              "lesson": "Fine-grained, relationship-based authorization can be fast and consistent enough to check on every retrieval, which is the model OpenFGA and SpiceDB follow."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Permission-aware retrieval: filter by the *requesting user's* ACLs before ranking.\ndocs = [{\"id\": \"hr-1\", \"text\": \"salary bands 2026\", \"acl\": {\"group:hr\"}},\n        {\"id\": \"kb-1\", \"text\": \"vpn setup guide\", \"acl\": {\"group:all\"}},\n        {\"id\": \"fin-1\", \"text\": \"q3 salary budget\", \"acl\": {\"group:finance\"}}]\nusers = {\"ana\": {\"group:all\", \"group:hr\"}, \"bo\": {\"group:all\"}}\ndef retrieve(user, query):\n    allowed = [d for d in docs if d[\"acl\"] & users[user]]           # pre-filter, never post-hoc\n    return [d[\"id\"] for d in allowed if any(w in d[\"text\"] for w in query.split())]\nprint(\"ana:\", retrieve(\"ana\", \"salary\"), \" bo:\", retrieve(\"bo\", \"salary\"))"
           }
         }
       ]
@@ -1550,21 +1616,21 @@
               "url": "https://martinfowler.com/articles/data-mesh-principles.html",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Data Mesh principles (Zhamak Dehghani) that complements the Data Products and Data Mesh for Agents lesson with another author's explanation and examples."
+              "why": "Zhamak Dehghani's data mesh principles: domain ownership, data as a product, self-serve platform and federated computational governance."
             },
             {
               "title": "Open Data Product Standard (Bitol)",
               "url": "https://bitol-io.github.io/open-data-product-standard/latest/",
               "kind": "docs",
-              "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "level": "intermediate",
+              "why": "Open Data Product Standard (Bitol): a spec describing data products, their ports, management and contracts."
             },
             {
               "title": "Databricks: What is a lakehouse",
               "url": "https://www.databricks.com/glossary/data-lakehouse",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Databricks documentation or guide on platform features discussed here."
+              "level": "intro",
+              "why": "Databricks glossary on the lakehouse: open formats with warehouse-style ACID, governance and BI on data lakes."
             }
           ],
           "project": "Package one domain (e.g. Support) as an AI-ready data product: gold tables with an ODCS contract, a semantic-layer metric set, a permission-aware ticket index, an MCP server, 25 example questions and an eval suite. Publish it in the catalog with an owner and SLA, then have a second team's agent consume it without help.",
@@ -1718,7 +1784,17 @@
               "Measure use and value."
             ],
             "diagram": "flowchart LR\n  DOM[Domain team] --> DP[Data product]\n  DP --> T[(Tables)]\n  DP --> M[Metrics]\n  DP --> IX[(Index)]\n  DP --> TL[MCP tools]\n  DP --> C[Contract + SLOs + evals]\n  PLAT[Self-serve platform + standards] -.-> DP\n  T --> AG[Agents]\n  M --> AG\n  IX --> AG\n  TL --> AG",
-            "diagramAlt": "Diagram: a domain team publishes a data product with tables, metrics, an index, MCP tools and a contract with SLOs and evals, on a self-serve platform with standards, consumed by agents."
+            "diagramAlt": "Diagram: a domain team publishes a data product with tables, metrics, an index, MCP tools and a contract with SLOs and evals, on a self-serve platform with standards, consumed by agents.",
+            "case": {
+              "org": "JPMorgan Chase",
+              "title": "How JPMorgan Chase built a data mesh architecture (AWS Big Data Blog)",
+              "url": "https://aws.amazon.com/blogs/big-data/how-jpmorgan-chase-built-a-data-mesh-architecture-to-drive-significant-value-to-enhance-their-enterprise-data-platform/",
+              "summary": "JPMC defines data products curated by the domain owners who understand the data. Each product's data sits in its own lake, made visible through a catalog (AWS Glue Data Catalog), shared under controls (Lake Formation) and queried in place (Athena).",
+              "lesson": "Data products with clear owners and controlled sharing let consumers, now including agents, use data without copying it everywhere."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# A data product descriptor: owner, interface, SLOs, and access policy\ndataProduct: customer-support-knowledge\nowner: support-data-team\noutputPorts:\n  - name: chunks_v2\n    type: table\n    location: lakehouse.ai.support_chunks_v2\n    schema: {chunk_id: string, doc_id: string, text: string, updated_at: timestamp, acl: array<string>}\nslo: {freshness_minutes: 60, completeness: 0.99}\naccess: {classification: internal, allowed_consumers: [rag-platform, analytics]}"
           }
         },
         {
@@ -1731,22 +1807,22 @@
               "title": "LangGraph memory concepts",
               "url": "https://langchain-ai.github.io/langgraph/concepts/memory/",
               "kind": "docs",
-              "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "level": "intermediate",
+              "why": "LangGraph memory concepts (moved to the new docs site): short-term thread state vs long-term stores, and semantic, episodic and procedural memory."
             },
             {
               "title": "Letta (MemGPT) docs",
               "url": "https://docs.letta.com/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Letta (MemGPT) docs that complements the Agent Memory, Feedback and Write-Back Data lesson with another author's explanation and examples."
+              "why": "Letta docs (from the MemGPT team): a platform for stateful agents with memory blocks, archival memory and an agent server."
             },
             {
               "title": "OpenTelemetry GenAI semantic conventions",
               "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/",
               "kind": "spec",
               "level": "reference",
-              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
+              "why": "OpenTelemetry GenAI semantic conventions: standard span and metric attributes for LLM calls, tokens, tools and agents (now in a dedicated repo)."
             }
           ],
           "project": "Add long-term memory to an agent with a typed schema (fact, source run, confidence, expiry, scope). Implement view/delete for users, a nightly job that expires and deduplicates memories, and a pipeline that turns thumbs-down traces into redacted eval cases. Show that a deleted memory no longer influences answers.",
@@ -1900,7 +1976,10 @@
               "Reconcile and learn from reversals."
             ],
             "diagram": "flowchart LR\n  AG[Agent run] --> MEM[(Typed memory: scoped, expiring)]\n  AG --> TR[(Redacted traces)]\n  U[User feedback] --> FB[(Feedback linked to context)]\n  AG --> API[Validated write API + idempotency key]\n  API --> SOR[(System of record)]\n  SOR --> REC[Reconciliation job]\n  AG -.run id.-> REC\n  REC --> SIG[Reversal / mismatch signals]",
-            "diagramAlt": "Diagram: an agent run writes typed memories, redacted traces and validated writes to a system of record; user feedback is linked to context; a reconciliation job compares runs and writes to produce reversal and mismatch signals."
+            "diagramAlt": "Diagram: an agent run writes typed memories, redacted traces and validated writes to a system of record; user feedback is linked to context; a reconciliation job compares runs and writes to produce reversal and mismatch signals.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import sqlite3, time\n# Write-back with provenance: memories record source, confidence and expiry, so they can be audited or forgotten.\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"CREATE TABLE memory(user TEXT, fact TEXT, source TEXT, confidence REAL, expires REAL)\")\ndef remember(user, fact, source, confidence, ttl_days=180):\n    if confidence < 0.7: return \"skipped (low confidence)\"\n    db.execute(\"INSERT INTO memory VALUES(?,?,?,?,?)\", (user, fact, source, confidence, time.time() + ttl_days*86400))\n    return \"stored\"\nprint(remember(\"u1\", \"prefers email over phone\", \"conversation:8812\", 0.9))\nprint(remember(\"u1\", \"might be moving\", \"conversation:8813\", 0.4))\ndb.execute(\"DELETE FROM memory WHERE user=?\", (\"u1\",))     # right-to-be-forgotten path\nprint(db.execute(\"SELECT COUNT(*) FROM memory\").fetchone())"
           }
         }
       ]
@@ -1920,21 +1999,21 @@
               "url": "https://sre.google/sre-book/service-level-objectives/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Google SRE chapter on SLOs: SLIs, SLOs and SLAs, choosing targets and using error budgets."
             },
             {
               "title": "Monte Carlo: What is data observability",
               "url": "https://www.montecarlodata.com/blog-what-is-data-observability/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Monte Carlo: What is data observability that complements the Data Ops for Agent Fleets lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Monte Carlo's explainer: the five pillars of data observability (freshness, distribution, volume, schema, lineage)."
             },
             {
               "title": "FinOps Foundation: FinOps for AI",
               "url": "https://www.finops.org/wg/finops-for-ai-overview/",
               "kind": "framework",
               "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "why": "FinOps Foundation's FinOps for AI: tokenomics, AI cost allocation, unit economics and optimization levers for AI spend."
             }
           ],
           "project": "Define freshness, availability and quality SLOs for three data products used by agents. Build a dashboard with per-agent warehouse/search/embedding cost, simulate a bad data load, and run a game day: detect it, use lineage to list affected agent runs, pause dependent agents and write the post-incident review.",
@@ -2089,7 +2168,10 @@
               "Lineage-driven incident response."
             ],
             "diagram": "flowchart LR\n  DATA[(Datasets with SLIs)] --> SLO{SLO met?}\n  SLO -->|yes| AUTO[Agents act autonomously]\n  SLO -->|no| RO[Agents read-only / paused]\n  INC[Bad data detected] --> LIN[Lineage: blast radius]\n  LIN --> PAUSE[Pause dependent agents]\n  PAUSE --> FIX[Fix + backfill]\n  FIX --> RERUN[Re-run affected tasks]\n  RERUN --> PIR[Post-incident review]",
-            "diagramAlt": "Diagram: datasets with SLIs gate whether agents act autonomously or go read-only; bad-data incidents use lineage to find the blast radius, pause agents, fix and backfill, re-run tasks and review."
+            "diagramAlt": "Diagram: datasets with SLIs gate whether agents act autonomously or go read-only; bad-data incidents use lineage to find the blast radius, pause agents, fix and backfill, re-run tasks and review.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "sql",
+            "code": "-- Daily fleet health from agent run logs: success, cost and tail latency per agent\nSELECT agent_name,\n       DATE(started_at)                                         AS day,\n       COUNT(*)                                                 AS runs,\n       AVG(CASE WHEN outcome = 'success' THEN 1.0 ELSE 0 END)   AS success_rate,\n       SUM(cost_usd)                                            AS cost_usd,\n       PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_s) AS p95_duration_s\nFROM   agent_runs\nWHERE  started_at >= CURRENT_DATE - INTERVAL '7 days'\nGROUP  BY agent_name, DATE(started_at)\nORDER  BY day DESC, cost_usd DESC;"
           }
         }
       ]
