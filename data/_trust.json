@@ -1,0 +1,1795 @@
+{
+  "id": "trust",
+  "name": "AgentOps, Evals, Security & Governance",
+  "icon": "trust",
+  "role": "Keeps agent fleets reliable, measurable, secure and compliant 24/7. Day to day: tracing, SLOs, queues and durable execution, eval pipelines, threat models and red teams, cloud IAM, policy-as-code gates, audit evidence and regulatory controls mapping.",
+  "levels": [
+    {
+      "id": "t-l1",
+      "name": "L1 Foundations",
+      "subjects": [
+        {
+          "id": "t-agentops",
+          "title": "Agent Ops Foundations: Tracing, Metrics and SLOs",
+          "why": "You cannot operate what you cannot see; an agent run is a tree of model calls, tool calls and decisions that must be traceable end to end.",
+          "explainer": "Agent Ops is SRE for systems that think in loops. A single user request may fan out into dozens of LLM calls, retrievals and tool invocations across minutes or hours. Traditional request logs cannot explain why it failed or cost $4.\n\nThe foundation is distributed tracing with the OpenTelemetry GenAI semantic conventions: each run is a trace; each model call, tool call and retrieval is a span with attributes such as model, input and output tokens, latency, cost, tool name and outcome. Platforms like Langfuse, Arize Phoenix, LangSmith, Braintrust and Datadog LLM Observability visualize these trees, but the data model matters more than the vendor.\n\nOn top of traces you define SLIs and SLOs: task success rate, p95 time-to-complete, cost per task, escalation rate, tool error rate, and safety violations. Dashboards and alerts watch these, not just CPU.\n\nCommon mistakes: logging only the final answer; no run ID linking a user complaint to a trace; no cost per span; alerts on HTTP 500s while the agent quietly returns wrong answers with 200 OK.\n\nMental model: a trace is the flight recorder; SLOs are the instruments you fly by.",
+          "resources": [
+            {
+              "title": "OpenTelemetry GenAI semantic conventions",
+              "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+            },
+            {
+              "title": "Langfuse docs",
+              "url": "https://langfuse.com/docs"
+            },
+            {
+              "title": "Arize Phoenix docs",
+              "url": "https://arize.com/docs/phoenix"
+            },
+            {
+              "title": "Google SRE: Monitoring distributed systems",
+              "url": "https://sre.google/sre-book/monitoring-distributed-systems/"
+            }
+          ],
+          "project": "Instrument an agent with OpenTelemetry GenAI spans exported to Langfuse or Phoenix. Add run_id, user/tenant, cost and outcome attributes. Define four SLOs (task success, p95 latency, cost per task, tool error rate), build a dashboard, and inject three failures (tool timeout, bad retrieval, loop) to confirm each is visible and alertable.",
+          "topics": [
+            {
+              "id": "t-agentops-t1",
+              "title": "Tracing agent runs",
+              "explainer": "Model each run as one trace with nested spans: the planner call, each tool call, each retrieval and each sub-agent. Record model name and version, prompt template version, token counts, latency, cost, tool arguments (redacted) and result status. Propagate trace context across queues and services so asynchronous steps stay in the same tree. Sampling must keep all failed and expensive runs. With this, 'why did this run take 9 minutes?' becomes a click instead of a week.",
+              "subtopics": [
+                {
+                  "id": "t-agentops-t1-s1",
+                  "title": "Run, span and attribute model"
+                },
+                {
+                  "id": "t-agentops-t1-s2",
+                  "title": "GenAI semantic conventions"
+                },
+                {
+                  "id": "t-agentops-t1-s3",
+                  "title": "Context propagation across queues"
+                },
+                {
+                  "id": "t-agentops-t1-s4",
+                  "title": "Redaction at capture"
+                },
+                {
+                  "id": "t-agentops-t1-s5",
+                  "title": "Tail-based sampling for failures"
+                }
+              ]
+            },
+            {
+              "id": "t-agentops-t2",
+              "title": "SLIs and SLOs for agents",
+              "explainer": "Agents need outcome-based indicators. Task success rate (judged by evals or downstream signals), time to complete, cost per successful task, human escalation rate, tool error rate, and policy violation rate. Set SLO targets per agent and per tier, with error budgets that gate releases: if the success SLO is burning, freeze prompt and model changes. Pair SLOs with business KPIs so operations and product talk about the same numbers.",
+              "subtopics": [
+                {
+                  "id": "t-agentops-t2-s1",
+                  "title": "Outcome vs infrastructure metrics"
+                },
+                {
+                  "id": "t-agentops-t2-s2",
+                  "title": "Task success and escalation rate"
+                },
+                {
+                  "id": "t-agentops-t2-s3",
+                  "title": "Cost per successful task"
+                },
+                {
+                  "id": "t-agentops-t2-s4",
+                  "title": "Error budgets gating releases"
+                },
+                {
+                  "id": "t-agentops-t2-s5",
+                  "title": "Per-tenant SLO views"
+                }
+              ]
+            },
+            {
+              "id": "t-agentops-t3",
+              "title": "Dashboards and alerting",
+              "explainer": "Build a fleet overview (runs, success, cost, latency by agent), a per-agent drill-down, and a trace explorer. Alert on symptoms users feel: success rate drop, latency SLO burn, cost spikes, loops (runs exceeding step limits), and spikes in refusals or guardrail blocks. Route alerts to the owning team with links to example traces. Avoid alerting on every single model error; LLM APIs fail transiently, and retries usually handle it.",
+              "subtopics": [
+                {
+                  "id": "t-agentops-t3-s1",
+                  "title": "Fleet overview dashboards"
+                },
+                {
+                  "id": "t-agentops-t3-s2",
+                  "title": "Burn-rate alerts"
+                },
+                {
+                  "id": "t-agentops-t3-s3",
+                  "title": "Loop and runaway detection"
+                },
+                {
+                  "id": "t-agentops-t3-s4",
+                  "title": "Cost anomaly alerts"
+                },
+                {
+                  "id": "t-agentops-t3-s5",
+                  "title": "Alert routing with example traces"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Which is the best primary SLI for a support agent?",
+              "choices": [
+                "GPU utilization",
+                "Number of tokens",
+                "HTTP 200 rate",
+                "Task success rate"
+              ],
+              "answer": 3,
+              "why": "Outcome metrics capture what users feel; HTTP 200 can hide wrong answers."
+            },
+            {
+              "q": "Why propagate trace context across queues?",
+              "choices": [
+                "To encrypt messages",
+                "So asynchronous steps stay in one run trace",
+                "It is required by Kafka",
+                "To reduce cost"
+              ],
+              "answer": 1,
+              "why": "Context propagation keeps long, async runs debuggable as one tree."
+            },
+            {
+              "q": "What should tail-based sampling always keep?",
+              "choices": [
+                "Only successful runs",
+                "Random 1%",
+                "Failed and expensive runs",
+                "Nothing"
+              ],
+              "answer": 2,
+              "why": "Failures and outliers are the traces you need for debugging."
+            }
+          ],
+          "conceptIds": [
+            "agentops-loop"
+          ]
+        },
+        {
+          "id": "t-evalfound",
+          "title": "Eval Engineering Foundations: Golden Sets and Metrics",
+          "why": "Evals are the unit tests, regression suite and product spec of an AI system; without them every change is a guess.",
+          "explainer": "An AI Evals Engineer designs measurements that predict whether users will be helped. Start with error analysis, not metrics: read 50-100 real traces, write down failure modes, cluster them, and only then decide what to measure. This produces task-specific criteria such as 'cites a source for every claim' or 'never offers refunds over $200'.\n\nA golden set is a curated, versioned collection of inputs with expected outputs or grading rubrics, covering common cases, edge cases and known failures. Graders range from exact match and code checks (cheapest, most reliable), to reference-based similarity, to LLM-as-judge for subjective qualities, to human review. Run the suite in CI on every prompt, model, tool or retrieval change and track scores over time.\n\nCommon mistakes: generic metrics like 'helpfulness 1-10'; tiny sets with no edge cases; synthetic data that does not resemble production; evals that never fail because they test nothing hard.\n\nMental model: if you cannot write the test, you do not yet know what 'good' means.",
+          "resources": [
+            {
+              "title": "Hamel Husain: Your AI product needs evals",
+              "url": "https://hamel.dev/blog/posts/evals/"
+            },
+            {
+              "title": "OpenAI Evals guide",
+              "url": "https://platform.openai.com/docs/guides/evals"
+            },
+            {
+              "title": "Inspect AI (UK AISI) docs",
+              "url": "https://inspect.aisi.org.uk/"
+            },
+            {
+              "title": "promptfoo docs",
+              "url": "https://www.promptfoo.dev/docs/intro/"
+            }
+          ],
+          "project": "Pull 100 traces from an agent, do open coding of failures, cluster into 5-8 failure modes, and build a 60-case golden set with code-based and rubric graders. Wire it into CI with promptfoo or Inspect so a PR that drops any failure-mode score by more than 5 points is blocked.",
+          "topics": [
+            {
+              "id": "t-evalfound-t1",
+              "title": "Error analysis first",
+              "explainer": "Read real traces and annotate what went wrong in plain words (open coding). Group annotations into categories (axial coding) such as wrong tool, hallucinated policy, missed context, formatting error. Count them. The biggest buckets tell you what to fix and what to measure. Repeat after each major change, because failure modes shift. This qualitative step is what separates useful evals from vanity dashboards, and it is fast: an afternoon with a spreadsheet beats a month of generic metrics.",
+              "subtopics": [
+                {
+                  "id": "t-evalfound-t1-s1",
+                  "title": "Sampling traces for review"
+                },
+                {
+                  "id": "t-evalfound-t1-s2",
+                  "title": "Open coding of failures"
+                },
+                {
+                  "id": "t-evalfound-t1-s3",
+                  "title": "Clustering into failure modes"
+                },
+                {
+                  "id": "t-evalfound-t1-s4",
+                  "title": "Prioritizing by frequency and impact"
+                },
+                {
+                  "id": "t-evalfound-t1-s5",
+                  "title": "Re-running analysis after changes"
+                }
+              ]
+            },
+            {
+              "id": "t-evalfound-t2",
+              "title": "Building golden sets",
+              "explainer": "A golden set should mirror production distribution plus deliberate edge cases and every past incident. Each case has an input, context or fixtures (documents, tool mocks), and either an expected output, assertions or a rubric. Version it like code, track provenance (production, synthetic, red team) and refresh it as the product changes. Keep a held-out slice you never tune against, or scores will rise while real quality stalls.",
+              "subtopics": [
+                {
+                  "id": "t-evalfound-t2-s1",
+                  "title": "Coverage: common, edge, incident cases"
+                },
+                {
+                  "id": "t-evalfound-t2-s2",
+                  "title": "Fixtures and tool mocks"
+                },
+                {
+                  "id": "t-evalfound-t2-s3",
+                  "title": "Assertions vs references vs rubrics"
+                },
+                {
+                  "id": "t-evalfound-t2-s4",
+                  "title": "Versioning and provenance"
+                },
+                {
+                  "id": "t-evalfound-t2-s5",
+                  "title": "Held-out sets against overfitting"
+                }
+              ]
+            },
+            {
+              "id": "t-evalfound-t3",
+              "title": "Graders and CI integration",
+              "explainer": "Prefer deterministic graders: JSON schema validity, exact values, regex, tool-call correctness and SQL execution results. Use LLM judges for qualities code cannot check, with binary or small-scale rubrics. Report per-failure-mode scores, not one average. Run fast suites on every PR and full suites nightly, compare against the main branch with confidence intervals, and block merges on significant regressions. Store results so you can see trends and attribute changes.",
+              "subtopics": [
+                {
+                  "id": "t-evalfound-t3-s1",
+                  "title": "Code-based graders"
+                },
+                {
+                  "id": "t-evalfound-t3-s2",
+                  "title": "Rubric-based LLM judges"
+                },
+                {
+                  "id": "t-evalfound-t3-s3",
+                  "title": "Per-category scoring"
+                },
+                {
+                  "id": "t-evalfound-t3-s4",
+                  "title": "PR vs nightly suites"
+                },
+                {
+                  "id": "t-evalfound-t3-s5",
+                  "title": "Regression gates with confidence intervals"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "What should come before choosing eval metrics?",
+              "choices": [
+                "Increasing context length",
+                "Fine-tuning",
+                "Error analysis of real traces",
+                "Buying an eval platform"
+              ],
+              "answer": 2,
+              "why": "Metrics should come from observed failure modes."
+            },
+            {
+              "q": "Which grader should you prefer when possible?",
+              "choices": [
+                "None",
+                "LLM-as-judge",
+                "Deterministic code-based checks",
+                "Human review for everything"
+              ],
+              "answer": 2,
+              "why": "Code checks are cheap, fast and reliable."
+            },
+            {
+              "q": "Why keep a held-out eval slice?",
+              "choices": [
+                "It is legally required",
+                "To detect overfitting prompts to the visible set",
+                "To speed CI",
+                "To save tokens"
+              ],
+              "answer": 1,
+              "why": "Tuning against all cases inflates scores without real improvement."
+            }
+          ],
+          "conceptIds": [
+            "eval-pipeline"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "t-l2",
+      "name": "L2 Practitioner",
+      "subjects": [
+        {
+          "id": "t-durable",
+          "title": "Queues, Durable Execution and Reliable Agent Workflows",
+          "why": "Agents that run for minutes or days will hit crashes, deploys, rate limits and timeouts; durable execution makes them resume instead of restart.",
+          "explainer": "Short chat turns can run in a request handler. Real agent work — processing a claim, migrating a codebase, reconciling invoices — runs long, calls flaky APIs and waits for humans. That needs queues and durable workflows.\n\nQueues (SQS, Pub/Sub, Kafka, RabbitMQ, Redis streams) decouple intake from processing, absorb bursts and give backpressure. Durable execution engines (Temporal, Restate, AWS Step Functions, DBOS, Inngest, LangGraph checkpointing) persist each step's result so a crashed worker resumes from the last completed step, timers can wait for days, and human approvals become signals the workflow waits on.\n\nThe key discipline: workflow code is deterministic orchestration; side effects (LLM calls, tool calls) run as activities with retries, timeouts and idempotency keys. Rate limiting and concurrency caps per provider and per tenant prevent one customer's batch from starving others.\n\nCommon mistakes: in-memory agent loops that lose hours of work on deploy; retries without idempotency that double-charge customers; unbounded concurrency hitting provider 429s.\n\nMental model: the workflow engine is the agent's save-game system.",
+          "resources": [
+            {
+              "title": "Temporal documentation",
+              "url": "https://docs.temporal.io/"
+            },
+            {
+              "title": "Restate docs",
+              "url": "https://docs.restate.dev/"
+            },
+            {
+              "title": "LangGraph persistence",
+              "url": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+            },
+            {
+              "title": "AWS Step Functions developer guide",
+              "url": "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html"
+            }
+          ],
+          "project": "Implement a document-review agent as a Temporal (or Restate) workflow: retrieve, analyze per section, wait for human approval, then write back. Kill workers mid-run and redeploy; prove it resumes without repeating completed LLM calls. Add per-tenant concurrency limits and show a burst from one tenant does not starve another.",
+          "topics": [
+            {
+              "id": "t-durable-t1",
+              "title": "Queues, backpressure and fairness",
+              "explainer": "Put a queue between intake and agent workers. It absorbs spikes, lets you scale workers on queue depth, and gives a place for dead-letter handling when a task fails repeatedly. Implement fairness: per-tenant queues or weighted scheduling so one large customer cannot monopolize capacity. Apply backpressure upstream when queues grow, by returning 'accepted, processing' with status polling rather than holding connections open. Watch age of oldest message as a key SLI.",
+              "subtopics": [
+                {
+                  "id": "t-durable-t1-s1",
+                  "title": "Work queues and consumers"
+                },
+                {
+                  "id": "t-durable-t1-s2",
+                  "title": "Dead-letter queues"
+                },
+                {
+                  "id": "t-durable-t1-s3",
+                  "title": "Autoscaling on queue depth"
+                },
+                {
+                  "id": "t-durable-t1-s4",
+                  "title": "Per-tenant fairness"
+                },
+                {
+                  "id": "t-durable-t1-s5",
+                  "title": "Age-of-oldest-message SLI"
+                }
+              ]
+            },
+            {
+              "id": "t-durable-t2",
+              "title": "Durable execution model",
+              "explainer": "Durable engines record an event history of every step. If a worker dies, another replays the history to rebuild state and continues from the next step without re-executing completed activities. This requires deterministic workflow code: no random numbers, clocks or direct network calls inside the orchestrator; those go in activities. Long waits use durable timers; human approvals are signals. Versioning workflow code matters, because in-flight runs started on old code must still replay correctly.",
+              "subtopics": [
+                {
+                  "id": "t-durable-t2-s1",
+                  "title": "Event history and replay"
+                },
+                {
+                  "id": "t-durable-t2-s2",
+                  "title": "Workflows vs activities"
+                },
+                {
+                  "id": "t-durable-t2-s3",
+                  "title": "Determinism rules"
+                },
+                {
+                  "id": "t-durable-t2-s4",
+                  "title": "Durable timers and signals"
+                },
+                {
+                  "id": "t-durable-t2-s5",
+                  "title": "Workflow versioning"
+                }
+              ]
+            },
+            {
+              "id": "t-durable-t3",
+              "title": "Retries, timeouts and idempotency",
+              "explainer": "Every external call needs a timeout, a retry policy with exponential backoff and jitter, and a maximum attempts count. Distinguish retryable errors (429, 503, timeouts) from permanent ones (400, policy refusal). Make side effects idempotent using keys derived from the workflow and step IDs, so a retry after an ambiguous timeout does not send two emails. Respect provider rate limits with token buckets per model and per tenant, and fail over to alternate models through the gateway when one is degraded.",
+              "subtopics": [
+                {
+                  "id": "t-durable-t3-s1",
+                  "title": "Timeouts and backoff with jitter"
+                },
+                {
+                  "id": "t-durable-t3-s2",
+                  "title": "Retryable vs permanent errors"
+                },
+                {
+                  "id": "t-durable-t3-s3",
+                  "title": "Idempotency keys from step IDs"
+                },
+                {
+                  "id": "t-durable-t3-s4",
+                  "title": "Rate limiting with token buckets"
+                },
+                {
+                  "id": "t-durable-t3-s5",
+                  "title": "Model failover via gateway"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "In a durable workflow, where should LLM and tool calls run?",
+              "choices": [
+                "Directly in workflow code",
+                "In the browser",
+                "In a cron job",
+                "In activities with retries and timeouts"
+              ],
+              "answer": 3,
+              "why": "Workflow code must be deterministic; side effects go in activities."
+            },
+            {
+              "q": "A worker crashes after 3 of 5 steps. With durable execution, what happens?",
+              "choices": [
+                "Another worker resumes at step 4 without redoing steps 1-3",
+                "All steps are retried twice",
+                "The run is lost",
+                "The run restarts from step 1"
+              ],
+              "answer": 0,
+              "why": "Event history replay restores state and continues."
+            },
+            {
+              "q": "Which error should generally NOT be retried?",
+              "choices": [
+                "503 unavailable",
+                "400 bad request",
+                "Timeout",
+                "429 rate limit"
+              ],
+              "answer": 1,
+              "why": "Client errors are permanent; retrying wastes budget."
+            }
+          ],
+          "conceptIds": [
+            "agentops-loop"
+          ]
+        },
+        {
+          "id": "t-judge",
+          "title": "LLM-as-Judge Calibration and Online Evals",
+          "why": "An uncalibrated judge is just another model's opinion; calibrated judges plus production signals let you measure quality continuously.",
+          "explainer": "LLM-as-judge scales evaluation of subjective qualities: faithfulness to sources, tone, policy compliance, whether a plan is reasonable. It is only trustworthy once calibrated against human labels.\n\nCalibration process: domain experts label 100-300 examples with a binary pass/fail and a critique; write a judge prompt with the criteria and few-shot examples; measure agreement (true positive and true negative rates, or Cohen's kappa) on a held-out labeled split; iterate until agreement is acceptable; then re-check periodically and after judge model changes. Known biases include position bias, verbosity bias, and self-preference for the judge's own model family.\n\nOnline evals run in production: sample live traffic, run judges and code checks asynchronously, combine with implicit signals (escalations, retries, edits) and explicit feedback, and alert on drift. Offline evals gate releases; online evals catch what the golden set missed.\n\nCommon mistakes: 1-10 scales nobody can calibrate; judges that see the reference answer leaked into the candidate; trusting one aggregate score.\n\nMental model: a judge is a classifier. Measure its precision and recall like any classifier.",
+          "resources": [
+            {
+              "title": "Judging LLM-as-a-Judge (Zheng et al.)",
+              "url": "https://arxiv.org/abs/2306.05685"
+            },
+            {
+              "title": "Eugene Yan: Evaluating LLM-evaluators",
+              "url": "https://eugeneyan.com/writing/llm-evaluators/"
+            },
+            {
+              "title": "Hamel Husain: Creating an LLM-as-a-judge",
+              "url": "https://hamel.dev/blog/posts/llm-judge/"
+            }
+          ],
+          "project": "Label 150 agent responses pass/fail with critiques. Build a judge, measure TPR/TNR and kappa on a 50-example held-out split, fix position and verbosity bias, then deploy it as an online eval on 5% of traffic with a dashboard and drift alert.",
+          "topics": [
+            {
+              "id": "t-judge-t1",
+              "title": "Designing judge prompts",
+              "explainer": "Use binary or three-level judgments tied to one criterion per judge, with a clear definition, pass and fail examples, and a request for a short critique before the verdict. Give the judge the same context the agent had (retrieved documents, tool results) so it can check faithfulness. Randomize the order in pairwise comparisons and avoid exposing which output is the baseline. Small, specific judges are easier to calibrate and debug than one judge scoring everything.",
+              "subtopics": [
+                {
+                  "id": "t-judge-t1-s1",
+                  "title": "One criterion per judge"
+                },
+                {
+                  "id": "t-judge-t1-s2",
+                  "title": "Binary verdicts with critiques"
+                },
+                {
+                  "id": "t-judge-t1-s3",
+                  "title": "Few-shot pass/fail examples"
+                },
+                {
+                  "id": "t-judge-t1-s4",
+                  "title": "Providing source context"
+                },
+                {
+                  "id": "t-judge-t1-s5",
+                  "title": "Pairwise vs pointwise judging"
+                }
+              ]
+            },
+            {
+              "id": "t-judge-t2",
+              "title": "Measuring judge agreement",
+              "explainer": "Treat the judge as a classifier against expert labels. Report true positive rate (passes the judge also passes) and true negative rate (failures the judge catches) separately, because judges often miss failures while agreeing on easy passes. Cohen's kappa adjusts for chance agreement. Use the measured error rates to correct observed pass rates when reporting. Recalibrate when the judge model, prompt, or product domain changes.",
+              "subtopics": [
+                {
+                  "id": "t-judge-t2-s1",
+                  "title": "Expert labeling protocol"
+                },
+                {
+                  "id": "t-judge-t2-s2",
+                  "title": "TPR, TNR and kappa"
+                },
+                {
+                  "id": "t-judge-t2-s3",
+                  "title": "Held-out calibration split"
+                },
+                {
+                  "id": "t-judge-t2-s4",
+                  "title": "Bias tests: position, length, self-preference"
+                },
+                {
+                  "id": "t-judge-t2-s5",
+                  "title": "Correcting pass rates for judge error"
+                }
+              ]
+            },
+            {
+              "id": "t-judge-t3",
+              "title": "Online evals and feedback loops",
+              "explainer": "Sample production traces, run judges and deterministic checks asynchronously, and store scores on the trace. Watch for drift by cohort, such as a new customer segment or document type. Combine judge scores with behavioral signals like escalations, user edits and repeat questions. Send low-scoring traces to human review queues, and promote confirmed failures to the golden set. This closes the loop between production and development.",
+              "subtopics": [
+                {
+                  "id": "t-judge-t3-s1",
+                  "title": "Sampling strategy and cost"
+                },
+                {
+                  "id": "t-judge-t3-s2",
+                  "title": "Async scoring pipelines"
+                },
+                {
+                  "id": "t-judge-t3-s3",
+                  "title": "Cohort drift detection"
+                },
+                {
+                  "id": "t-judge-t3-s4",
+                  "title": "Human review queues"
+                },
+                {
+                  "id": "t-judge-t3-s5",
+                  "title": "Promoting failures to golden sets"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A judge agrees with humans 92% overall but catches only 40% of real failures. Which metric exposes this?",
+              "choices": [
+                "Latency",
+                "Token count",
+                "True negative rate (failure detection)",
+                "Accuracy"
+              ],
+              "answer": 2,
+              "why": "Overall agreement hides poor failure detection when passes dominate."
+            },
+            {
+              "q": "Which judge format is easiest to calibrate?",
+              "choices": [
+                "Emoji rating",
+                "Free-form essay",
+                "Binary pass/fail on one criterion with critique",
+                "1-10 holistic score"
+              ],
+              "answer": 2,
+              "why": "Binary, single-criterion judgments produce reliable agreement."
+            },
+            {
+              "q": "What do online evals add beyond offline golden sets?",
+              "choices": [
+                "Detection of real-world drift and failures the golden set missed",
+                "Nothing",
+                "Lower cost",
+                "Faster CI"
+              ],
+              "answer": 0,
+              "why": "Production traffic surfaces cases offline sets do not contain."
+            }
+          ],
+          "conceptIds": [
+            "eval-pipeline"
+          ]
+        },
+        {
+          "id": "t-cloudsec",
+          "title": "Cloud Security for AI Workloads",
+          "why": "Agents run on cloud identities with real permissions; IAM, network and key management decide the blast radius when something goes wrong.",
+          "explainer": "A Cloud Security Engineer for AI applies classic cloud controls to new assets: model endpoints, vector stores, agent runtimes, training buckets and MCP servers. The fundamentals still dominate breaches: over-privileged identities, public storage, leaked keys and flat networks.\n\nCore controls: least-privilege IAM with workload identity (IRSA/EKS Pod Identity, GKE Workload Identity, Azure Workload Identity) instead of long-lived keys; private endpoints (AWS PrivateLink, Private Service Connect, Azure Private Link) to model APIs and data stores; egress control so agents can only reach allow-listed domains; encryption with customer-managed keys (KMS) for weights, embeddings and logs; secrets managers rather than environment variables; and CSPM/CNAPP tools (Wiz, Prisma Cloud, Defender for Cloud, Security Hub) continuously scanning for misconfigurations, including AI-specific ones such as public notebooks or unrestricted model endpoints (AI-SPM).\n\nCompliance frameworks (SOC 2, ISO 27001, CIS Benchmarks, FedRAMP) translate into these same controls with evidence.\n\nCommon mistakes: one agent service account with admin rights; API keys in prompts or repos; vector DBs exposed publicly; no egress control, so an injected agent can exfiltrate to any URL.\n\nMental model: the agent's cloud identity is its real permission set. Prompts are suggestions; IAM is law.",
+          "resources": [
+            {
+              "title": "AWS Security Reference Architecture",
+              "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/security-reference-architecture/welcome.html"
+            },
+            {
+              "title": "Google Cloud: Workload Identity Federation",
+              "url": "https://cloud.google.com/iam/docs/workload-identity-federation"
+            },
+            {
+              "title": "CIS Benchmarks",
+              "url": "https://www.cisecurity.org/cis-benchmarks"
+            },
+            {
+              "title": "AWS Bedrock security",
+              "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/security.html"
+            }
+          ],
+          "project": "With Terraform, deploy an agent on Kubernetes using workload identity (no static keys), a private endpoint to a model API and object store, a KMS key for the vector store, and an egress allowlist. Run Prowler or a CSPM scan, fix the findings, then show that a simulated prompt injection asking the agent to POST data to an external URL is blocked at the network layer.",
+          "topics": [
+            {
+              "id": "t-cloudsec-t1",
+              "title": "Identity and least privilege",
+              "explainer": "Give every agent and tool its own workload identity mapped to a narrowly scoped role; never share one service account across agents. Use short-lived credentials via federation instead of static keys. Separate read and write permissions, and scope resources by tenant where possible. Regularly analyze unused permissions with access analyzers and remove them. For user-facing agents, combine the workload identity with the user's delegated token so downstream systems see both who and what is acting.",
+              "subtopics": [
+                {
+                  "id": "t-cloudsec-t1-s1",
+                  "title": "Workload identity on EKS/GKE/AKS"
+                },
+                {
+                  "id": "t-cloudsec-t1-s2",
+                  "title": "Short-lived federated credentials"
+                },
+                {
+                  "id": "t-cloudsec-t1-s3",
+                  "title": "Per-agent, per-tool roles"
+                },
+                {
+                  "id": "t-cloudsec-t1-s4",
+                  "title": "Unused-permission analysis"
+                },
+                {
+                  "id": "t-cloudsec-t1-s5",
+                  "title": "Combining workload and user identity"
+                }
+              ]
+            },
+            {
+              "id": "t-cloudsec-t2",
+              "title": "Network, keys and secrets",
+              "explainer": "Keep model endpoints, vector stores and data services on private networks reached through private endpoints. Control egress with proxies or firewalls and an allowlist of domains, which is the most effective defense against data exfiltration by a hijacked agent. Encrypt data at rest with customer-managed KMS keys and restrict key usage to specific roles. Store secrets in a secrets manager, inject at runtime, rotate automatically and never place them in prompts or model context.",
+              "subtopics": [
+                {
+                  "id": "t-cloudsec-t2-s1",
+                  "title": "Private endpoints to model APIs"
+                },
+                {
+                  "id": "t-cloudsec-t2-s2",
+                  "title": "Egress allowlists and proxies"
+                },
+                {
+                  "id": "t-cloudsec-t2-s3",
+                  "title": "Customer-managed KMS keys"
+                },
+                {
+                  "id": "t-cloudsec-t2-s4",
+                  "title": "Secrets managers and rotation"
+                },
+                {
+                  "id": "t-cloudsec-t2-s5",
+                  "title": "Keeping secrets out of context"
+                }
+              ]
+            },
+            {
+              "id": "t-cloudsec-t3",
+              "title": "CSPM, AI-SPM and compliance evidence",
+              "explainer": "Cloud security posture management continuously checks configurations against benchmarks and policies: public buckets, open security groups, unencrypted volumes, over-privileged roles. AI-SPM extends this to AI assets: inventory of models, endpoints, notebooks and datasets, and checks for exposed endpoints or sensitive data in training buckets. Map findings to compliance controls (SOC 2, ISO 27001, CIS) and export evidence automatically, so audits become a report instead of a fire drill.",
+              "subtopics": [
+                {
+                  "id": "t-cloudsec-t3-s1",
+                  "title": "CSPM/CNAPP scanning"
+                },
+                {
+                  "id": "t-cloudsec-t3-s2",
+                  "title": "AI asset inventory (AI-SPM)"
+                },
+                {
+                  "id": "t-cloudsec-t3-s3",
+                  "title": "Benchmark and custom policies"
+                },
+                {
+                  "id": "t-cloudsec-t3-s4",
+                  "title": "Mapping findings to frameworks"
+                },
+                {
+                  "id": "t-cloudsec-t3-s5",
+                  "title": "Automated evidence export"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "What is the most effective network control against exfiltration by a hijacked agent?",
+              "choices": [
+                "An egress allowlist",
+                "Bigger firewall logs",
+                "More GPUs",
+                "Public subnets"
+              ],
+              "answer": 0,
+              "why": "If the agent cannot reach arbitrary hosts, injected exfiltration fails."
+            },
+            {
+              "q": "Why use workload identity instead of static API keys?",
+              "choices": [
+                "Short-lived, scoped credentials with no long-lived secret to leak",
+                "It is faster",
+                "It removes IAM",
+                "Keys are not supported"
+              ],
+              "answer": 0,
+              "why": "Federated short-lived credentials eliminate a major leak vector."
+            },
+            {
+              "q": "Where should an agent's API secrets live?",
+              "choices": [
+                "In a secrets manager, injected at runtime",
+                "In the system prompt",
+                "In the vector store",
+                "In the repo"
+              ],
+              "answer": 0,
+              "why": "Secrets in prompts or repos leak; managers rotate and audit access."
+            }
+          ],
+          "conceptIds": [
+            "policy-gate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "t-l3",
+      "name": "L3 Advanced",
+      "subjects": [
+        {
+          "id": "t-threat",
+          "title": "AI Threat Modeling, Red Teaming and Sandboxing",
+          "why": "Agents combine untrusted input, private data and the power to act; security engineering must assume the model will be manipulated.",
+          "explainer": "An AI Security Engineer threat-models agentic systems, red-teams them before and after launch, and builds containment so that a compromised model cannot do serious harm.\n\nThreat modeling: diagram data flows, trust boundaries and tools; apply STRIDE plus AI-specific catalogs such as the OWASP Top 10 for LLM Applications, OWASP's agentic threats guidance and MITRE ATLAS. Key risks: direct and indirect prompt injection, sensitive data disclosure, excessive agency, insecure tool and MCP integrations, supply chain (malicious models, packages, MCP servers), memory poisoning and denial of wallet. Simon Willison's 'lethal trifecta' — private data, untrusted content and an exfiltration channel in one agent — is a quick test for unacceptable designs.\n\nRed teaming: manual adversarial testing plus automated tools (PyRIT, garak, promptfoo red team) run in CI. Sandboxing: run code-executing and browsing agents in isolated containers or microVMs (gVisor, Firecracker) with no credentials, restricted filesystems and egress allowlists.\n\nCommon mistakes: relying on a prompt-injection classifier as the only defense; letting agents run shell commands on the host; testing once before launch and never again.\n\nMental model: design as if the model is an untrusted insider who can be talked into anything.",
+          "resources": [
+            {
+              "title": "OWASP Top 10 for LLM Applications",
+              "url": "https://genai.owasp.org/llm-top-10/"
+            },
+            {
+              "title": "MITRE ATLAS",
+              "url": "https://atlas.mitre.org/"
+            },
+            {
+              "title": "Microsoft PyRIT",
+              "url": "https://github.com/Azure/PyRIT"
+            },
+            {
+              "title": "Simon Willison: The lethal trifecta",
+              "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/"
+            },
+            {
+              "title": "gVisor documentation",
+              "url": "https://gvisor.dev/docs/"
+            }
+          ],
+          "project": "Threat-model an email-triage agent with tools (read inbox, search docs, send email). Identify lethal-trifecta paths, then red-team with 30 indirect injection payloads using promptfoo or PyRIT. Implement mitigations (tool separation, human approval for external sends, egress allowlist, sandboxed attachment parsing) and re-run to show the attack success rate before and after.",
+          "topics": [
+            {
+              "id": "t-threat-t1",
+              "title": "Threat modeling agentic systems",
+              "explainer": "Draw the system: user, agent runtime, models, tools, data stores, external content sources and humans in the loop. Mark trust boundaries and where untrusted content enters, such as web pages, emails, documents and tool results. For each tool, list its capability and the worst outcome if misused. Apply STRIDE and the OWASP LLM categories, and check for the lethal trifecta. Output a ranked list of threats with mitigations and owners, revisited whenever tools or data sources are added.",
+              "subtopics": [
+                {
+                  "id": "t-threat-t1-s1",
+                  "title": "Data-flow diagrams with trust boundaries"
+                },
+                {
+                  "id": "t-threat-t1-s2",
+                  "title": "Untrusted content entry points"
+                },
+                {
+                  "id": "t-threat-t1-s3",
+                  "title": "Tool capability and worst-case analysis"
+                },
+                {
+                  "id": "t-threat-t1-s4",
+                  "title": "OWASP LLM / MITRE ATLAS mapping"
+                },
+                {
+                  "id": "t-threat-t1-s5",
+                  "title": "Lethal trifecta checks"
+                }
+              ]
+            },
+            {
+              "id": "t-threat-t2",
+              "title": "Red teaming in practice",
+              "explainer": "Combine human creativity with automation. Humans find novel jailbreaks and multi-step attacks; tools generate variations at scale and re-run them in CI. Cover direct injection, indirect injection through documents and tool outputs, data exfiltration via links and images, tool misuse, privilege escalation through MCP, and denial of wallet through loops. Measure attack success rate per category, track it over releases, and turn every successful attack into a regression test.",
+              "subtopics": [
+                {
+                  "id": "t-threat-t2-s1",
+                  "title": "Manual adversarial testing"
+                },
+                {
+                  "id": "t-threat-t2-s2",
+                  "title": "Automated tools: PyRIT, garak, promptfoo"
+                },
+                {
+                  "id": "t-threat-t2-s3",
+                  "title": "Indirect injection payloads"
+                },
+                {
+                  "id": "t-threat-t2-s4",
+                  "title": "Attack success rate metrics"
+                },
+                {
+                  "id": "t-threat-t2-s5",
+                  "title": "Regression suites from findings"
+                }
+              ]
+            },
+            {
+              "id": "t-threat-t3",
+              "title": "Sandboxing and containment",
+              "explainer": "Assume some attacks succeed and limit the damage. Run code execution and browser automation in isolated sandboxes such as gVisor containers or Firecracker microVMs with no cloud credentials, read-only base images, resource limits and egress allowlists. Separate agents by privilege: one that reads untrusted content should not hold write tools to sensitive systems. Require human approval for irreversible actions, and keep kill switches that revoke tool access instantly.",
+              "subtopics": [
+                {
+                  "id": "t-threat-t3-s1",
+                  "title": "Container vs gVisor vs microVM isolation"
+                },
+                {
+                  "id": "t-threat-t3-s2",
+                  "title": "Credential-free sandboxes"
+                },
+                {
+                  "id": "t-threat-t3-s3",
+                  "title": "Privilege separation between agents"
+                },
+                {
+                  "id": "t-threat-t3-s4",
+                  "title": "Human approval for irreversible actions"
+                },
+                {
+                  "id": "t-threat-t3-s5",
+                  "title": "Kill switches and revocation"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Which combination forms the 'lethal trifecta'?",
+              "choices": [
+                "GPU, CPU, memory",
+                "Private data access, untrusted content, and an exfiltration channel",
+                "Logs, metrics, traces",
+                "Prompt, model, output"
+              ],
+              "answer": 1,
+              "why": "Together they let injected instructions steal data."
+            },
+            {
+              "q": "Why is a prompt-injection classifier insufficient alone?",
+              "choices": [
+                "It is too slow",
+                "It needs GPUs",
+                "It is illegal",
+                "Classifiers are probabilistic and bypassable; containment limits damage"
+              ],
+              "answer": 3,
+              "why": "Defense in depth assumes detection will sometimes fail."
+            },
+            {
+              "q": "A code-executing agent should run…",
+              "choices": [
+                "In an isolated sandbox without credentials and with egress limits",
+                "Inside the database",
+                "In the browser of the admin",
+                "On the host with sudo"
+              ],
+              "answer": 0,
+              "why": "Isolation and no credentials limit blast radius."
+            }
+          ],
+          "conceptIds": [
+            "policy-gate"
+          ]
+        },
+        {
+          "id": "t-policy",
+          "title": "Policy as Code for Agents (OPA, Cedar)",
+          "why": "Governance that lives in PDFs is ignored; policy as code makes rules executable, testable and enforced at every gate.",
+          "explainer": "Policy as code expresses rules in a policy language evaluated by an engine, separate from application code. Open Policy Agent (OPA) uses Rego and is widely used for Kubernetes admission (Gatekeeper), CI checks (Conftest) and API authorization. Cedar, from AWS and used by Amazon Verified Permissions, is a fast, analyzable authorization language with principals, actions, resources and conditions.\n\nFor agentic AI, policies run at several gates: CI (block a deploy if an agent's manifest requests forbidden tools or lacks an eval report), admission (only approved model versions run), runtime tool authorization (may this agent, for this user, call refund_order with amount 500?), and data access (which fields may be returned). Each decision is logged with input and policy version, which becomes audit evidence.\n\nCommon mistakes: authorization logic scattered in prompts and if-statements; policies without unit tests; enforcing in one place but not the others; no dry-run mode before turning on deny.\n\nMental model: the model proposes, the policy engine disposes.",
+          "resources": [
+            {
+              "title": "Open Policy Agent docs",
+              "url": "https://www.openpolicyagent.org/docs/latest/"
+            },
+            {
+              "title": "Cedar policy language",
+              "url": "https://docs.cedarpolicy.com/"
+            },
+            {
+              "title": "OPA Gatekeeper",
+              "url": "https://open-policy-agent.github.io/gatekeeper/website/docs/"
+            },
+            {
+              "title": "Conftest",
+              "url": "https://www.conftest.dev/"
+            }
+          ],
+          "project": "Write Rego or Cedar policies for a refunds agent: max refund by user role, approval required above a threshold, no tool calls for suspended tenants, and only approved model versions. Enforce them in a tool-call middleware, in CI with Conftest against the agent manifest, and in Kubernetes with Gatekeeper. Add unit tests for every rule and log each decision.",
+          "topics": [
+            {
+              "id": "t-policy-t1",
+              "title": "Policy languages and engines",
+              "explainer": "Rego is a declarative language over JSON input; OPA evaluates it as a sidecar, library or service, and it suits rich, data-heavy rules. Cedar is purpose-built for authorization with a clear principal-action-resource model, strong typing and formal analysis that can prove properties such as 'no policy allows deletes by contractors'. Choose by use case: OPA for infrastructure and CI breadth, Cedar for application authorization. Either way keep policies in version control with tests.",
+              "subtopics": [
+                {
+                  "id": "t-policy-t1-s1",
+                  "title": "Rego basics and data input"
+                },
+                {
+                  "id": "t-policy-t1-s2",
+                  "title": "Cedar principal/action/resource"
+                },
+                {
+                  "id": "t-policy-t1-s3",
+                  "title": "Embedded vs sidecar vs service"
+                },
+                {
+                  "id": "t-policy-t1-s4",
+                  "title": "Policy bundles and distribution"
+                },
+                {
+                  "id": "t-policy-t1-s5",
+                  "title": "Formal analysis in Cedar"
+                }
+              ]
+            },
+            {
+              "id": "t-policy-t2",
+              "title": "Gates across the agent lifecycle",
+              "explainer": "Enforce in layers. In CI, check agent manifests: declared tools, model versions, data classifications and required eval artifacts. At deploy, admission controllers allow only signed images and approved configurations. At run time, a tool-call authorizer evaluates each call with context (agent, user, tenant, arguments, risk score) and returns allow, deny or require-approval. At data access, policies trim fields by classification. Consistent policy across gates closes gaps attackers and well-meaning engineers slip through.",
+              "subtopics": [
+                {
+                  "id": "t-policy-t2-s1",
+                  "title": "CI checks on agent manifests"
+                },
+                {
+                  "id": "t-policy-t2-s2",
+                  "title": "Admission control for models and images"
+                },
+                {
+                  "id": "t-policy-t2-s3",
+                  "title": "Runtime tool-call authorization"
+                },
+                {
+                  "id": "t-policy-t2-s4",
+                  "title": "Data-field filtering"
+                },
+                {
+                  "id": "t-policy-t2-s5",
+                  "title": "Allow / deny / require-approval outcomes"
+                }
+              ]
+            },
+            {
+              "id": "t-policy-t3",
+              "title": "Testing, rollout and decision logs",
+              "explainer": "Policies are code, so they need unit tests for allowed and denied cases, plus regression tests for past incidents. Roll out new deny rules in audit (dry-run) mode first, review what would have been blocked, then enforce. Log every decision with input, result, policy version and reason; this decision log is precisely the evidence auditors and incident responders need. Monitor deny rates, since a spike may mean an attack or a broken policy.",
+              "subtopics": [
+                {
+                  "id": "t-policy-t3-s1",
+                  "title": "Unit tests for policies"
+                },
+                {
+                  "id": "t-policy-t3-s2",
+                  "title": "Dry-run before enforce"
+                },
+                {
+                  "id": "t-policy-t3-s3",
+                  "title": "Decision logs with policy version"
+                },
+                {
+                  "id": "t-policy-t3-s4",
+                  "title": "Deny-rate monitoring"
+                },
+                {
+                  "id": "t-policy-t3-s5",
+                  "title": "Policy change review"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "In 'the model proposes, the policy engine disposes', what decides if a tool call runs?",
+              "choices": [
+                "An external policy engine evaluating the call",
+                "A random sample",
+                "The model's confidence",
+                "The user's prompt"
+              ],
+              "answer": 0,
+              "why": "Authorization is enforced outside the model."
+            },
+            {
+              "q": "What is a safe way to roll out a new deny policy?",
+              "choices": [
+                "Run in audit/dry-run mode first and review would-be denials",
+                "Ask the model to comply",
+                "Only document it",
+                "Enforce immediately in production"
+              ],
+              "answer": 0,
+              "why": "Dry-run reveals false positives before blocking real work."
+            },
+            {
+              "q": "Which gate checks that an agent's manifest has a passing eval report before deploy?",
+              "choices": [
+                "CI policy check (e.g. Conftest)",
+                "Runtime tool authorizer",
+                "Vector store",
+                "Load balancer"
+              ],
+              "answer": 0,
+              "why": "CI gates validate artifacts before deployment."
+            }
+          ],
+          "conceptIds": [
+            "policy-gate"
+          ]
+        },
+        {
+          "id": "t-audit",
+          "title": "AI Audit Logging and Evidence",
+          "why": "When a regulator, customer or court asks 'why did the AI do that?', the audit log is your only answer.",
+          "explainer": "An audit log for AI records who did what, when, with which system version, and why, in a tamper-evident, retained and access-controlled store. Unlike debugging traces, audit logs are about accountability: they must be complete for in-scope events, immutable, and queryable years later.\n\nFor agents, in-scope events include: user requests and the identity acting; model, prompt and policy versions; retrieved sources (IDs, not necessarily content); tool calls with arguments and results; policy decisions; human approvals and overrides; final outputs and actions; and configuration changes to the agent itself. The EU AI Act requires automatic logging for high-risk systems (Article 12) and deployers to keep logs; ISO 42001 and SOC 2 auditors will ask for similar evidence.\n\nImplementation: structured events with a stable schema, hashed and chained or written to WORM storage (S3 Object Lock, immutable buckets), with retention policies and PII minimization. Link audit events to traces via run IDs.\n\nCommon mistakes: relying on vendor dashboards that keep 30 days; logging full prompts with personal data forever; no record of which prompt version was live.\n\nMental model: traces help engineers fix it; audit logs help the organization prove it.",
+          "resources": [
+            {
+              "title": "EU AI Act Article 12: Record-keeping",
+              "url": "https://artificialintelligenceact.eu/article/12/"
+            },
+            {
+              "title": "NIST SP 800-92: Log management",
+              "url": "https://csrc.nist.gov/pubs/sp/800/92/final"
+            },
+            {
+              "title": "AWS S3 Object Lock",
+              "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html"
+            },
+            {
+              "title": "OSCAL (NIST)",
+              "url": "https://pages.nist.gov/OSCAL/"
+            }
+          ],
+          "project": "Design an audit event schema for an agent (actor, on_behalf_of, agent_version, prompt_version, model, sources, tool_calls, policy_decisions, approvals, outcome). Emit events to WORM storage with hash chaining, apply PII minimization, and build a query that reconstructs any run for an auditor. Map each field to EU AI Act Art. 12, ISO 42001 and SOC 2 requirements.",
+          "topics": [
+            {
+              "id": "t-audit-t1",
+              "title": "What to log and why",
+              "explainer": "Log events that answer accountability questions: who requested, who or what acted, what the system knew (versions and sources), what it decided (policy results, tool calls), who approved, and what changed in the world. Include configuration changes, because a silent prompt edit can change behavior for millions of users. Decide per field whether to store content or a reference, balancing reconstructability against privacy. Document the schema so auditors can read it.",
+              "subtopics": [
+                {
+                  "id": "t-audit-t1-s1",
+                  "title": "Actor and on-behalf-of identity"
+                },
+                {
+                  "id": "t-audit-t1-s2",
+                  "title": "Versions: model, prompt, policy, tools"
+                },
+                {
+                  "id": "t-audit-t1-s3",
+                  "title": "Sources and tool calls"
+                },
+                {
+                  "id": "t-audit-t1-s4",
+                  "title": "Approvals and overrides"
+                },
+                {
+                  "id": "t-audit-t1-s5",
+                  "title": "Config change events"
+                }
+              ]
+            },
+            {
+              "id": "t-audit-t2",
+              "title": "Integrity, retention and privacy",
+              "explainer": "Audit logs must be tamper-evident. Use write-once storage with object lock, hash chaining or signed batches, and restricted delete permissions held outside the engineering team. Set retention by regulation and contract; the EU AI Act sets minimum log-keeping periods for providers and deployers of high-risk systems. Minimize personal data: store references, redact or tokenize sensitive fields, and support legal holds. Separate audit storage from operational logs so cost cutting does not delete evidence.",
+              "subtopics": [
+                {
+                  "id": "t-audit-t2-s1",
+                  "title": "WORM storage and object lock"
+                },
+                {
+                  "id": "t-audit-t2-s2",
+                  "title": "Hash chains and signatures"
+                },
+                {
+                  "id": "t-audit-t2-s3",
+                  "title": "Retention schedules and legal holds"
+                },
+                {
+                  "id": "t-audit-t2-s4",
+                  "title": "PII minimization and tokenization"
+                },
+                {
+                  "id": "t-audit-t2-s5",
+                  "title": "Separation from operational logs"
+                }
+              ]
+            },
+            {
+              "id": "t-audit-t3",
+              "title": "Evidence and run reconstruction",
+              "explainer": "Auditors want evidence mapped to controls, not raw logs. Build queries and reports that reconstruct a run from its ID, list all agent versions deployed in a period with their eval results, show human oversight statistics, and summarize incidents. Machine-readable formats such as OSCAL let you express controls and evidence for automated assessment. Practice with mock audits so gaps appear before a real regulator asks.",
+              "subtopics": [
+                {
+                  "id": "t-audit-t3-s1",
+                  "title": "Run reconstruction queries"
+                },
+                {
+                  "id": "t-audit-t3-s2",
+                  "title": "Version and eval history reports"
+                },
+                {
+                  "id": "t-audit-t3-s3",
+                  "title": "Human oversight statistics"
+                },
+                {
+                  "id": "t-audit-t3-s4",
+                  "title": "OSCAL and machine-readable evidence"
+                },
+                {
+                  "id": "t-audit-t3-s5",
+                  "title": "Mock audits"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "How do audit logs differ from debugging traces?",
+              "choices": [
+                "They are the same",
+                "Audit logs are complete, immutable, retained long-term for accountability",
+                "Traces are immutable",
+                "Audit logs only store errors"
+              ],
+              "answer": 1,
+              "why": "Audit logs serve accountability and must be tamper-evident and retained."
+            },
+            {
+              "q": "Which storage feature supports tamper evidence?",
+              "choices": [
+                "Object lock / WORM with hash chaining",
+                "Vector index",
+                "In-memory cache",
+                "Public buckets"
+              ],
+              "answer": 0,
+              "why": "Write-once storage and hash chains make changes detectable."
+            },
+            {
+              "q": "Why log prompt-version changes as audit events?",
+              "choices": [
+                "To speed up inference",
+                "Required by Kafka",
+                "A silent prompt edit can change behavior and must be attributable",
+                "They are large"
+              ],
+              "answer": 2,
+              "why": "Configuration changes alter system behavior and need accountability."
+            }
+          ],
+          "conceptIds": [
+            "audit-trail"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "t-l4",
+      "name": "L4 Expert",
+      "subjects": [
+        {
+          "id": "t-reg",
+          "title": "Regulatory Controls Mapping: EU AI Act, NIST AI RMF, ISO/IEC 42001",
+          "why": "Regulation becomes engineering work when obligations are translated into controls, gates, registry fields and evidence.",
+          "explainer": "An AI Governance Engineer translates frameworks into running controls. The three anchors:\n\nEU AI Act (Regulation (EU) 2024/1689, amended by the Digital Omnibus Regulation (EU) 2026/1744): prohibited practices and AI literacy have applied since 2 February 2025; general-purpose AI model obligations since 2 August 2025; Article 50 transparency duties since 2 August 2026. The omnibus moved high-risk obligations to 2 December 2027 for Annex III systems (employment, credit, education, essential services, etc.) and 2 August 2028 for Annex I regulated products. High-risk duties include risk management, data governance, technical documentation, logging, transparency to deployers, human oversight, accuracy, robustness and cybersecurity.\n\nNIST AI RMF 1.0 (with the Generative AI Profile, NIST AI 600-1) organizes practice into Govern, Map, Measure and Manage.\n\nISO/IEC 42001 is a certifiable AI management system standard: policies, roles, risk and impact assessment, and Annex A controls.\n\nThe engineering approach: an AI system inventory with risk classification; a control library mapping each obligation to controls; controls implemented as policies, CI gates, logging and documentation templates; and evidence collected automatically. One control often satisfies several frameworks.\n\nCommon mistakes: treating this as legal paperwork only; one-off assessments; no inventory, so nobody knows which agents are in scope. (This is education, not legal advice.)\n\nMental model: obligation → control → gate → evidence, traceable in both directions.",
+          "resources": [
+            {
+              "title": "EU AI Act explorer",
+              "url": "https://artificialintelligenceact.eu/ai-act-explorer/"
+            },
+            {
+              "title": "NIST AI Risk Management Framework",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            },
+            {
+              "title": "NIST AI 600-1 Generative AI Profile",
+              "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf"
+            },
+            {
+              "title": "ISO/IEC 42001",
+              "url": "https://www.iso.org/standard/81230.html"
+            },
+            {
+              "title": "Digital Omnibus on AI, Regulation (EU) 2026/1744 (EUR-Lex)",
+              "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202601744"
+            }
+          ],
+          "project": "Build an AI system inventory for five agents with risk classification. Create a control library of 15 controls mapped to EU AI Act articles, NIST AI RMF subcategories and ISO 42001 Annex A, implement three as automated gates (eval report required, human-oversight config present, logging enabled), and generate an evidence pack per agent.",
+          "topics": [
+            {
+              "id": "t-reg-t1",
+              "title": "EU AI Act for engineers",
+              "explainer": "Start with roles and classification: are you a provider or deployer, and is the system prohibited, high-risk, subject to transparency duties only, or minimal risk? Agents in employment, credit or essential-services decisions may be high-risk under Annex III. GPAI model providers have their own duties. Article 50 requires telling people they are interacting with AI and marking synthetic content. Track the amended timeline: Annex III high-risk obligations from 2 December 2027, Annex I from 2 August 2028. Always confirm interpretations with legal counsel.",
+              "subtopics": [
+                {
+                  "id": "t-reg-t1-s1",
+                  "title": "Provider vs deployer roles"
+                },
+                {
+                  "id": "t-reg-t1-s2",
+                  "title": "Risk tiers and Annex III"
+                },
+                {
+                  "id": "t-reg-t1-s3",
+                  "title": "GPAI obligations"
+                },
+                {
+                  "id": "t-reg-t1-s4",
+                  "title": "Article 50 transparency"
+                },
+                {
+                  "id": "t-reg-t1-s5",
+                  "title": "Amended timeline (Omnibus 2026/1744)"
+                }
+              ]
+            },
+            {
+              "id": "t-reg-t2",
+              "title": "NIST AI RMF and ISO/IEC 42001",
+              "explainer": "NIST AI RMF is voluntary and outcome-oriented: Govern sets culture, roles and policies; Map establishes context and risks; Measure assesses them with tests and metrics; Manage prioritizes and responds. The Generative AI Profile adds risks such as confabulation, information security and harmful content. ISO/IEC 42001 is a management system standard that can be certified, requiring an AI policy, risk and impact assessments, defined responsibilities, Annex A controls and continual improvement, structured like ISO 27001, so security teams recognize it.",
+              "subtopics": [
+                {
+                  "id": "t-reg-t2-s1",
+                  "title": "Govern, Map, Measure, Manage"
+                },
+                {
+                  "id": "t-reg-t2-s2",
+                  "title": "Generative AI Profile risks"
+                },
+                {
+                  "id": "t-reg-t2-s3",
+                  "title": "ISO 42001 clauses and Annex A"
+                },
+                {
+                  "id": "t-reg-t2-s4",
+                  "title": "Certification and audits"
+                },
+                {
+                  "id": "t-reg-t2-s5",
+                  "title": "Alignment with ISO 27001"
+                }
+              ]
+            },
+            {
+              "id": "t-reg-t3",
+              "title": "Control libraries and crosswalks",
+              "explainer": "Write each control once in your own words, such as 'every production agent has a passing eval report less than 30 days old', then map it to the obligations it satisfies across frameworks. Assign an owner, an implementation (policy, gate, process), a test and an evidence source. The crosswalk shows coverage and gaps. Store it as data, not slides, so CI and dashboards can compute compliance status per agent and auditors can trace from obligation to evidence.",
+              "subtopics": [
+                {
+                  "id": "t-reg-t3-s1",
+                  "title": "Writing testable controls"
+                },
+                {
+                  "id": "t-reg-t3-s2",
+                  "title": "Crosswalk across frameworks"
+                },
+                {
+                  "id": "t-reg-t3-s3",
+                  "title": "Owners, tests and evidence sources"
+                },
+                {
+                  "id": "t-reg-t3-s4",
+                  "title": "Coverage and gap analysis"
+                },
+                {
+                  "id": "t-reg-t3-s5",
+                  "title": "Controls as data driving dashboards"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Under the amended EU AI Act, when do Annex III high-risk obligations apply?",
+              "choices": [
+                "Never",
+                "2 August 2026",
+                "2 August 2025",
+                "2 December 2027"
+              ],
+              "answer": 3,
+              "why": "Regulation (EU) 2026/1744 moved Annex III high-risk obligations to 2 December 2027."
+            },
+            {
+              "q": "What are the four functions of NIST AI RMF?",
+              "choices": [
+                "Govern, Map, Measure, Manage",
+                "Plan, Do, Check, Act",
+                "Identify, Protect, Detect, Respond",
+                "Build, Test, Deploy, Monitor"
+              ],
+              "answer": 0,
+              "why": "AI RMF core functions are Govern, Map, Measure and Manage."
+            },
+            {
+              "q": "What distinguishes ISO/IEC 42001 from NIST AI RMF?",
+              "choices": [
+                "It is about GPUs",
+                "It is a certifiable management system standard",
+                "It has no controls",
+                "It is EU law"
+              ],
+              "answer": 1,
+              "why": "ISO 42001 can be certified by accredited auditors; AI RMF is a voluntary framework."
+            }
+          ],
+          "conceptIds": [
+            "controls-crosswalk"
+          ]
+        },
+        {
+          "id": "t-traj",
+          "title": "Agent Trajectory Evals and Simulation",
+          "why": "Judging only the final answer misses agents that got lucky, wasted $20 on loops, or took a dangerous action along the way.",
+          "explainer": "Agent evals assess the whole trajectory: which tools were called, with what arguments, in what order, how many steps, at what cost, and whether any unsafe action was attempted. Final-state checks (is the ticket closed, is the database correct) are the most reliable signal; trajectory checks explain how it got there.\n\nTechniques: environment-based evals with sandboxed tools and verifiable end states (SWE-bench style tests, τ-bench style simulated users and policies); trajectory assertions (required tools called, forbidden tools never called, step and cost budgets respected); LLM judges over traces for plan quality; and user simulators that role-play customers across many turns. Because agents are stochastic, run each task multiple times and report pass@k and pass^k (succeeds on all k tries), which exposes unreliability that a single run hides.\n\nCommon mistakes: grading by string-matching the final message; single runs per task; evaluating with mocked tools that never fail; ignoring cost and latency in scores.\n\nMental model: evaluate an agent like a new hire on a work sample: did they finish the job correctly, safely and efficiently, every time?",
+          "resources": [
+            {
+              "title": "τ-bench (Sierra)",
+              "url": "https://github.com/sierra-research/tau-bench"
+            },
+            {
+              "title": "SWE-bench",
+              "url": "https://www.swebench.com/"
+            },
+            {
+              "title": "Anthropic: Demystifying evals for AI agents",
+              "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+            },
+            {
+              "title": "Inspect AI agents",
+              "url": "https://inspect.aisi.org.uk/agents.html"
+            }
+          ],
+          "project": "Build a sandbox environment for a customer-service agent with a mock order database, policy document and LLM user simulator. Create 40 tasks with verifiable end states and trajectory assertions. Run each task 5 times, report pass@1, pass^5, mean steps and cost, and show how one prompt change trades reliability against cost.",
+          "topics": [
+            {
+              "id": "t-traj-t1",
+              "title": "End-state and trajectory checks",
+              "explainer": "Define success as a verifiable state of the environment: the right record updated, a test suite passing, a refund within policy. Add trajectory assertions for process requirements: identity verified before account changes, no forbidden tool calls, at most N steps, cost under budget. Store full traces so failures can be categorized: wrong tool, bad arguments, premature stop, loop, or policy violation. These categories map directly to fixes in prompts, tools or harness.",
+              "subtopics": [
+                {
+                  "id": "t-traj-t1-s1",
+                  "title": "Verifiable end states"
+                },
+                {
+                  "id": "t-traj-t1-s2",
+                  "title": "Required and forbidden tool assertions"
+                },
+                {
+                  "id": "t-traj-t1-s3",
+                  "title": "Step and cost budgets"
+                },
+                {
+                  "id": "t-traj-t1-s4",
+                  "title": "Failure taxonomy for trajectories"
+                },
+                {
+                  "id": "t-traj-t1-s5",
+                  "title": "Trace storage for analysis"
+                }
+              ]
+            },
+            {
+              "id": "t-traj-t2",
+              "title": "Environments and user simulators",
+              "explainer": "Realistic evals need realistic environments: sandboxed APIs with seeded data, injected failures (timeouts, 500s, partial results) and policies. For conversational agents, an LLM user simulator with a persona and hidden goal plays the customer over many turns. Validate the simulator itself; unrealistic users produce misleading scores. Reset environments between runs so tasks are independent, and version environments alongside the agent.",
+              "subtopics": [
+                {
+                  "id": "t-traj-t2-s1",
+                  "title": "Sandboxed tool environments"
+                },
+                {
+                  "id": "t-traj-t2-s2",
+                  "title": "Fault injection"
+                },
+                {
+                  "id": "t-traj-t2-s3",
+                  "title": "LLM user simulators with goals"
+                },
+                {
+                  "id": "t-traj-t2-s4",
+                  "title": "Simulator validation"
+                },
+                {
+                  "id": "t-traj-t2-s5",
+                  "title": "Environment versioning and reset"
+                }
+              ]
+            },
+            {
+              "id": "t-traj-t3",
+              "title": "Reliability metrics: pass@k and pass^k",
+              "explainer": "pass@k asks whether at least one of k attempts succeeds, which suits tasks where a human picks the best attempt. pass^k asks whether all k attempts succeed, which is what matters for autonomous agents users rely on daily. An agent with 80% per-try success has pass^5 of about 33% if attempts are independent. Report both, plus variance in cost and steps. Reliability, not peak capability, is usually what blocks production deployment.",
+              "subtopics": [
+                {
+                  "id": "t-traj-t3-s1",
+                  "title": "pass@k definition"
+                },
+                {
+                  "id": "t-traj-t3-s2",
+                  "title": "pass^k for consistency"
+                },
+                {
+                  "id": "t-traj-t3-s3",
+                  "title": "Independent-trial math"
+                },
+                {
+                  "id": "t-traj-t3-s4",
+                  "title": "Cost and step variance"
+                },
+                {
+                  "id": "t-traj-t3-s5",
+                  "title": "Reliability targets for autonomy"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "An agent succeeds 80% of the time per attempt, independently. What is pass^5 (all 5 succeed)?",
+              "choices": [
+                "50%",
+                "~33%",
+                "~99.97%",
+                "80%"
+              ],
+              "answer": 1,
+              "why": "0.8^5 = 0.328, about 33%."
+            },
+            {
+              "q": "Which is the most reliable success signal for an agent task?",
+              "choices": [
+                "A verifiable end state of the environment",
+                "Response length",
+                "Final message sounds confident",
+                "Number of tool calls"
+              ],
+              "answer": 0,
+              "why": "Checking the world state is objective."
+            },
+            {
+              "q": "Why inject tool failures in eval environments?",
+              "choices": [
+                "It is required by MCP",
+                "To save cost",
+                "Production tools fail; agents must handle errors gracefully",
+                "To speed tests"
+              ],
+              "answer": 2,
+              "why": "Mocks that never fail overestimate robustness."
+            }
+          ],
+          "conceptIds": [
+            "eval-pipeline"
+          ]
+        },
+        {
+          "id": "t-runbook",
+          "title": "Agent Incident Response, Runbooks, Kill Switches and Cost Controls",
+          "why": "Agents fail in new ways — loops, runaway spend, mass wrong actions — and operations needs pre-built levers to stop damage in seconds.",
+          "explainer": "An Agent Ops engineer prepares for incidents before they happen. Typical agent incidents: a model update degrades quality; a tool API changes and every call errors; an injection campaign; a loop that burns thousands of dollars per hour; mass incorrect write-backs; a provider outage.\n\nLevers to build in advance: kill switches at several scopes (one tool, one agent, one tenant, all autonomous actions) controlled by feature flags and enforced by the gateway or policy engine; degrade modes (read-only, human-approval-required, fallback model); budget controls (per-run step and token caps, per-user and per-tenant daily spend limits, org-wide circuit breakers); and rollback for prompts, models and tool versions via registries and gateway aliases.\n\nRunbooks document symptoms, dashboards, levers, communication and recovery for each scenario. Practice them in game days.\n\nCommon mistakes: no way to disable one tool without redeploying; spend alerts that fire after the monthly bill; rollbacks that revert code but not the prompt registry.\n\nMental model: every autonomous capability needs a brake pedal that works faster than the agent.",
+          "resources": [
+            {
+              "title": "Google SRE: Managing incidents",
+              "url": "https://sre.google/sre-book/managing-incidents/"
+            },
+            {
+              "title": "PagerDuty incident response docs",
+              "url": "https://response.pagerduty.com/"
+            },
+            {
+              "title": "OpenFeature (feature flags standard)",
+              "url": "https://openfeature.dev/docs/reference/intro/"
+            },
+            {
+              "title": "LiteLLM budgets and rate limits",
+              "url": "https://docs.litellm.ai/docs/proxy/users"
+            }
+          ],
+          "project": "Add kill switches (tool, agent, tenant, global-autonomy) via OpenFeature flags enforced in middleware, per-run step/token caps and per-tenant daily budgets via an LLM gateway, and versioned rollback of prompt + model + tools. Write runbooks for five incident types and run a game day simulating a runaway loop and a bad model update.",
+          "topics": [
+            {
+              "id": "t-runbook-t1",
+              "title": "Kill switches and degrade modes",
+              "explainer": "Design switches at multiple granularities so you can stop the smallest thing that fixes the problem. A tool switch disables refund_order everywhere; an agent switch pauses one agent; a tenant switch isolates one customer; a global autonomy switch forces approval mode for all write actions. Enforce switches outside the model, in the tool middleware or gateway, and make them take effect in seconds. Degrade modes keep service partly alive: read-only, approval required, or a smaller fallback model.",
+              "subtopics": [
+                {
+                  "id": "t-runbook-t1-s1",
+                  "title": "Tool, agent, tenant, global switches"
+                },
+                {
+                  "id": "t-runbook-t1-s2",
+                  "title": "Enforcement in middleware/gateway"
+                },
+                {
+                  "id": "t-runbook-t1-s3",
+                  "title": "Propagation latency targets"
+                },
+                {
+                  "id": "t-runbook-t1-s4",
+                  "title": "Read-only and approval-only modes"
+                },
+                {
+                  "id": "t-runbook-t1-s5",
+                  "title": "Fallback models"
+                }
+              ]
+            },
+            {
+              "id": "t-runbook-t2",
+              "title": "Budgets and cost controls",
+              "explainer": "Cost incidents are the most common agent incidents. Set per-run caps on steps, tokens and wall time; per-user and per-tenant daily spend limits; and an organization-wide circuit breaker on spend rate. Enforce through the LLM gateway with virtual keys and budgets, and stop runs gracefully with a clear message. Alert on cost per task trends and sudden spend spikes. Attribute every token to an agent, tenant and feature so finance and engineering can act on the same report.",
+              "subtopics": [
+                {
+                  "id": "t-runbook-t2-s1",
+                  "title": "Per-run step/token/time caps"
+                },
+                {
+                  "id": "t-runbook-t2-s2",
+                  "title": "Per-user and per-tenant budgets"
+                },
+                {
+                  "id": "t-runbook-t2-s3",
+                  "title": "Spend-rate circuit breakers"
+                },
+                {
+                  "id": "t-runbook-t2-s4",
+                  "title": "Gateway virtual keys"
+                },
+                {
+                  "id": "t-runbook-t2-s5",
+                  "title": "Cost attribution and anomaly alerts"
+                }
+              ]
+            },
+            {
+              "id": "t-runbook-t3",
+              "title": "Runbooks, rollback and game days",
+              "explainer": "For each incident class write a runbook: detection signals and dashboards, first five minutes of actions, which switches to pull, who to page, customer communication, and recovery steps. Make rollback atomic across prompt, model alias, tool versions and policy bundle, recorded in a release manifest. Practice with game days that inject realistic failures. Blameless reviews should produce new alerts, tests and guardrails, not just a document.",
+              "subtopics": [
+                {
+                  "id": "t-runbook-t3-s1",
+                  "title": "Runbook template"
+                },
+                {
+                  "id": "t-runbook-t3-s2",
+                  "title": "Atomic release manifests and rollback"
+                },
+                {
+                  "id": "t-runbook-t3-s3",
+                  "title": "Paging and communication"
+                },
+                {
+                  "id": "t-runbook-t3-s4",
+                  "title": "Game days"
+                },
+                {
+                  "id": "t-runbook-t3-s5",
+                  "title": "Blameless postmortems"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A loop is burning $2,000/hour in one agent. What is the fastest correct lever?",
+              "choices": [
+                "Redeploy the whole platform",
+                "Flip that agent's kill switch / budget cap enforced at the gateway",
+                "Wait for the monthly bill",
+                "Email the vendor"
+              ],
+              "answer": 1,
+              "why": "Scoped kill switches and budgets stop damage in seconds."
+            },
+            {
+              "q": "Why enforce kill switches outside the model?",
+              "choices": [
+                "It is cheaper",
+                "Models are slow",
+                "Prompts are encrypted",
+                "A compromised or confused model cannot be trusted to obey"
+              ],
+              "answer": 3,
+              "why": "Enforcement must not depend on model compliance."
+            },
+            {
+              "q": "What makes a rollback complete for an agent release?",
+              "choices": [
+                "Clearing caches",
+                "Reverting prompt, model alias, tool versions and policies together",
+                "Restarting pods",
+                "Reverting code only"
+              ],
+              "answer": 1,
+              "why": "Agent behavior depends on all versioned components."
+            }
+          ],
+          "conceptIds": [
+            "agentops-loop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "t-l5",
+      "name": "L5 Frontier",
+      "subjects": [
+        {
+          "id": "t-fleet",
+          "title": "Operating Agent Fleets 24/7",
+          "why": "Enterprises are moving from a few copilots to hundreds of autonomous agents; running them like a fleet is a new operations discipline.",
+          "explainer": "A fleet is many agents, owned by many teams, sharing models, tools, data and budgets. Operating it needs a control plane: an agent registry (owner, purpose, risk tier, tools, data, versions, SLOs), standardized telemetry, shared gateways, central policy and budgets, and lifecycle management from proposal to retirement.\n\nRisk tiers drive autonomy: low-risk agents act freely within budgets; medium-risk need sampling-based review; high-risk require approvals for actions and have stricter eval and audit requirements. Agent identity matters: each agent has its own identity and credentials so actions are attributable and revocable.\n\nFleet operations includes capacity planning across providers, model upgrade campaigns (re-evaluate every agent against the new model before switching aliases), cost governance (showback and chargeback), and inter-agent protocols such as A2A where agents delegate to each other, which adds new failure and trust paths.\n\nCommon mistakes: shadow agents nobody registered; one shared API key for all agents; model upgrades pushed fleet-wide without per-agent evals.\n\nMental model: treat agents like employees and services at once: each needs an identity, a manager, a job description, a budget and a performance review.",
+          "resources": [
+            {
+              "title": "Google A2A protocol",
+              "url": "https://a2a-protocol.org/latest/"
+            },
+            {
+              "title": "Microsoft Entra Agent ID",
+              "url": "https://learn.microsoft.com/en-us/entra/agent-id/"
+            },
+            {
+              "title": "FinOps for AI (FinOps Foundation)",
+              "url": "https://www.finops.org/wg/finops-for-ai-overview/"
+            },
+            {
+              "title": "CSA: Agentic AI threat modeling (MAESTRO)",
+              "url": "https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro"
+            }
+          ],
+          "project": "Build an agent registry service (owner, tier, tools, data products, model alias, SLOs, budget) and a fleet dashboard. Register 10 sample agents, enforce that unregistered agents cannot get gateway keys, and run a model-upgrade campaign that evaluates every agent on the new model and switches aliases only for those that pass.",
+          "topics": [
+            {
+              "id": "t-fleet-t1",
+              "title": "Agent registry and lifecycle",
+              "explainer": "The registry is the source of truth: every agent has an ID, owner, business purpose, risk tier, declared tools and data products, model alias, prompt version, SLOs, budget and status. Gateways and policy engines consult it, so unregistered agents get no keys. Lifecycle stages run from proposal and review through pilot, production and retirement, with gates at each. The registry also feeds compliance inventories and cost reports.",
+              "subtopics": [
+                {
+                  "id": "t-fleet-t1-s1",
+                  "title": "Registry schema"
+                },
+                {
+                  "id": "t-fleet-t1-s2",
+                  "title": "Registration as a gate for keys"
+                },
+                {
+                  "id": "t-fleet-t1-s3",
+                  "title": "Lifecycle stages and reviews"
+                },
+                {
+                  "id": "t-fleet-t1-s4",
+                  "title": "Ownership and on-call"
+                },
+                {
+                  "id": "t-fleet-t1-s5",
+                  "title": "Retirement and credential revocation"
+                }
+              ]
+            },
+            {
+              "id": "t-fleet-t2",
+              "title": "Risk tiers, identity and autonomy",
+              "explainer": "Tier agents by the impact of their actions and data sensitivity. Tie autonomy levels to tiers: fully autonomous within budgets, sampled human review, or approval per action. Give each agent its own identity with scoped credentials, so its actions show up distinctly in audit logs and can be revoked alone. When agents call other agents, propagate the originating user and agent chain so authorization and accountability survive delegation.",
+              "subtopics": [
+                {
+                  "id": "t-fleet-t2-s1",
+                  "title": "Risk tiering criteria"
+                },
+                {
+                  "id": "t-fleet-t2-s2",
+                  "title": "Autonomy levels per tier"
+                },
+                {
+                  "id": "t-fleet-t2-s3",
+                  "title": "Per-agent identity and credentials"
+                },
+                {
+                  "id": "t-fleet-t2-s4",
+                  "title": "Delegation chains and A2A"
+                },
+                {
+                  "id": "t-fleet-t2-s5",
+                  "title": "Revocation and quarantine"
+                }
+              ]
+            },
+            {
+              "id": "t-fleet-t3",
+              "title": "Fleet-wide changes and economics",
+              "explainer": "Changes that affect many agents, such as a new model version, a shared tool upgrade or a policy change, need campaigns: run each agent's evals against the change, roll out progressively by tier, and keep per-agent rollback. Capacity planning spans providers and self-hosted models. Showback or chargeback attributes spend to owning teams, and fleet-level dashboards show value delivered per dollar, which is what executives fund.",
+              "subtopics": [
+                {
+                  "id": "t-fleet-t3-s1",
+                  "title": "Model upgrade campaigns"
+                },
+                {
+                  "id": "t-fleet-t3-s2",
+                  "title": "Progressive rollout by tier"
+                },
+                {
+                  "id": "t-fleet-t3-s3",
+                  "title": "Multi-provider capacity planning"
+                },
+                {
+                  "id": "t-fleet-t3-s4",
+                  "title": "Showback and chargeback"
+                },
+                {
+                  "id": "t-fleet-t3-s5",
+                  "title": "Value per dollar dashboards"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "How should a fleet prevent unregistered 'shadow' agents?",
+              "choices": [
+                "Use one shared API key",
+                "Make registry membership a precondition for gateway keys",
+                "Ask teams nicely",
+                "Disable logging"
+              ],
+              "answer": 1,
+              "why": "Tying keys to registration enforces inventory."
+            },
+            {
+              "q": "Why give each agent its own identity?",
+              "choices": [
+                "Cheaper tokens",
+                "Faster inference",
+                "Attributable, scoped and individually revocable actions",
+                "Required by GPUs"
+              ],
+              "answer": 2,
+              "why": "Per-agent identity enables audit and targeted revocation."
+            },
+            {
+              "q": "Before switching the fleet to a new model version you should…",
+              "choices": [
+                "Delete old prompts",
+                "Run each agent's evals and roll out progressively",
+                "Switch all aliases at once",
+                "Disable monitoring"
+              ],
+              "answer": 1,
+              "why": "Per-agent evaluation prevents fleet-wide regressions."
+            }
+          ],
+          "conceptIds": [
+            "agentops-loop",
+            "controls-crosswalk"
+          ]
+        }
+      ]
+    }
+  ]
+}

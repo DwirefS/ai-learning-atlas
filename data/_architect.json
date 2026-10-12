@@ -836,6 +836,148 @@
           "conceptIds": [
             "llm-gateway-routing"
           ]
+        },
+        {
+          "id": "a-fde",
+          "title": "Forward Deployed Engineering: Discovery to Production",
+          "why": "FDEs turn ambiguous customer problems into running agentic systems inside messy enterprises; it is the fastest-growing AI engineering role in services and labs.",
+          "explainer": "A Forward Deployed Engineer (FDE) embeds with a customer, writes production code in their environment, and owns outcomes such as time-to-value, adoption and reliability, not slideware. 2026 postings from labs, hyperscalers and consultancies describe the same loop: discover the real workflow, scope a narrow high-value use case, prototype in days, harden to production in weeks, hand over to the customer's team, and feed field learnings back to the product.\n\nThe technical stack is the whole atlas in miniature: Python and APIs, RAG and tool calling, MCP servers into legacy systems, evals, identity and security reviews, CI/CD and observability. The differentiator is judgment under ambiguity: choosing the use case where data access, measurable value and risk tolerance line up, and saying no to the rest.\n\nCommon mistakes: building a flashy demo on sample data that dies at the security review; no success metric agreed up front; ignoring the people whose work changes; leaving no runbook so the system rots after you leave.\n\nMental model: an FDE is a startup CTO for one customer problem, with a deadline and someone else's infrastructure.",
+          "resources": [
+            {
+              "title": "a16z: Trading margin for moat — the FDE model",
+              "url": "https://a16z.com/services-led-growth/"
+            },
+            {
+              "title": "The Mom Test (customer conversations)",
+              "url": "https://www.momtestbook.com/"
+            },
+            {
+              "title": "Anthropic: Building effective agents",
+              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+            }
+          ],
+          "project": "Run a mock engagement: interview a 'customer' (a friend or LLM role-play) about a real workflow, write a one-page scope with success metric and data access plan, build a working prototype on their real-shaped data in 3 days, then a production-readiness checklist (security, evals, monitoring, runbook, handover) and a 10-minute exec readout.",
+          "topics": [
+            {
+              "id": "a-fde-t1",
+              "title": "Discovery and scoping",
+              "explainer": "Start with the workflow, not the model. Shadow the people doing the work, map steps, systems, hand-offs and pain, and quantify volume and cost. Ask about past behavior, not hypothetical wishes. Then score candidate use cases on value, data accessibility, risk and measurability, and choose one narrow slice. Write a scope with a baseline metric, a target, the data and system access needed, the security reviewers, and what is explicitly out of scope. Getting access approved is often the critical path.",
+              "subtopics": [
+                {
+                  "id": "a-fde-t1-s1",
+                  "title": "Workflow shadowing and mapping"
+                },
+                {
+                  "id": "a-fde-t1-s2",
+                  "title": "Quantifying baseline cost and volume"
+                },
+                {
+                  "id": "a-fde-t1-s3",
+                  "title": "Use-case scoring: value, data, risk"
+                },
+                {
+                  "id": "a-fde-t1-s4",
+                  "title": "Success metrics and baselines"
+                },
+                {
+                  "id": "a-fde-t1-s5",
+                  "title": "Access and security review planning"
+                }
+              ]
+            },
+            {
+              "id": "a-fde-t2",
+              "title": "Demo to production",
+              "explainer": "A demo proves possibility; production proves reliability. The path: prototype on real-shaped data, then build an eval set from customer examples, connect to real systems through least-privilege connectors, add tracing, guardrails and human approval for risky actions, pass the customer's security and privacy review, and roll out to a pilot group with feedback capture. Expect integration and data-readiness problems to consume most of the time, not prompting.",
+              "subtopics": [
+                {
+                  "id": "a-fde-t2-s1",
+                  "title": "Prototype on real-shaped data"
+                },
+                {
+                  "id": "a-fde-t2-s2",
+                  "title": "Customer-derived eval sets"
+                },
+                {
+                  "id": "a-fde-t2-s3",
+                  "title": "Integrations and identity"
+                },
+                {
+                  "id": "a-fde-t2-s4",
+                  "title": "Security and privacy review"
+                },
+                {
+                  "id": "a-fde-t2-s5",
+                  "title": "Pilot rollout and feedback"
+                }
+              ]
+            },
+            {
+              "id": "a-fde-t3",
+              "title": "Handover, adoption and field feedback",
+              "explainer": "Success is the customer running it without you. Leave infrastructure as code, runbooks, dashboards, an eval suite and trained owners. Measure adoption and the business metric, not just uptime. Run enablement sessions and identify internal champions. Finally, codify what you learned into reusable patterns, connectors and product feedback, which is how FDE teams scale across many customers rather than rebuilding from scratch each time.",
+              "subtopics": [
+                {
+                  "id": "a-fde-t3-s1",
+                  "title": "Runbooks and ownership transfer"
+                },
+                {
+                  "id": "a-fde-t3-s2",
+                  "title": "Adoption and outcome metrics"
+                },
+                {
+                  "id": "a-fde-t3-s3",
+                  "title": "Enablement and champions"
+                },
+                {
+                  "id": "a-fde-t3-s4",
+                  "title": "Reusable accelerators"
+                },
+                {
+                  "id": "a-fde-t3-s5",
+                  "title": "Product feedback loops"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "What should an FDE agree with the customer before building?",
+              "choices": [
+                "The model brand",
+                "The number of agents",
+                "The UI color",
+                "A baseline and target success metric plus data access plan"
+              ],
+              "answer": 3,
+              "why": "Without a metric and access, the project cannot prove value or reach production."
+            },
+            {
+              "q": "What usually consumes most time between demo and production?",
+              "choices": [
+                "Choosing fonts",
+                "GPU procurement",
+                "Integration, data readiness and security review",
+                "Prompt wording"
+              ],
+              "answer": 2,
+              "why": "Enterprise integration and approvals dominate real timelines."
+            },
+            {
+              "q": "What defines a successful FDE handover?",
+              "choices": [
+                "The FDE stays forever",
+                "The demo video",
+                "The customer team operates it with runbooks, evals and dashboards",
+                "More features"
+              ],
+              "answer": 2,
+              "why": "Ownership transfer is the goal."
+            }
+          ],
+          "conceptIds": [
+            "fde-lifecycle"
+          ]
         }
       ]
     },
@@ -1308,6 +1450,149 @@
             }
           ],
           "conceptIds": []
+        },
+        {
+          "id": "a-solarch",
+          "title": "AI Solutions Architecture: Sizing, Proposals and Build-vs-Buy",
+          "why": "Solutions architects win and shape AI deals; credibility comes from realistic architectures, honest sizing and clear risk trade-offs.",
+          "explainer": "An AI Solutions Architect (pre-sales or delivery) translates a customer's goals into an agentic architecture, estimates cost and effort, and de-risks the decision. The work spans requirements and non-functional requirements, reference architectures (gateway, RAG, agents, data products, evals, guardrails, observability), platform choices (managed agent platforms vs frameworks vs custom), sizing (tokens per task × tasks per month × price; or GPUs for self-hosting), and a phased roadmap.\n\nStrong architects make trade-offs explicit: managed APIs vs open-weight models for data residency; build vs buy for evals and observability; how much autonomy is acceptable at each phase. They write proposals that state assumptions, risks and success criteria, and they run proofs of value with eval-based exit criteria instead of vibes.\n\nCommon mistakes: costing only model tokens and forgetting retrieval, data engineering, evals and people; promising autonomy that the customer's risk appetite will not accept; vendor-locked designs with no exit path.\n\nMental model: a proposal is a hypothesis with a budget. Make the hypothesis testable.",
+          "resources": [
+            {
+              "title": "AWS Well-Architected Generative AI Lens",
+              "url": "https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html"
+            },
+            {
+              "title": "Azure AI architecture center",
+              "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/"
+            },
+            {
+              "title": "Google Cloud architecture: generative AI",
+              "url": "https://cloud.google.com/architecture/ai-ml"
+            }
+          ],
+          "project": "For a mock RFP (e.g. insurer claims intake), produce a solution proposal: requirements and NFRs, reference architecture diagram, build-vs-buy table, monthly cost model at three volumes, phased roadmap with autonomy levels, risks and a proof-of-value plan with eval exit criteria.",
+          "topics": [
+            {
+              "id": "a-solarch-t1",
+              "title": "Requirements and reference architecture",
+              "explainer": "Capture functional goals and non-functional requirements early: latency, availability, data residency, privacy, auditability, languages, integration points and scale. Map them onto a reference architecture: channels, gateway, orchestration and agents, tools and MCP servers, data products and retrieval, eval and observability, policy and identity. Show where human oversight sits. Keep the diagram vendor-neutral first, then map components to the customer's cloud and existing tools.",
+              "subtopics": [
+                {
+                  "id": "a-solarch-t1-s1",
+                  "title": "Functional and non-functional requirements"
+                },
+                {
+                  "id": "a-solarch-t1-s2",
+                  "title": "Vendor-neutral reference architecture"
+                },
+                {
+                  "id": "a-solarch-t1-s3",
+                  "title": "Human oversight placement"
+                },
+                {
+                  "id": "a-solarch-t1-s4",
+                  "title": "Mapping to customer cloud"
+                },
+                {
+                  "id": "a-solarch-t1-s5",
+                  "title": "Architecture decision records"
+                }
+              ]
+            },
+            {
+              "id": "a-solarch-t2",
+              "title": "Sizing and cost modeling",
+              "explainer": "Estimate tokens per task by stage (input context, outputs, tool loops), multiply by task volume and price per million tokens, and add retrieval, storage, data pipelines, observability, evals and human review. Compare managed APIs with self-hosted models at several volumes, because the crossover point drives architecture. Model people cost too: FDE time, operations and governance. Present ranges with assumptions, and the cost per business outcome such as cost per claim handled.",
+              "subtopics": [
+                {
+                  "id": "a-solarch-t2-s1",
+                  "title": "Tokens per task by stage"
+                },
+                {
+                  "id": "a-solarch-t2-s2",
+                  "title": "Volume scenarios"
+                },
+                {
+                  "id": "a-solarch-t2-s3",
+                  "title": "API vs self-hosted crossover"
+                },
+                {
+                  "id": "a-solarch-t2-s4",
+                  "title": "Non-model costs"
+                },
+                {
+                  "id": "a-solarch-t2-s5",
+                  "title": "Cost per business outcome"
+                }
+              ]
+            },
+            {
+              "id": "a-solarch-t3",
+              "title": "Proposals and proofs of value",
+              "explainer": "A good proposal states the problem, success criteria, architecture, phases, assumptions, risks, costs and what the customer must provide (data access, SMEs, approvals). A proof of value runs on the customer's data with a pre-agreed eval set and thresholds, timeboxed to weeks, with a go/no-go decision at the end. Include an exit path for vendor lock-in and a governance section that addresses their compliance needs.",
+              "subtopics": [
+                {
+                  "id": "a-solarch-t3-s1",
+                  "title": "Proposal structure"
+                },
+                {
+                  "id": "a-solarch-t3-s2",
+                  "title": "Customer dependencies"
+                },
+                {
+                  "id": "a-solarch-t3-s3",
+                  "title": "Proof-of-value design"
+                },
+                {
+                  "id": "a-solarch-t3-s4",
+                  "title": "Eval-based exit criteria"
+                },
+                {
+                  "id": "a-solarch-t3-s5",
+                  "title": "Lock-in and exit strategy"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Which cost is most often forgotten in AI proposals?",
+              "choices": [
+                "Model tokens",
+                "Data engineering, evals, operations and human review",
+                "GPU names",
+                "Domain names"
+              ],
+              "answer": 1,
+              "why": "Non-model costs often exceed token costs."
+            },
+            {
+              "q": "What makes a proof of value decisive?",
+              "choices": [
+                "Pre-agreed eval set and thresholds on customer data",
+                "A larger model",
+                "A nice demo",
+                "More slides"
+              ],
+              "answer": 0,
+              "why": "Agreed measurable criteria enable a real go/no-go."
+            },
+            {
+              "q": "Why compare APIs vs self-hosting at several volumes?",
+              "choices": [
+                "For fun",
+                "The cost crossover point changes the right architecture",
+                "APIs are always cheaper",
+                "Self-hosting is always cheaper"
+              ],
+              "answer": 1,
+              "why": "Economics change with scale."
+            }
+          ],
+          "conceptIds": [
+            "fde-lifecycle",
+            "agent-data-arch"
+          ]
         }
       ]
     },
@@ -1659,6 +1944,148 @@
             }
           ],
           "conceptIds": []
+        },
+        {
+          "id": "a-product",
+          "title": "AI Product Management and Product Engineering for Agents",
+          "why": "Agentic products fail more from wrong problem, wrong UX or wrong autonomy level than from wrong model.",
+          "explainer": "AI Product Managers and Product Engineers decide what the agent should do, for whom, how users stay in control, and how success is measured. Agent products need new product muscles: specifying behavior with eval sets (the eval is the spec), choosing the autonomy level per action (suggest, draft, act with approval, act autonomously), designing UX for uncertainty (showing sources, progress, confidence and easy correction), and pricing when each task has variable cost.\n\nMetrics combine outcome (task completion, time saved, resolution rate), quality (eval pass rates, escalation and correction rates), trust (adoption, retention, override frequency) and economics (cost per task vs value per task). Product engineers prototype rapidly with real models and real data, run A/B tests and ship iteratively behind flags.\n\nCommon mistakes: chat as the default UI when a button would do; full autonomy on day one; no feedback capture; pricing per seat while costs scale per task.\n\nMental model: autonomy is a dial you earn with evidence, one action at a time.",
+          "resources": [
+            {
+              "title": "Google PAIR Guidebook",
+              "url": "https://pair.withgoogle.com/guidebook/"
+            },
+            {
+              "title": "Microsoft HAX Toolkit (human-AI interaction guidelines)",
+              "url": "https://www.microsoft.com/en-us/haxtoolkit/"
+            },
+            {
+              "title": "Lenny's Newsletter: AI product evals",
+              "url": "https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete"
+            }
+          ],
+          "project": "Write a product spec for an agent feature as an eval set (30 cases) plus an autonomy matrix per action. Prototype the UX with source display and one-click correction, define outcome/quality/trust/economics metrics, and design an A/B test with a guardrail metric.",
+          "topics": [
+            {
+              "id": "a-product-t1",
+              "title": "Specs as evals and autonomy design",
+              "explainer": "Replace vague requirements with examples: inputs, expected behaviors and unacceptable behaviors, which engineers turn into the eval suite. For each action the agent can take, choose an autonomy level based on reversibility, cost of error and user trust, and define the evidence needed to raise it, such as 98% approval rate over 500 reviewed actions. This makes progress toward autonomy a measurable roadmap rather than a leap of faith.",
+              "subtopics": [
+                {
+                  "id": "a-product-t1-s1",
+                  "title": "Example-driven specs"
+                },
+                {
+                  "id": "a-product-t1-s2",
+                  "title": "Unacceptable behaviors list"
+                },
+                {
+                  "id": "a-product-t1-s3",
+                  "title": "Autonomy levels per action"
+                },
+                {
+                  "id": "a-product-t1-s4",
+                  "title": "Evidence thresholds to raise autonomy"
+                },
+                {
+                  "id": "a-product-t1-s5",
+                  "title": "Spec-to-eval workflow"
+                }
+              ]
+            },
+            {
+              "id": "a-product-t2",
+              "title": "UX for agents",
+              "explainer": "Good agent UX shows what the agent is doing and why: progress for long tasks, sources and citations, previews of actions before they happen, and easy undo or correction. Use structured UI where possible instead of free chat. Make handoff to a human seamless and preserve context. Capture feedback at the point of correction, because that data is gold for evals. Design for failure states as carefully as for success.",
+              "subtopics": [
+                {
+                  "id": "a-product-t2-s1",
+                  "title": "Progress and transparency"
+                },
+                {
+                  "id": "a-product-t2-s2",
+                  "title": "Citations and previews"
+                },
+                {
+                  "id": "a-product-t2-s3",
+                  "title": "Undo and correction"
+                },
+                {
+                  "id": "a-product-t2-s4",
+                  "title": "Structured UI vs chat"
+                },
+                {
+                  "id": "a-product-t2-s5",
+                  "title": "Human handoff"
+                }
+              ]
+            },
+            {
+              "id": "a-product-t3",
+              "title": "Metrics, experiments and pricing",
+              "explainer": "Define a metric stack: outcome metrics for value, quality metrics from evals and corrections, trust metrics like adoption and override rates, and economic metrics such as cost per task versus value per task. Run A/B tests with guardrail metrics so a cheaper model that raises escalations is caught. Price to align with value and cost: per task, per outcome or hybrid, with usage limits that prevent loss-making customers.",
+              "subtopics": [
+                {
+                  "id": "a-product-t3-s1",
+                  "title": "Outcome, quality, trust, economics"
+                },
+                {
+                  "id": "a-product-t3-s2",
+                  "title": "A/B tests with guardrails"
+                },
+                {
+                  "id": "a-product-t3-s3",
+                  "title": "Cost vs value per task"
+                },
+                {
+                  "id": "a-product-t3-s4",
+                  "title": "Outcome-based pricing"
+                },
+                {
+                  "id": "a-product-t3-s5",
+                  "title": "Usage limits and margins"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "What is the best form of an agent product spec?",
+              "choices": [
+                "A set of example cases that become the eval suite",
+                "A model choice",
+                "A slogan",
+                "A logo"
+              ],
+              "answer": 0,
+              "why": "Evals make behavior requirements concrete and testable."
+            },
+            {
+              "q": "Which factor most determines an action's autonomy level?",
+              "choices": [
+                "Model size",
+                "UI color",
+                "Token count",
+                "Reversibility and cost of error"
+              ],
+              "answer": 3,
+              "why": "Irreversible, costly actions need more oversight."
+            },
+            {
+              "q": "Why include a guardrail metric in A/B tests?",
+              "choices": [
+                "To catch harm (e.g. more escalations) while optimizing the primary metric",
+                "To make tests longer",
+                "Required by law",
+                "To reduce traffic"
+              ],
+              "answer": 0,
+              "why": "Guardrails prevent wins that hurt other outcomes."
+            }
+          ],
+          "conceptIds": [
+            "fde-lifecycle"
+          ]
         }
       ]
     },

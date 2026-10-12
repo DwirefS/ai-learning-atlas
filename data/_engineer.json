@@ -1873,6 +1873,153 @@
             }
           ],
           "conceptIds": []
+        },
+        {
+          "id": "e-llmops",
+          "title": "AI Platform and LLMOps for Agents",
+          "why": "Without a shared platform every team rebuilds gateways, prompt management, evals and tracing; the platform team makes the right way the easy way.",
+          "explainer": "An AI Platform / LLMOps Engineer builds the paved road for agent teams: an LLM gateway (routing, keys, budgets, fallbacks, caching), registries for prompts, models, tools and agents, an eval service wired into CI/CD, tracing and cost attribution, guardrail services, secrets and identity integration, and templates that bootstrap a compliant agent in minutes.\n\nLLMOps differs from classic MLOps: most teams consume models rather than train them, so the versioned artifacts are prompts, tool definitions, retrieval configs and agent graphs, and the release process is driven by evals rather than training metrics. Releases should be declarative: a manifest pins model alias, prompt version, tool versions and policies, promoted through environments with canaries.\n\nCommon mistakes: platform built before any product needs it; mandating one framework for everything; no self-service, so the platform team becomes a ticket queue; prompts edited live in a UI with no versioning or review.\n\nMental model: the platform is a product whose customers are agent teams; measure it by their time-to-production and incident rate.",
+          "resources": [
+            {
+              "title": "LiteLLM proxy docs",
+              "url": "https://docs.litellm.ai/docs/simple_proxy"
+            },
+            {
+              "title": "MLflow GenAI docs",
+              "url": "https://mlflow.org/docs/latest/genai/"
+            },
+            {
+              "title": "Backstage (developer portal)",
+              "url": "https://backstage.io/docs/overview/what-is-backstage"
+            },
+            {
+              "title": "Google: Practitioners guide to MLOps",
+              "url": "https://cloud.google.com/resources/mlops-whitepaper"
+            }
+          ],
+          "project": "Stand up a mini platform: LiteLLM gateway with per-team keys and budgets, a Git-based prompt and agent manifest registry, a CI pipeline that runs evals and blocks regressions, OpenTelemetry tracing with cost attribution, and a cookiecutter/Backstage template that creates a new compliant agent repo. Time how long a new agent takes to reach staging.",
+          "topics": [
+            {
+              "id": "e-llmops-t1",
+              "title": "Gateways and registries",
+              "explainer": "The gateway centralizes model access: one API for many providers, per-team keys, budgets and rate limits, fallbacks, caching, logging and policy hooks. Registries track versioned artifacts: prompts with templates and variables, model aliases mapped to concrete versions, tool definitions and MCP servers, and agent manifests. Keep registries Git-backed or API-backed with review, so every production behavior traces to a reviewed version.",
+              "subtopics": [
+                {
+                  "id": "e-llmops-t1-s1",
+                  "title": "LLM gateway capabilities"
+                },
+                {
+                  "id": "e-llmops-t1-s2",
+                  "title": "Model aliases and pinning"
+                },
+                {
+                  "id": "e-llmops-t1-s3",
+                  "title": "Prompt registry and review"
+                },
+                {
+                  "id": "e-llmops-t1-s4",
+                  "title": "Tool and MCP registry"
+                },
+                {
+                  "id": "e-llmops-t1-s5",
+                  "title": "Agent manifests"
+                }
+              ]
+            },
+            {
+              "id": "e-llmops-t2",
+              "title": "CI/CD driven by evals",
+              "explainer": "An agent release is a manifest change. CI runs unit tests, policy checks and the eval suite, comparing against the current production baseline with significance thresholds. CD promotes through environments, canaries a small traffic share with online evals and SLO monitoring, and rolls back automatically on regression. Store eval results with the release so audits and incident reviews can see exactly what was known at release time.",
+              "subtopics": [
+                {
+                  "id": "e-llmops-t2-s1",
+                  "title": "Manifest-based releases"
+                },
+                {
+                  "id": "e-llmops-t2-s2",
+                  "title": "Eval gates with baselines"
+                },
+                {
+                  "id": "e-llmops-t2-s3",
+                  "title": "Canary with online evals"
+                },
+                {
+                  "id": "e-llmops-t2-s4",
+                  "title": "Automatic rollback"
+                },
+                {
+                  "id": "e-llmops-t2-s5",
+                  "title": "Release evidence storage"
+                }
+              ]
+            },
+            {
+              "id": "e-llmops-t3",
+              "title": "Self-service and developer experience",
+              "explainer": "Platform success is measured by adoption. Provide templates that generate a repo with tracing, evals, policy config and deployment already wired; a portal listing models, tools, data products and their docs; and clear golden paths for common patterns. Track time-to-first-staging, eval coverage and incident rates per team. Offer escape hatches for advanced teams while keeping security and cost controls mandatory.",
+              "subtopics": [
+                {
+                  "id": "e-llmops-t3-s1",
+                  "title": "Project templates"
+                },
+                {
+                  "id": "e-llmops-t3-s2",
+                  "title": "Developer portal"
+                },
+                {
+                  "id": "e-llmops-t3-s3",
+                  "title": "Golden paths"
+                },
+                {
+                  "id": "e-llmops-t3-s4",
+                  "title": "Platform metrics"
+                },
+                {
+                  "id": "e-llmops-t3-s5",
+                  "title": "Mandatory vs optional controls"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "In LLMOps, what is typically the versioned release artifact?",
+              "choices": [
+                "A Jira ticket",
+                "Only model weights",
+                "A Docker tag only",
+                "A manifest of model alias, prompt, tools and policies"
+              ],
+              "answer": 3,
+              "why": "Agent behavior depends on several versioned components pinned together."
+            },
+            {
+              "q": "What should gate promotion of an agent release?",
+              "choices": [
+                "Manager approval only",
+                "Eval results versus baseline plus policy checks",
+                "Time of day",
+                "Lines of code"
+              ],
+              "answer": 1,
+              "why": "Evals are the release criteria for AI behavior."
+            },
+            {
+              "q": "How is a platform team best measured?",
+              "choices": [
+                "Agent teams' time-to-production and incident rates",
+                "Number of frameworks",
+                "Size of the team",
+                "Number of tickets closed"
+              ],
+              "answer": 0,
+              "why": "Platform value shows in its customers' outcomes."
+            }
+          ],
+          "conceptIds": [
+            "eval-pipeline",
+            "agentops-loop"
+          ]
         }
       ]
     },
