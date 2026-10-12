@@ -119,9 +119,9 @@ https://docs.soda.io/,200,https://docs.soda.io/,Soda documentation
 https://docs.temporal.io/,200,https://docs.temporal.io/,Temporal documentation
 https://docs.unitycatalog.io/,200,https://docs.unitycatalog.io/,Unity Catalog (open source)
 https://docs.unstructured.io/open-source/introduction/overview,200,https://docs.unstructured.io/open-source/introduction/overview,Unstructured open-source docs
-https://docs.vllm.ai/en/latest/,200,https://docs.vllm.ai/en/latest/,vLLM documentation
+https://docs.vllm.ai/en/latest/,429,https://docs.vllm.ai/en/latest/,vLLM documentation
 https://docs.vllm.ai/en/latest/contributing/benchmarks.html,429,https://docs.vllm.ai/en/latest/contributing/benchmarks.html,vLLM benchmarking docs
-https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,200,https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer/,vLLM Run:ai Model Streamer
+https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,429,https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,vLLM Run:ai Model Streamer
 https://dspy.ai/,200,https://dspy.ai/,DSPy
 https://e2b.dev/docs,200,https://docs.e2b.dev/,E2B
 https://eugeneyan.com/writing/llm-evaluators/,200,https://eugeneyan.com/writing/llm-evaluators/,Eugene Yan: Evaluating LLM-evaluators
@@ -188,7 +188,7 @@ https://langfuse.com/docs,200,https://langfuse.com/docs,Langfuse docs
 https://learn.microsoft.com/en-us/azure/ai-foundry/,200,https://learn.microsoft.com/en-us/azure/ai-foundry/,Azure AI Foundry
 https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview,Azure AI Content Safety
 https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0,Azure AI Document Intelligence
-https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,200,https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,Azure AI architecture
+https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,200,https://learn.microsoft.com/en-us/azure/architecture/ai-ml/ai-get-started,Azure AI architecture
 https://learn.microsoft.com/en-us/entra/agent-id/,200,https://learn.microsoft.com/en-us/entra/agent-id/,Microsoft Entra Agent ID
 https://learn.microsoft.com/en-us/graph/permissions-overview,200,https://learn.microsoft.com/en-us/graph/permissions-overview,Microsoft Graph permissions overview
 https://llm-d.ai/,200,https://llm-d.ai/,llm-d

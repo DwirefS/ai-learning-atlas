@@ -11,10 +11,10 @@
   "roles": 13,
   "projects": 28,
   "tracks": 8,
-  "version": "8.0.0",
+  "version": "9.0.0",
   "words_before_v8": 82537,
-  "words": 151084,
-  "words_with_concepts": 163106,
+  "words": 166637,
+  "words_with_concepts": 178659,
   "lessons": 129,
   "lesson_diagrams": 129,
   "concept_diagrams": 57,
@@ -33,5 +33,18 @@
     "tokenizer"
   ],
   "lessons_with_widget": 29,
-  "annotated_resources": 275
+  "annotated_resources": 275,
+  "real_case_studies": 44,
+  "case_sources": 31,
+  "illustrative_only": 85,
+  "lessons_with_code": 117,
+  "code_by_lang": {
+    "bash": 5,
+    "python": 96,
+    "rego": 1,
+    "sql": 2,
+    "yaml": 13
+  },
+  "conceptual_lessons": 12,
+  "resource_notes_unique": 275
 }
