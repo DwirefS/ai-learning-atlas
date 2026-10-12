@@ -841,6 +841,152 @@
         "threat-model",
         "prompt-injection-defense"
       ]
+    },
+    {
+      "id": "sc-found",
+      "title": "NLP Foundations: Word Vectors to Scaling Laws",
+      "why": "Knowing how we got from word2vec to frontier models makes today's design choices (context, scale, data, interpretability) make sense.",
+      "explainer": "Modern LLMs are the end of a short chain of ideas. Word embeddings (word2vec, GloVe) showed that meaning can be captured as vectors learned from co-occurrence. Recurrent networks (RNNs, LSTMs) processed sequences token by token but struggled with long-range dependencies and could not parallelize across a sequence. Attention, then the transformer, removed recurrence and let every token look at every other token in parallel, which made training on vast data practical.\n\nPretraining on next-token prediction over trillions of tokens produces general capabilities; scaling laws (Kaplan et al., then Chinchilla) describe how loss falls predictably with parameters, data and compute, and that compute-optimal training uses roughly 20 tokens per parameter. Data curation (deduplication, quality filtering, mixtures) matters as much as size. Interpretability research (probing, attention analysis, sparse autoencoders) tries to explain what the network learned.\n\nCommon mistakes: assuming bigger is always better instead of compute-optimal; ignoring data quality; treating attention maps as full explanations.\n\nMental model: every generation fixed the previous one's bottleneck: meaning, then sequence, then parallelism, then scale.",
+      "resources": [
+        {
+          "title": "Stanford CS224N",
+          "url": "https://web.stanford.edu/class/cs224n/"
+        },
+        {
+          "title": "Stanford CS336: Language Modeling from Scratch",
+          "url": "https://stanford-cs336.github.io/spring2025/"
+        },
+        {
+          "title": "Chinchilla: Training compute-optimal LLMs (arXiv)",
+          "url": "https://arxiv.org/abs/2203.15556"
+        },
+        {
+          "title": "Anthropic: Towards monosemanticity (sparse autoencoders)",
+          "url": "https://transformer-circuits.pub/2023/monosemantic-features"
+        }
+      ],
+      "project": "Train word2vec on a small corpus and test analogies; train a tiny LSTM and a tiny transformer on the same character-level data and compare loss and speed; then fit a scaling-law curve from 4 model sizes and predict the loss of a 5th.",
+      "topics": [
+        {
+          "id": "sc-found-t1",
+          "title": "Word embeddings and recurrent networks",
+          "explainer": "Word2vec learns a vector per word by predicting neighbors (skip-gram) or the center word (CBOW); similar words end up close, and some relations become vector offsets. Embeddings are static: one vector per word regardless of context. RNNs and LSTMs added context by reading tokens sequentially with a hidden state; LSTM gates reduced vanishing gradients, but sequential processing limited training speed and long-range memory. These limits motivated attention, first added to RNN encoders for translation, and then the attention-only transformer.",
+          "subtopics": [
+            {
+              "id": "sc-found-t1-s1",
+              "title": "Skip-gram and CBOW"
+            },
+            {
+              "id": "sc-found-t1-s2",
+              "title": "Static vs contextual embeddings"
+            },
+            {
+              "id": "sc-found-t1-s3",
+              "title": "RNN hidden state"
+            },
+            {
+              "id": "sc-found-t1-s4",
+              "title": "LSTM gates and vanishing gradients"
+            },
+            {
+              "id": "sc-found-t1-s5",
+              "title": "Seq2seq with attention"
+            }
+          ]
+        },
+        {
+          "id": "sc-found-t2",
+          "title": "Pretraining and scaling laws",
+          "explainer": "Pretraining minimizes next-token prediction loss on web, code, books and curated data. Scaling laws show loss decreasing as a power law in parameters N, tokens D and compute C, roughly C ≈ 6ND FLOPs. Chinchilla found earlier models were undertrained and that compute-optimal training uses about 20 tokens per parameter, though production models are often trained far beyond that to make inference cheaper. Data pipelines with deduplication, quality filters and domain mixtures often move results more than architecture tweaks.",
+          "subtopics": [
+            {
+              "id": "sc-found-t2-s1",
+              "title": "Next-token objective"
+            },
+            {
+              "id": "sc-found-t2-s2",
+              "title": "C ≈ 6ND compute rule"
+            },
+            {
+              "id": "sc-found-t2-s3",
+              "title": "Compute-optimal vs overtrained models"
+            },
+            {
+              "id": "sc-found-t2-s4",
+              "title": "Data deduplication and filtering"
+            },
+            {
+              "id": "sc-found-t2-s5",
+              "title": "Data mixtures"
+            }
+          ]
+        },
+        {
+          "id": "sc-found-t3",
+          "title": "Interpretability basics",
+          "explainer": "Interpretability asks what representations and circuits a model uses. Probing trains a small classifier on hidden states to test whether a property is encoded. Attention visualization shows where heads look but not why. Mechanistic interpretability identifies circuits, and sparse autoencoders decompose activations into many more interpretable features, some of which can be steered. For engineers, interpretability is mostly a research lens today, but it informs safety evaluations and debugging of fine-tuned behavior.",
+          "subtopics": [
+            {
+              "id": "sc-found-t3-s1",
+              "title": "Linear probes"
+            },
+            {
+              "id": "sc-found-t3-s2",
+              "title": "Attention visualization limits"
+            },
+            {
+              "id": "sc-found-t3-s3",
+              "title": "Circuits"
+            },
+            {
+              "id": "sc-found-t3-s4",
+              "title": "Sparse autoencoders and features"
+            },
+            {
+              "id": "sc-found-t3-s5",
+              "title": "Steering and safety uses"
+            }
+          ]
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Why did transformers replace RNNs for large-scale training?",
+          "choices": [
+            "They use no attention",
+            "They process all tokens in parallel and handle long-range dependencies better",
+            "They need no data",
+            "Fewer parameters"
+          ],
+          "answer": 1,
+          "why": "Removing recurrence enables parallel training and direct long-range attention."
+        },
+        {
+          "q": "Chinchilla's compute-optimal rule of thumb is about…",
+          "choices": [
+            "No relation",
+            "1,000 tokens per parameter",
+            "20 tokens per parameter",
+            "1 token per parameter"
+          ],
+          "answer": 2,
+          "why": "Chinchilla suggests roughly 20 training tokens per parameter for compute-optimal training."
+        },
+        {
+          "q": "A 7B model trained on 2T tokens needs roughly how many training FLOPs (C ≈ 6ND)?",
+          "choices": [
+            "8.4 × 10^25",
+            "8.4 × 10^16",
+            "8.4 × 10^22",
+            "8.4 × 10^19"
+          ],
+          "answer": 2,
+          "why": "6 × 7e9 × 2e12 = 8.4e22 FLOPs."
+        }
+      ],
+      "conceptIds": [
+        "attention"
+      ]
     }
   ]
 }

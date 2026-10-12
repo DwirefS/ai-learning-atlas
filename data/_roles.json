@@ -45,7 +45,13 @@
       "g-mcp",
       "d-connect",
       "e-prod",
-      "e-cache"
+      "e-cache",
+      "e-docrag",
+      "e-vision",
+      "e-voice",
+      "g-patterns",
+      "g-frameworks",
+      "e-reasoning"
     ]
   },
   {
@@ -92,7 +98,9 @@
       "t-cloudsec",
       "e-prod",
       "a-solarch",
-      "a-product"
+      "a-product",
+      "e-voice",
+      "g-frameworks"
     ]
   },
   {
@@ -183,7 +191,8 @@
       "t-policy",
       "t-cloudsec",
       "a-secarch",
-      "t-audit"
+      "t-audit",
+      "t-agentattacks"
     ]
   },
   {
@@ -321,7 +330,8 @@
       "a-privacy",
       "t-evalfound",
       "d-catalog",
-      "t-fleet"
+      "t-fleet",
+      "t-responsible"
     ]
   },
   {
@@ -364,7 +374,8 @@
       "g-eval",
       "e-synth",
       "d-memory",
-      "e-llmops"
+      "e-llmops",
+      "e-rlenv"
     ]
   },
   {
@@ -411,7 +422,8 @@
       "d-products",
       "d-memory",
       "d-fleetdata",
-      "a-data"
+      "a-data",
+      "e-docrag"
     ]
   },
   {
@@ -457,7 +469,9 @@
       "f-traininfra",
       "i-quant",
       "t-evalfound",
-      "d-memory"
+      "d-memory",
+      "sc-found",
+      "e-rlenv"
     ]
   },
   {
@@ -501,7 +515,9 @@
       "t-policy",
       "e-cache",
       "d-products",
-      "f-finops"
+      "f-finops",
+      "e-reasoning",
+      "g-frameworks"
     ]
   },
   {
@@ -547,7 +563,8 @@
       "a-scale",
       "d-connect",
       "t-reg",
-      "a-fde"
+      "a-fde",
+      "g-frameworks"
     ]
   },
   {
@@ -589,7 +606,9 @@
       "t-evalfound",
       "a-cost",
       "d-products",
-      "a-org"
+      "a-org",
+      "t-responsible",
+      "e-genmedia"
     ]
   }
 ]

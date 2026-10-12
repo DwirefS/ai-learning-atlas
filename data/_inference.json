@@ -1505,6 +1505,33 @@
                   "title": "Policy reviews"
                 }
               ]
+            },
+            {
+              "id": "i-gateway-x1",
+              "title": "Kubernetes Gateway API Inference Extension and llm-d",
+              "explainer": "The Kubernetes Gateway API Inference Extension adds model-aware routing to standard gateways: an InferencePool groups model-server pods, and an endpoint picker chooses a pod using live signals such as queue depth, KV-cache utilization and loaded LoRA adapters. llm-d builds on vLLM and this extension for distributed inference on Kubernetes, adding prefix-cache-aware routing, disaggregated prefill and decode, and KV cache offloading. Databricks AI Gateway and similar products provide the higher-level policy layer.",
+              "subtopics": [
+                {
+                  "id": "i-gateway-x1-s1",
+                  "title": "InferencePool and endpoint picker"
+                },
+                {
+                  "id": "i-gateway-x1-s2",
+                  "title": "Queue- and KV-aware scheduling"
+                },
+                {
+                  "id": "i-gateway-x1-s3",
+                  "title": "llm-d architecture"
+                },
+                {
+                  "id": "i-gateway-x1-s4",
+                  "title": "KV cache offloading"
+                },
+                {
+                  "id": "i-gateway-x1-s5",
+                  "title": "Policy gateways (Databricks AI Gateway) vs inference routers"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -1554,7 +1581,8 @@
             }
           ],
           "conceptIds": [
-            "llm-gateway-routing"
+            "llm-gateway-routing",
+            "model-router"
           ]
         }
       ]

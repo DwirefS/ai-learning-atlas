@@ -1,0 +1,803 @@
+[
+  {
+    "id": "p-semsearch",
+    "emoji": "🔎",
+    "title": "Semantic search over your notes",
+    "tier": 1,
+    "goal": "Search your own notes by meaning, not keywords, and get cited answers.",
+    "stack": [
+      "Python",
+      "sentence-transformers or an embedding API",
+      "pgvector / LanceDB / Chroma",
+      "Obsidian or Markdown folder"
+    ],
+    "steps": [
+      "Load notes and split by heading",
+      "Embed and index with metadata (path, date, tags)",
+      "Add BM25 and fuse with vector results",
+      "Answer with an LLM that cites note paths",
+      "Re-index only changed files by content hash"
+    ],
+    "stretch": [
+      "Reranker",
+      "Agent tool: search_notes exposed via MCP",
+      "Daily digest of related notes"
+    ],
+    "done": [
+      "20-question golden set with recall@5 ≥ 0.8",
+      "Every answer cites at least one note",
+      "Incremental re-index under 10 s for one changed note"
+    ],
+    "roles": [
+      "ai-engineer",
+      "data-eng"
+    ],
+    "subjects": [
+      "e-vector",
+      "e-rag",
+      "d-unstruct"
+    ]
+  },
+  {
+    "id": "p-mcp-db",
+    "emoji": "🔌",
+    "title": "Your own MCP server to a database",
+    "tier": 1,
+    "goal": "Let any MCP client (Claude, Cursor, your agent) safely query and update a real database.",
+    "stack": [
+      "Python or TypeScript MCP SDK",
+      "SQLite or Postgres",
+      "Read-only DB role"
+    ],
+    "steps": [
+      "Design 4 task-shaped tools (search, get, query_metric, create_task)",
+      "Use a read-only role for read tools",
+      "Cap rows and response size; paginate",
+      "Require confirmation for the write tool",
+      "Log every call with arguments and caller"
+    ],
+    "stretch": [
+      "OAuth on-behalf-of with row-level security",
+      "Semantic-layer metric tool",
+      "Publish in an internal registry"
+    ],
+    "done": [
+      "Works from 2 different MCP clients",
+      "Injection test: a row containing instructions does not trigger writes",
+      "20 task scenarios with ≥ 90% success"
+    ],
+    "roles": [
+      "ai-engineer",
+      "data-eng",
+      "fde"
+    ],
+    "subjects": [
+      "g-mcp",
+      "d-connect",
+      "d-perm"
+    ]
+  },
+  {
+    "id": "p-calendar",
+    "emoji": "📅",
+    "title": "Function calling that books real calendar meetings",
+    "tier": 1,
+    "goal": "An assistant that finds free slots and books meetings on your real calendar.",
+    "stack": [
+      "OpenAI/Anthropic/Gemini tool calling",
+      "Google Calendar or Microsoft Graph API",
+      "OAuth"
+    ],
+    "steps": [
+      "Define tools: find_free_slots, create_event, cancel_event with strict schemas",
+      "Handle time zones explicitly (store UTC, display local)",
+      "Confirm before creating or cancelling",
+      "Use idempotency keys so retries never double-book",
+      "Log tool calls and results"
+    ],
+    "stretch": [
+      "Multi-attendee scheduling",
+      "Rescheduling by natural language",
+      "Voice front end (see voice project)"
+    ],
+    "done": [
+      "30 scheduling requests with ≥ 95% correct slot and time zone",
+      "Zero double bookings under retry tests",
+      "Never books without confirmation"
+    ],
+    "roles": [
+      "ai-engineer",
+      "fde"
+    ],
+    "subjects": [
+      "e-tools",
+      "e-api",
+      "d-connect"
+    ]
+  },
+  {
+    "id": "p-evals-ci",
+    "emoji": "🧪",
+    "title": "Evals that catch prompt regressions",
+    "tier": 1,
+    "goal": "A CI gate that blocks a prompt or model change when quality drops.",
+    "stack": [
+      "promptfoo or Inspect AI",
+      "GitHub Actions",
+      "LLM judge + code assertions"
+    ],
+    "steps": [
+      "Do error analysis on 50 real outputs",
+      "Build a 60-case golden set with per-failure-mode assertions",
+      "Add one calibrated judge for a subjective criterion",
+      "Run in CI on every PR and compare to main",
+      "Block merges on significant drops"
+    ],
+    "stretch": [
+      "Online evals on sampled production traffic",
+      "Judge calibration report (TPR/TNR)",
+      "Dashboard of scores over time"
+    ],
+    "done": [
+      "A deliberately bad prompt change is blocked",
+      "Judge agreement with your labels ≥ 85% on held-out cases",
+      "Suite runs in under 5 minutes"
+    ],
+    "roles": [
+      "evals",
+      "ai-engineer",
+      "platform"
+    ],
+    "subjects": [
+      "t-evalfound",
+      "t-judge",
+      "e-eval"
+    ]
+  },
+  {
+    "id": "p-docrag",
+    "emoji": "📄",
+    "title": "Multimodal RAG over PDFs with charts, tables and images",
+    "tier": 2,
+    "goal": "Answer questions about reports where the answer lives in a table or chart, with page citations.",
+    "stack": [
+      "Docling / Unstructured / LlamaParse",
+      "ColPali or ColQwen via Byaldi",
+      "A VLM (GPT, Claude, Gemini, Qwen-VL)",
+      "Vector DB with multi-vector support"
+    ],
+    "steps": [
+      "Parse PDFs into text, Markdown tables and figure captions",
+      "Build a ColPali page index alongside the text index",
+      "Fuse with reciprocal rank fusion and rerank",
+      "Answer with a VLM given top page images and text",
+      "Cite page numbers and regions"
+    ],
+    "stretch": [
+      "Chart-to-data extraction",
+      "Binarized visual index",
+      "Per-question-type dashboard"
+    ],
+    "done": [
+      "40 questions split prose/table/chart with accuracy reported per type",
+      "Chart questions ≥ 70% correct",
+      "Every answer cites a page"
+    ],
+    "roles": [
+      "ai-engineer",
+      "data-eng"
+    ],
+    "subjects": [
+      "e-docrag",
+      "d-unstruct",
+      "e-rag"
+    ]
+  },
+  {
+    "id": "p-receipts",
+    "emoji": "🧾",
+    "title": "Computer-vision receipt reader that logs expenses",
+    "tier": 2,
+    "goal": "Snap a receipt; get validated JSON logged to an expenses table.",
+    "stack": [
+      "VLM with structured outputs or Textract AnalyzeExpense",
+      "Pydantic / JSON Schema",
+      "SQLite or Google Sheets"
+    ],
+    "steps": [
+      "Define a receipt schema with decimal money",
+      "Extract with a VLM in structured-output mode",
+      "Validate arithmetic, dates, currency",
+      "Route failures to a review list",
+      "Log valid records to the expenses table"
+    ],
+    "stretch": [
+      "Compare OCR + rules vs VLM",
+      "Telegram/WhatsApp bot intake",
+      "Monthly spend summary agent"
+    ],
+    "done": [
+      "50 labeled receipts: field accuracy ≥ 95% on total and date",
+      "Validation catches all seeded inconsistent totals",
+      "Cost per receipt reported"
+    ],
+    "roles": [
+      "ai-engineer",
+      "fde"
+    ],
+    "subjects": [
+      "e-vision",
+      "e-tools"
+    ]
+  },
+  {
+    "id": "p-router",
+    "emoji": "🔀",
+    "title": "Model routing: cheap vs smart",
+    "tier": 2,
+    "goal": "Route each request to the cheapest model that gets it right, and prove the savings.",
+    "stack": [
+      "LiteLLM or another gateway",
+      "Small and large models",
+      "Golden set + verifier"
+    ],
+    "steps": [
+      "Score both models on a golden set",
+      "Implement rules-based routing, then a cascade with a verifier",
+      "Log route, cost and quality per request",
+      "Compare routed vs always-large on quality and cost",
+      "Alert on escalation-rate drift"
+    ],
+    "stretch": [
+      "Trained difficulty classifier",
+      "Per-tenant routing policies",
+      "Latency-aware routing"
+    ],
+    "done": [
+      "Quality within 2 points of always-large on the golden set",
+      "Cost reduction measured and reported",
+      "Every request logs its route and reason"
+    ],
+    "roles": [
+      "platform",
+      "ai-infra",
+      "ai-engineer"
+    ],
+    "subjects": [
+      "i-gateway",
+      "e-llmops",
+      "e-cache"
+    ]
+  },
+  {
+    "id": "p-obs",
+    "emoji": "📊",
+    "title": "Observability dashboard: per-request cost, latency and failures",
+    "tier": 2,
+    "goal": "See every agent request's cost, latency, tokens and failure reason.",
+    "stack": [
+      "OpenTelemetry GenAI conventions",
+      "Langfuse or Arize Phoenix",
+      "Grafana (optional)"
+    ],
+    "steps": [
+      "Instrument model, tool and retrieval spans",
+      "Attach run_id, user, tenant, cost and outcome",
+      "Build fleet and per-agent dashboards",
+      "Add burn-rate and cost-spike alerts",
+      "Inject failures and confirm they show up"
+    ],
+    "stretch": [
+      "Tail-based sampling",
+      "Cost per successful task SLO",
+      "Link user feedback to traces"
+    ],
+    "done": [
+      "Any user complaint can be traced to its run in under a minute",
+      "Injected timeout, loop and bad retrieval are all visible",
+      "Cost per request shown per agent"
+    ],
+    "roles": [
+      "agentops",
+      "platform"
+    ],
+    "subjects": [
+      "t-agentops",
+      "f-obs"
+    ]
+  },
+  {
+    "id": "p-guardrails",
+    "emoji": "🛡️",
+    "title": "Guardrails blocking prompt injection and PII leaks",
+    "tier": 2,
+    "goal": "Defense-in-depth around an agent: input and output checks plus containment.",
+    "stack": [
+      "Presidio (PII)",
+      "Prompt-injection classifier (e.g. Llama Prompt Guard)",
+      "promptfoo / PyRIT red team",
+      "Policy engine (OPA)"
+    ],
+    "steps": [
+      "Threat-model the agent and its tools",
+      "Add PII detection and redaction on inputs, outputs and traces",
+      "Add injection detection on tool outputs",
+      "Enforce tool permissions outside the model",
+      "Red-team with 50 payloads and measure attack success"
+    ],
+    "stretch": [
+      "Egress allowlist",
+      "Human approval for external sends",
+      "CI red-team regression suite"
+    ],
+    "done": [
+      "Attack success rate reported before and after",
+      "No PII in stored traces",
+      "A classifier miss still cannot exfiltrate data (containment test)"
+    ],
+    "roles": [
+      "ai-security",
+      "governance"
+    ],
+    "subjects": [
+      "t-threat",
+      "g-secure",
+      "t-policy"
+    ]
+  },
+  {
+    "id": "p-research-email",
+    "emoji": "✉️",
+    "title": "Research agent that writes cold emails",
+    "tier": 2,
+    "goal": "Given a company, research it and draft a personalized, accurate outreach email for human review.",
+    "stack": [
+      "Agent framework (LangGraph / Agents SDK)",
+      "Web search and fetch tools",
+      "CRM or spreadsheet"
+    ],
+    "steps": [
+      "Plan research steps with a budget",
+      "Search, fetch and extract facts with source URLs",
+      "Draft an email citing only verified facts",
+      "Score drafts with a judge for accuracy and tone",
+      "Queue drafts for human approval; never auto-send"
+    ],
+    "stretch": [
+      "Batch mode with durable workflows",
+      "Personalization A/B test",
+      "CRM write-back"
+    ],
+    "done": [
+      "Every factual claim links to a source",
+      "Hallucinated-fact rate < 5% on 30 companies",
+      "Step and cost caps enforced per run"
+    ],
+    "roles": [
+      "ai-engineer",
+      "fde",
+      "product"
+    ],
+    "subjects": [
+      "g-harness",
+      "e-agents",
+      "t-runbook"
+    ]
+  },
+  {
+    "id": "p-lora",
+    "emoji": "🎙️",
+    "title": "LoRA fine-tune in your voice",
+    "tier": 3,
+    "goal": "Fine-tune a small open model to write like you, and prove it beats prompting.",
+    "stack": [
+      "Hugging Face TRL / Unsloth / Axolotl",
+      "Llama, Qwen or Mistral 7-8B",
+      "One GPU (cloud or local)"
+    ],
+    "steps": [
+      "Collect and clean 1-5k examples of your writing (with consent for others' text)",
+      "Format as instruction pairs",
+      "Train a LoRA adapter",
+      "Blind-compare against few-shot prompting",
+      "Serve the adapter with vLLM multi-LoRA"
+    ],
+    "stretch": [
+      "DPO on preferred vs rejected drafts",
+      "Quantize for laptop inference",
+      "Style classifier eval"
+    ],
+    "done": [
+      "Blind preference test: adapter wins ≥ 60% vs prompting",
+      "Training cost and time reported",
+      "No private data leaked in samples"
+    ],
+    "roles": [
+      "ml-posttrain"
+    ],
+    "subjects": [
+      "e-ft",
+      "e-post",
+      "i-lora-serve"
+    ]
+  },
+  {
+    "id": "p-voice",
+    "emoji": "📞",
+    "title": "Voice agent answering calls for a local business",
+    "tier": 3,
+    "goal": "A phone receptionist that answers FAQs, books appointments and transfers to a human.",
+    "stack": [
+      "LiveKit Agents or Pipecat",
+      "Deepgram/AssemblyAI + ElevenLabs/Cartesia, or a realtime speech-to-speech model",
+      "Twilio number / SIP",
+      "Calendar tool"
+    ],
+    "steps": [
+      "Set up telephony and media streaming",
+      "Wire STT → LLM with tools → TTS, streaming",
+      "Add semantic turn detection and barge-in",
+      "Add booking and warm transfer tools",
+      "Measure latency and run 20 scripted calls"
+    ],
+    "stretch": [
+      "Compare cascaded vs speech-to-speech",
+      "Call analytics dashboard",
+      "Multilingual support"
+    ],
+    "done": [
+      "p95 voice-to-voice latency ≤ 1 s",
+      "Barge-in stops audio in ≤ 200 ms",
+      "≥ 90% task success on scripted calls; recording disclosure played"
+    ],
+    "roles": [
+      "ai-engineer",
+      "fde",
+      "agentops"
+    ],
+    "subjects": [
+      "e-voice",
+      "e-tools",
+      "t-agentops"
+    ]
+  },
+  {
+    "id": "p-data-product",
+    "emoji": "🗄️",
+    "title": "AI-ready data product with CDC",
+    "tier": 3,
+    "goal": "Turn one domain into fresh, contracted, permission-aware data an agent can use.",
+    "stack": [
+      "Postgres + Debezium + Kafka/Redpanda",
+      "Iceberg + dbt",
+      "OpenMetadata",
+      "pgvector + OpenFGA"
+    ],
+    "steps": [
+      "Stream changes into gold tables",
+      "Write an ODCS contract and tests",
+      "Index documents with ACLs and sync deletes",
+      "Expose via an MCP server",
+      "Ship an eval set with the product"
+    ],
+    "stretch": [
+      "Semantic layer metrics",
+      "OpenLineage to the agent",
+      "Freshness canary"
+    ],
+    "done": [
+      "p95 freshness ≤ 30 s",
+      "Revoked document unretrievable within SLO",
+      "Another agent uses it without help"
+    ],
+    "roles": [
+      "data-eng"
+    ],
+    "subjects": [
+      "d-cdc",
+      "d-quality",
+      "d-products",
+      "d-perm"
+    ]
+  },
+  {
+    "id": "p-durable",
+    "emoji": "⏳",
+    "title": "Durable long-running agent workflow",
+    "tier": 3,
+    "goal": "An agent that survives crashes, waits for human approval and never double-acts.",
+    "stack": [
+      "Temporal or Restate",
+      "Queue (SQS / Redis)",
+      "LLM gateway"
+    ],
+    "steps": [
+      "Model the task as workflow + activities",
+      "Add retries, timeouts and idempotency keys",
+      "Add a human approval signal",
+      "Kill workers mid-run and verify resume",
+      "Add per-tenant concurrency limits"
+    ],
+    "stretch": [
+      "Workflow versioning",
+      "Dead-letter handling",
+      "Cost per workflow report"
+    ],
+    "done": [
+      "Resumes without repeating completed LLM calls",
+      "Zero duplicate side effects under chaos test",
+      "Fairness test across tenants passes"
+    ],
+    "roles": [
+      "agentops",
+      "platform"
+    ],
+    "subjects": [
+      "t-durable",
+      "t-runbook"
+    ]
+  },
+  {
+    "id": "p-killswitch",
+    "emoji": "🛑",
+    "title": "Kill switches and budgets for an agent fleet",
+    "tier": 3,
+    "goal": "Stop runaway agents in seconds and cap spend.",
+    "stack": [
+      "OpenFeature flags",
+      "LiteLLM budgets",
+      "Tool middleware"
+    ],
+    "steps": [
+      "Add tool, agent, tenant and global-autonomy switches",
+      "Enforce step/token/time caps per run",
+      "Set per-tenant daily budgets",
+      "Write runbooks for 5 incident types",
+      "Run a game day with a simulated loop"
+    ],
+    "stretch": [
+      "Automated cost anomaly response",
+      "Atomic rollback manifest",
+      "Postmortem template"
+    ],
+    "done": [
+      "Switch takes effect in < 10 s",
+      "Runaway loop capped at the budget",
+      "Game-day postmortem written"
+    ],
+    "roles": [
+      "agentops"
+    ],
+    "subjects": [
+      "t-runbook",
+      "t-fleet"
+    ]
+  },
+  {
+    "id": "p-policy",
+    "emoji": "⚖️",
+    "title": "Policy-as-code gate for agent tools",
+    "tier": 3,
+    "goal": "Make tool permissions and deploy rules executable and auditable.",
+    "stack": [
+      "OPA/Rego or Cedar",
+      "Conftest",
+      "Gatekeeper (optional)"
+    ],
+    "steps": [
+      "Write tool-call policies with allow/deny/require-approval",
+      "Unit-test every rule",
+      "Check agent manifests in CI",
+      "Log every decision with policy version",
+      "Roll out in dry-run first"
+    ],
+    "stretch": [
+      "Cedar formal analysis",
+      "Admission control for model versions",
+      "Deny-rate dashboard"
+    ],
+    "done": [
+      "100% of tool calls pass through the engine",
+      "Policy tests in CI",
+      "Decision log reconstructs any run's permissions"
+    ],
+    "roles": [
+      "governance",
+      "ai-security",
+      "cloud-security"
+    ],
+    "subjects": [
+      "t-policy",
+      "t-audit"
+    ]
+  },
+  {
+    "id": "p-audit",
+    "emoji": "📜",
+    "title": "Audit trail and EU AI Act evidence pack",
+    "tier": 4,
+    "goal": "Prove what your agent did and map it to obligations.",
+    "stack": [
+      "S3 Object Lock or immutable storage",
+      "Hash chaining",
+      "OSCAL (optional)"
+    ],
+    "steps": [
+      "Define an audit event schema",
+      "Emit events with run IDs to WORM storage",
+      "Minimize PII",
+      "Build run-reconstruction queries",
+      "Map fields to EU AI Act Art. 12, ISO 42001 and SOC 2"
+    ],
+    "stretch": [
+      "Controls crosswalk with automated gates",
+      "Mock audit",
+      "Retention and legal hold automation"
+    ],
+    "done": [
+      "Any run reconstructable from its ID",
+      "Tampering detected by the hash chain",
+      "Evidence pack generated per agent"
+    ],
+    "roles": [
+      "governance",
+      "cloud-security"
+    ],
+    "subjects": [
+      "t-audit",
+      "t-reg"
+    ]
+  },
+  {
+    "id": "p-cloudsec",
+    "emoji": "☁️",
+    "title": "Secure agent landing zone",
+    "tier": 4,
+    "goal": "Deploy an agent with least privilege, private networking and no static keys.",
+    "stack": [
+      "Terraform",
+      "EKS/GKE/AKS with workload identity",
+      "Private endpoints, KMS",
+      "Prowler / CSPM"
+    ],
+    "steps": [
+      "Workload identity per agent",
+      "Private endpoints to model API and data",
+      "Egress allowlist proxy",
+      "KMS-encrypted vector store",
+      "Scan and fix posture findings"
+    ],
+    "stretch": [
+      "AI-SPM inventory",
+      "Automated compliance evidence",
+      "Multi-account guardrails"
+    ],
+    "done": [
+      "No static credentials anywhere",
+      "Simulated exfiltration blocked at network layer",
+      "Clean CSPM scan"
+    ],
+    "roles": [
+      "cloud-security",
+      "ai-security"
+    ],
+    "subjects": [
+      "t-cloudsec",
+      "f-secinfra"
+    ]
+  },
+  {
+    "id": "p-traj",
+    "emoji": "🎯",
+    "title": "Agent trajectory eval sandbox",
+    "tier": 4,
+    "goal": "Measure agent reliability with end-state checks and pass^k.",
+    "stack": [
+      "Inspect AI or custom harness",
+      "Mock APIs with fault injection",
+      "LLM user simulator"
+    ],
+    "steps": [
+      "Build a sandbox with seeded data and policies",
+      "Write 40 tasks with verifiable end states",
+      "Add trajectory assertions",
+      "Run each task 5 times",
+      "Report pass@1, pass^5, steps and cost"
+    ],
+    "stretch": [
+      "Simulator validation",
+      "CI integration",
+      "Model-upgrade campaign"
+    ],
+    "done": [
+      "pass^5 reported with confidence intervals",
+      "Failures categorized by type",
+      "One prompt change's reliability/cost trade-off shown"
+    ],
+    "roles": [
+      "evals",
+      "agentops"
+    ],
+    "subjects": [
+      "t-traj",
+      "g-eval"
+    ]
+  },
+  {
+    "id": "p-inference",
+    "emoji": "🖥️",
+    "title": "Self-hosted inference with autoscaling",
+    "tier": 4,
+    "goal": "Serve an open model on Kubernetes within an SLO and know its $/1M tokens.",
+    "stack": [
+      "Kubernetes + GPU Operator",
+      "vLLM or SGLang",
+      "KEDA / HPA",
+      "Prometheus + Grafana"
+    ],
+    "steps": [
+      "Deploy vLLM with a pinned model",
+      "Load test for TTFT and tokens/s",
+      "Autoscale on queue depth",
+      "Add gateway routing and fallback",
+      "Compute $/1M tokens at 3 loads"
+    ],
+    "stretch": [
+      "Prefix caching",
+      "Multi-LoRA serving",
+      "Disaggregated prefill/decode"
+    ],
+    "done": [
+      "p95 TTFT within target at planned RPS",
+      "Scale-up time measured",
+      "Cost model published"
+    ],
+    "roles": [
+      "ai-infra",
+      "platform"
+    ],
+    "subjects": [
+      "i-engines",
+      "i-batch",
+      "f-k8s",
+      "f-econ"
+    ]
+  },
+  {
+    "id": "p-fde",
+    "emoji": "🚀",
+    "title": "End-to-end FDE engagement (capstone)",
+    "tier": 4,
+    "goal": "Take a real workflow from discovery to a handed-over production pilot.",
+    "stack": [
+      "Everything above, chosen to fit the customer"
+    ],
+    "steps": [
+      "Shadow a workflow and scope one use case with a metric",
+      "Prototype on real-shaped data in days",
+      "Build evals, connectors, tracing and guardrails",
+      "Pass a security review",
+      "Pilot, measure and hand over with runbooks"
+    ],
+    "stretch": [
+      "Reusable accelerator",
+      "Exec ROI readout",
+      "Second-customer reuse"
+    ],
+    "done": [
+      "Baseline vs pilot metric reported",
+      "Customer team operates it without you",
+      "Runbooks, dashboards and eval suite delivered"
+    ],
+    "roles": [
+      "fde",
+      "solutions-architect",
+      "product"
+    ],
+    "subjects": [
+      "a-fde",
+      "a-solarch",
+      "a-product"
+    ]
+  }
+]
