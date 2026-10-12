@@ -18,22 +18,22 @@
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             },
             {
               "title": "NVIDIA GPU Operator",
               "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NVIDIA GPU Operator docs: automates drivers, container toolkit, device plugin, DCGM exporter and MIG manager on Kubernetes nodes."
             },
             {
               "title": "NCCL user guide",
               "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NCCL overview: collectives (all-reduce, all-gather, reduce-scatter), communicators and topology awareness across NVLink, PCIe and InfiniBand."
             }
           ],
           "project": "Collect metrics under idle/prefill/decode loads; explain differences.",
@@ -158,7 +158,10 @@
               "Keep the software stack versions aligned."
             ],
             "diagram": "flowchart TB\n  HBM[(HBM: 80 GB, ~3.35 TB/s)] <--> L2[L2 cache]\n  L2 <--> SM1[SM: CUDA cores + Tensor Cores + SRAM]\n  L2 <--> SM2[SM]\n  L2 <--> SMN[SM ... ~132]\n  DRV[Driver + CUDA + NCCL] -.-> SM1",
-            "diagramAlt": "Diagram: HBM connects through an L2 cache to many streaming multiprocessors, each with CUDA cores, Tensor Cores and SRAM, managed by the driver, CUDA and NCCL stack."
+            "diagramAlt": "Diagram: HBM connects through an L2 cache to many streaming multiprocessors, each with CUDA cores, Tensor Cores and SRAM, managed by the driver, CUDA and NCCL stack.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "bash",
+            "code": "# Inspect GPUs: model, memory, utilization, topology, and ECC/XID health\nnvidia-smi --query-gpu=index,name,memory.total,memory.used,utilization.gpu,temperature.gpu --format=csv\nnvidia-smi topo -m                      # NVLink / PCIe / NUMA affinity matrix\nnvidia-smi -q -d ECC | grep -i -A3 \"volatile\"\ndmesg | grep -i xid                     # XID errors point at failing hardware or drivers"
           }
         },
         {
@@ -171,29 +174,29 @@
               "title": "Kubernetes Device Plugins",
               "url": "https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Official Kubernetes documentation; the reference for the concepts used here."
+              "level": "reference",
+              "why": "Kubernetes device plugins: how vendors advertise GPUs (nvidia.com/gpu) to the kubelet, with the registration and allocation flow."
             },
             {
               "title": "NVIDIA GPU Operator",
               "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NVIDIA GPU Operator docs: automates drivers, container toolkit, device plugin, DCGM exporter and MIG manager on Kubernetes nodes."
             },
             {
               "title": "K8s scheduling",
               "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Official Kubernetes documentation; the reference for the concepts used here."
+              "why": "Kubernetes scheduling concepts: kube-scheduler, node affinity, taints and tolerations, pod priority and preemption. All of these matter for GPU placement."
             },
             {
               "title": "Ray docs",
               "url": "https://docs.ray.io/en/latest/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Ray documentation; distributed compute patterns with examples."
+              "why": "Ray docs: Core tasks and actors, Ray Train, Serve and Data. A common substrate for distributed training, batch inference and RL."
             }
           ],
           "project": "Stand up GPU Operator path; schedule a CUDA job with resource requests.",
@@ -349,7 +352,17 @@
               "Track allocatable vs actually used."
             ],
             "diagram": "flowchart LR\n  POD[Pod: nvidia.com/gpu: 1 + toleration] --> SCH[Scheduler]\n  SCH --> NODE[GPU node: taint gpu=true]\n  NODE --> DP[Device plugin]\n  DP --> GPU[GPU]\n  OP[GPU Operator] -.installs.-> DP\n  OP -.installs.-> DRV[Driver + toolkit + DCGM]",
-            "diagramAlt": "Diagram: a pod requesting a GPU with a toleration is scheduled to a tainted GPU node, where the device plugin assigns a GPU; the GPU Operator installs the plugin, drivers, toolkit and DCGM."
+            "diagramAlt": "Diagram: a pod requesting a GPU with a toleration is scheduled to a tainted GPU node, where the device plugin assigns a GPU; the GPU Operator installs the plugin, drivers, toolkit and DCGM.",
+            "case": {
+              "org": "OpenAI",
+              "title": "Scaling Kubernetes to 7,500 nodes (Jan 2021)",
+              "url": "https://openai.com/index/scaling-kubernetes-to-7500-nodes/",
+              "summary": "OpenAI runs large ML jobs with typically one pod per node. Healthchecks cordon bad nodes, and 'preflight' GPU tests run behind a taint before a node takes work. Team capacity is enforced with taints and tolerations. All-or-nothing gang scheduling uses the Coscheduling plugin to avoid half-scheduled deadlocks. EndpointSlices cut a major API-server load by about 1000×.",
+              "lesson": "Accelerator clusters need health gating, gang scheduling and quota mechanisms that stock Kubernetes doesn't give you by default."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Request GPUs and land on GPU nodes (requires the NVIDIA device plugin / GPU Operator)\napiVersion: v1\nkind: Pod\nmetadata: {name: llm-server}\nspec:\n  nodeSelector: {nvidia.com/gpu.product: NVIDIA-H100-80GB-HBM3}\n  tolerations: [{key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}]\n  containers:\n    - name: vllm\n      image: vllm/vllm-openai:latest\n      args: [\"--model\", \"meta-llama/Llama-3.1-8B-Instruct\"]\n      resources: {limits: {nvidia.com/gpu: 1}}"
           }
         },
         {
@@ -362,22 +375,22 @@
               "title": "Docker docs",
               "url": "https://docs.docker.com/",
               "kind": "docs",
-              "level": "intro",
-              "why": "Official Docker documentation; clear introductions with commands to try."
+              "level": "reference",
+              "why": "Docker docs: images, Dockerfiles, Compose, BuildKit and GPU access (--gpus). The container basics behind every inference deployment."
             },
             {
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             },
             {
               "title": "NVIDIA GPU Operator",
               "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NVIDIA GPU Operator docs: automates drivers, container toolkit, device plugin, DCGM exporter and MIG manager on Kubernetes nodes."
             }
           ],
           "project": "Runbook: diagnose/fix node that lost GPU visibility after reboot.",
@@ -500,7 +513,10 @@
               "Pin and scan images."
             ],
             "diagram": "flowchart TB\n  HW[GPU hardware] --> KM[Kernel driver module]\n  KM --> SVC[Services: persistence, fabric manager]\n  KM --> CT[Container toolkit hooks]\n  CT --> CON[Container: CUDA userspace]\n  SVC --> HC[Health checks: nvidia-smi, DCGM]",
-            "diagramAlt": "Diagram: GPU hardware is driven by a kernel module with system services and container toolkit hooks, which expose GPUs to containers; health checks run against the stack."
+            "diagramAlt": "Diagram: GPU hardware is driven by a kernel module with system services and container toolkit hooks, which expose GPUs to containers; health checks run against the stack.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "bash",
+            "code": "# Run a CUDA container and verify the driver/toolkit stack end to end\nnvidia-smi                                   # host driver version\ndocker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi\ncat /proc/driver/nvidia/version\nlsmod | grep -E \"nvidia|nvidia_uvm|nvidia_peermem\""
           }
         }
       ]
@@ -519,29 +535,29 @@
               "title": "Slurm docs",
               "url": "https://slurm.schedmd.com/documentation.html",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Slurm docs that complements the Schedulers & Orchestrators lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Slurm documentation index for users and admins: sbatch/srun, partitions, GRES for GPUs and scheduling policies on HPC clusters."
             },
             {
               "title": "Kueue",
               "url": "https://kueue.sigs.k8s.io/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "Kubernetes SIG project documentation for specialized scheduling and batch workloads."
+              "level": "intermediate",
+              "why": "Kueue: Kubernetes-native job queueing with quotas, fair sharing and all-or-nothing admission for batch, HPC and AI workloads."
             },
             {
               "title": "Ray docs",
               "url": "https://docs.ray.io/en/latest/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Ray documentation; distributed compute patterns with examples."
+              "why": "Ray docs: Core tasks and actors, Ray Train, Serve and Data. A common substrate for distributed training, batch inference and RL."
             },
             {
               "title": "K8s scheduling",
               "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Official Kubernetes documentation; the reference for the concepts used here."
+              "why": "Kubernetes scheduling concepts: kube-scheduler, node affinity, taints and tolerations, pod priority and preemption. All of these matter for GPU placement."
             }
           ],
           "project": "Compare Kueue vs Ray Jobs for inference burst; document fairness.",
@@ -666,7 +682,17 @@
               "Autoscale serving on queue signals."
             ],
             "diagram": "flowchart LR\n  J1[Team A jobs] --> Q1[Queue A: quota 32]\n  J2[Team B jobs] --> Q2[Queue B: quota 32]\n  Q1 --> ADM{Admission: gang + fair share}\n  Q2 --> ADM\n  ADM --> CL[Cluster: 64 GPUs]\n  ADM -.borrow / preempt.-> CL",
-            "diagramAlt": "Diagram: team A and B jobs enter queues with quotas, an admission controller applies gang scheduling and fair share with borrowing and preemption, and admits jobs to a 64-GPU cluster."
+            "diagramAlt": "Diagram: team A and B jobs enter queues with quotas, an admission controller applies gang scheduling and fair share with borrowing and preemption, and admits jobs to a 64-GPU cluster.",
+            "case": {
+              "org": "OpenAI",
+              "title": "Scaling Kubernetes to 7,500 nodes (Jan 2021)",
+              "url": "https://openai.com/index/scaling-kubernetes-to-7500-nodes/",
+              "summary": "OpenAI runs large ML jobs with typically one pod per node. Healthchecks cordon bad nodes, and 'preflight' GPU tests run behind a taint before a node takes work. Team capacity is enforced with taints and tolerations. All-or-nothing gang scheduling uses the Coscheduling plugin to avoid half-scheduled deadlocks. EndpointSlices cut a major API-server load by about 1000×.",
+              "lesson": "Accelerator clusters need health gating, gang scheduling and quota mechanisms that stock Kubernetes doesn't give you by default."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Gang scheduling: place all workers of a job or none (prevents partial-allocation deadlock).\nfree = {\"node1\": 8, \"node2\": 8, \"node3\": 4}\ndef gang_place(job_gpus_per_worker, workers):\n    plan, avail = [], dict(free)\n    for _ in range(workers):\n        node = next((n for n, g in sorted(avail.items(), key=lambda x: -x[1]) if g >= job_gpus_per_worker), None)\n        if node is None: return None                    # do not start anything\n        avail[node] -= job_gpus_per_worker; plan.append(node)\n    free.update(avail); return plan\nprint(\"job A (2x8 GPU):\", gang_place(8, 2))\nprint(\"job B (2x8 GPU):\", gang_place(8, 2), \"-> waits, holding nothing\")"
           }
         },
         {
@@ -679,22 +705,22 @@
               "title": "Docker docs",
               "url": "https://docs.docker.com/",
               "kind": "docs",
-              "level": "intro",
-              "why": "Official Docker documentation; clear introductions with commands to try."
+              "level": "reference",
+              "why": "Docker docs: images, Dockerfiles, Compose, BuildKit and GPU access (--gpus). The container basics behind every inference deployment."
             },
             {
               "title": "Databricks ML",
               "url": "https://www.databricks.com/product/machine-learning",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Databricks documentation or guide on platform features discussed here."
+              "why": "Databricks' AI platform overview: building, deploying, evaluating and governing agent systems on lakehouse data (Mosaic AI, Unity Catalog)."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             }
           ],
           "project": "Benchmark cold start object storage vs warm cache; add cache layer.",
@@ -817,7 +843,10 @@
               "Plan aggregate bandwidth for scale-up."
             ],
             "diagram": "flowchart LR\n  REG[(Object store / registry: versioned)] --> P2P[P2P / lazy distribution]\n  P2P --> N1[Node NVMe cache]\n  P2P --> N2[Node NVMe cache]\n  N1 --> G1[GPU load]\n  N2 --> G2[GPU load]\n  PFS[(Parallel FS)] --> TR[Training jobs]",
-            "diagramAlt": "Diagram: a versioned object store feeds peer-to-peer distribution to node NVMe caches that load GPUs; a parallel file system feeds training jobs."
+            "diagramAlt": "Diagram: a versioned object store feeds peer-to-peer distribution to node NVMe caches that load GPUs; a parallel file system feeds training jobs.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Checkpoint write time and the storage bandwidth needed to keep it under a target.\nparams_b, bytes_per_param_state = 70, 16      # bf16 weights + fp32 master + Adam moments ~ 16 B/param\nckpt_tb = params_b * 1e9 * bytes_per_param_state / 1e12\nfor target_s in (60, 300):\n    print(f\"{ckpt_tb:.2f} TB checkpoint in {target_s}s needs {ckpt_tb*1000/target_s:.1f} GB/s aggregate\")"
           }
         },
         {
@@ -830,22 +859,22 @@
               "title": "NCCL user guide",
               "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NCCL overview: collectives (all-reduce, all-gather, reduce-scatter), communicators and topology awareness across NVLink, PCIe and InfiniBand."
             },
             {
               "title": "NCCL tests",
               "url": "https://github.com/NVIDIA/nccl-tests",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "nccl-tests: the standard benchmarks (all_reduce_perf and others) for measuring algbw/busbw and finding slow links or ranks."
             },
             {
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             }
           ],
           "project": "Run NCCL all-reduce tests; document topology and bandwidth.",
@@ -971,7 +1000,17 @@
               "Check NCCL logs for silent fallbacks."
             ],
             "diagram": "flowchart LR\n  subgraph Node A\n    GA1[GPU] --- NVS1[NVSwitch] --- GA2[GPU]\n    GA1 --- NICA1[NIC rail 1]\n    GA2 --- NICA2[NIC rail 2]\n  end\n  subgraph Node B\n    GB1[GPU] --- NVS2[NVSwitch] --- GB2[GPU]\n    GB1 --- NICB1[NIC rail 1]\n    GB2 --- NICB2[NIC rail 2]\n  end\n  NICA1 --- SW1[Rail 1 switch] --- NICB1\n  NICA2 --- SW2[Rail 2 switch] --- NICB2",
-            "diagramAlt": "Diagram: two nodes with GPUs connected internally by NVSwitch; each GPU has its own NIC connected to a per-rail switch shared with the matching GPU in the other node."
+            "diagramAlt": "Diagram: two nodes with GPUs connected internally by NVSwitch; each GPU has its own NIC connected to a per-rail switch shared with the matching GPU in the other node.",
+            "case": {
+              "org": "Meta",
+              "title": "Building Meta's GenAI Infrastructure (Engineering at Meta, Mar 2024)",
+              "url": "https://engineering.fb.com/2024/03/12/data-center-engineering/building-metas-genai-infrastructure/",
+              "summary": "Meta built two 24,576-GPU clusters for Llama 3, one on a RoCE fabric (Arista 7800 with OCP rack switches) and one on NVIDIA Quantum2 InfiniBand. This let them compare fabrics at scale. They stated a goal of 350,000 H100 GPUs by the end of 2024.",
+              "lesson": "Both RoCE and InfiniBand can run frontier training. Fabric choice is an engineering and supply trade-off, best settled with your own measurements."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Ring all-reduce time: each GPU sends/receives 2*(N-1)/N of the data.\ndef allreduce_s(size_gb, n_gpus, link_gb_s):\n    return 2 * (n_gpus - 1) / n_gpus * size_gb / link_gb_s\ngrads_gb = 16      # 8B params in bf16\nfor name, bw in [(\"400 Gb/s NIC (50 GB/s)\", 50), (\"NVLink-class (450 GB/s)\", 450)]:\n    print(f\"{name}: {allreduce_s(grads_gb, 64, bw):.3f} s per all-reduce on 64 GPUs\")"
           }
         },
         {
@@ -984,22 +1023,22 @@
               "title": "FinOps Foundation",
               "url": "https://www.finops.org/",
               "kind": "framework",
-              "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "level": "intro",
+              "why": "FinOps Foundation: framework, personas and maturity model for cloud financial management (inform, optimize, operate). The base vocabulary for AI cost work."
             },
             {
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             }
           ],
           "project": "Quarterly plan: reserved vs on-demand vs spot for steady+burst.",
@@ -1121,7 +1160,10 @@
               "Watch lead times and exit clauses."
             ],
             "diagram": "flowchart LR\n  DEM[Demand forecast] --> BASE[Steady baseline]\n  DEM --> PEAK[Peaks]\n  DEM --> INT[Interruptible jobs]\n  BASE --> RES[Reserved / owned]\n  PEAK --> OD[On-demand]\n  INT --> SPOT[Spot]",
-            "diagramAlt": "Diagram: a demand forecast splits into steady baseline served by reserved or owned capacity, peaks served on-demand, and interruptible jobs on spot."
+            "diagramAlt": "Diagram: a demand forecast splits into steady baseline served by reserved or owned capacity, peaks served on-demand, and interruptible jobs on spot.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Reserved vs on-demand vs spot: blended cost for a forecast with uncertainty.\nhours = 730\nprices = {\"reserved_1y\": 2.0, \"on_demand\": 4.0, \"spot\": 1.6}   # $/GPU-hour placeholders\nbaseline, peak = 64, 128                                        # GPUs\ndef monthly(reserved):\n    burst = peak - reserved\n    return reserved * prices[\"reserved_1y\"] * hours + burst * 0.3 * hours * prices[\"on_demand\"]  # burst used 30%\nfor r in (0, 64, 96, 128):\n    print(f\"reserve {r:>3} GPUs -> ${monthly(r):,.0f}/month\")"
           }
         },
         {
@@ -1134,29 +1176,29 @@
               "title": "NCCL troubleshooting",
               "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/troubleshooting.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NCCL troubleshooting: common errors, NCCL_DEBUG output, network and shared-memory issues, and how to isolate a failing rank."
             },
             {
               "title": "NCCL environment variables",
               "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NCCL environment variables: NCCL_DEBUG, NCCL_IB_*, NCCL_SOCKET_IFNAME, NCCL_P2P_* and topology knobs for debugging and tuning."
             },
             {
               "title": "nccl-tests (GitHub)",
               "url": "https://github.com/NVIDIA/nccl-tests",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "nccl-tests: the standard benchmarks (all_reduce_perf and others) for measuring algbw/busbw and finding slow links or ranks."
             },
             {
               "title": "GPUDirect RDMA",
               "url": "https://docs.nvidia.com/cuda/gpudirect-rdma/index.html",
               "kind": "docs",
               "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "why": "GPUDirect RDMA: lets NICs and other devices DMA directly to GPU memory without host copies. The basis of fast multi-node collectives."
             }
           ],
           "project": "Run all_reduce_perf on one node and across two nodes. Record busbw, compare with link specs, then deliberately break the IB binding (wrong NCCL_IB_HCA) and document how the logs and numbers change.",
@@ -1322,7 +1364,17 @@
               "Bisect node pairs to find bad hardware."
             ],
             "diagram": "flowchart LR\n  SLOW[Job slow / hung] --> TOPO[Check topo -m + NUMA]\n  TOPO --> NT[nccl-tests sweep]\n  NT --> BW{busbw as expected?}\n  BW -->|no| BIS[Bisect node pairs]\n  BIS --> CNT[IB counters, NCCL_DEBUG]\n  CNT --> FIX[Fix link / node]\n  BW -->|yes| APP[Look at app / compute]",
-            "diagramAlt": "Diagram: a slow or hung job leads to topology checks and nccl-tests; low bus bandwidth triggers node-pair bisection and counter checks to fix a link, otherwise investigate the application."
+            "diagramAlt": "Diagram: a slow or hung job leads to topology checks and nccl-tests; low bus bandwidth triggers node-pair bisection and counter checks to fix a link, otherwise investigate the application.",
+            "case": {
+              "org": "Meta",
+              "title": "RoCE networks for distributed AI training at scale (Engineering at Meta, Aug 2024)",
+              "url": "https://engineering.fb.com/2024/08/05/data-center-engineering/roce-network-distributed-ai-training-at-scale/",
+              "summary": "Meta explains moving to a two-stage Clos topology for AI racks (an 'AI Zone'), with rack training switches as the leaf layer. It then covers the routing and congestion-control work needed to run RoCE for large training jobs.",
+              "lesson": "Collective performance is a property of topology plus routing plus congestion control. Design and debug them together."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "bash",
+            "code": "# Measure collective bandwidth with nccl-tests and enable NCCL debug output\ngit clone https://github.com/NVIDIA/nccl-tests && cd nccl-tests && make\nNCCL_DEBUG=INFO ./build/all_reduce_perf -b 8 -e 8G -f 2 -g 8\n# Compare \"busbw\" with expected NVLink/IB bandwidth; a slow rank points to a bad link or NIC."
           }
         },
         {
@@ -1335,36 +1387,36 @@
               "title": "NVIDIA GPU Operator",
               "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NVIDIA GPU Operator docs: automates drivers, container toolkit, device plugin, DCGM exporter and MIG manager on Kubernetes nodes."
             },
             {
               "title": "MIG user guide",
               "url": "https://docs.nvidia.com/datacenter/tesla/mig-user-guide/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "MIG user guide: partition A100/H100-class GPUs into isolated instances with dedicated memory and compute, including profiles and management."
             },
             {
               "title": "Kubernetes Dynamic Resource Allocation",
               "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Official Kubernetes documentation; the reference for the concepts used here."
+              "why": "Kubernetes Dynamic Resource Allocation (stable since v1.35): request devices via ResourceClaims and DeviceClasses, which is more expressive than device-plugin counts."
             },
             {
               "title": "Kueue overview",
               "url": "https://kueue.sigs.k8s.io/docs/overview/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "Kubernetes SIG project documentation for specialized scheduling and batch workloads."
+              "level": "intro",
+              "why": "Kueue overview: why a job-level queue is needed on top of the kube-scheduler and how ClusterQueues and LocalQueues share quota."
             },
             {
               "title": "Volcano docs",
               "url": "https://volcano.sh/en/docs/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Volcano docs that complements the GPU Sharing & Batch Scheduling on Kubernetes lesson with another author's explanation and examples."
+              "why": "Volcano (CNCF): a batch scheduler for Kubernetes with gang scheduling, queues and fair share for HPC and AI jobs."
             }
           ],
           "project": "On a GPU node, install the GPU Operator, enable time-slicing with 4 replicas, then switch a second GPU to a MIG mixed profile. Run the same small model on both and compare latency under a noisy neighbor. Add Kueue with two team queues and show fair sharing.",
@@ -1560,7 +1612,10 @@
               "DRA is the future of flexible device requests."
             ],
             "diagram": "flowchart TB\n  GPU[One H100 80 GB] --> MIG[MIG: 7 isolated slices]\n  GPU --> TS[Time-slicing: shared turns]\n  GPU --> MPS[MPS: concurrent kernels]\n  Q[Kueue / Volcano] --> ADM[Quota + gang admission]\n  ADM --> GPU",
-            "diagramAlt": "Diagram: one H100 can be shared via MIG isolated slices, time-slicing or MPS, with Kueue or Volcano applying quotas and gang admission."
+            "diagramAlt": "Diagram: one H100 can be shared via MIG isolated slices, time-slicing or MPS, with Kueue or Volcano applying quotas and gang admission.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Time-slicing a GPU with the NVIDIA device plugin (no memory isolation; use MIG for that)\napiVersion: v1\nkind: ConfigMap\nmetadata: {name: time-slicing-config, namespace: gpu-operator}\ndata:\n  any: |-\n    version: v1\n    sharing:\n      timeSlicing:\n        resources:\n          - name: nvidia.com/gpu\n            replicas: 4"
           }
         }
       ]
@@ -1580,28 +1635,28 @@
               "url": "https://opentelemetry.io/docs/",
               "kind": "spec",
               "level": "reference",
-              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
+              "why": "OpenTelemetry docs: the vendor-neutral standard for traces, metrics and logs. Instrument gateways and agents once and send the data to any backend."
             },
             {
               "title": "Prometheus",
               "url": "https://prometheus.io/docs/introduction/overview/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Prometheus that complements the Observability & AI SRE lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Prometheus overview: pull-based metrics, the data model, PromQL and Alertmanager. The default for GPU (DCGM) and serving metrics."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             },
             {
               "title": "vLLM documentation",
               "url": "https://docs.vllm.ai/en/latest/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
+              "level": "reference",
+              "why": "vLLM docs (the site blocked our fetcher; content known from the project): install, OpenAI-compatible server, supported models, PagedAttention, quantization and distributed serving."
             }
           ],
           "project": "Grafana: GPU util, HBM, SM clocks, TTFT, queue, $/1M tokens.",
@@ -1726,7 +1781,10 @@
               "Include quality and cost in observability."
             ],
             "diagram": "flowchart LR\n  GPU[GPUs] --> DCGM[DCGM exporter]\n  ENG[Serving engine] --> EM[Engine metrics]\n  API[API layer] --> SLI[SLIs: latency, errors, quality]\n  DCGM --> PROM[(Metrics store)]\n  EM --> PROM\n  SLI --> PROM\n  PROM --> DASH[Dashboards + alerts]\n  DASH --> RB[Runbooks]",
-            "diagramAlt": "Diagram: GPU metrics via DCGM, engine metrics and API SLIs flow into a metrics store that drives dashboards, alerts and runbooks."
+            "diagramAlt": "Diagram: GPU metrics via DCGM, engine metrics and API SLIs flow into a metrics store that drives dashboards, alerts and runbooks.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Prometheus alert rules for GPU health (DCGM exporter metrics)\ngroups:\n  - name: gpu\n    rules:\n      - alert: GPUXidErrors\n        expr: increase(DCGM_FI_DEV_XID_ERRORS[10m]) > 0\n        labels: {severity: page}\n      - alert: GPUHighTemp\n        expr: DCGM_FI_DEV_GPU_TEMP > 85\n        for: 5m\n      - alert: GPUIdleWhileAllocated\n        expr: avg_over_time(DCGM_FI_DEV_GPU_UTIL[30m]) < 5\n        labels: {severity: ticket}"
           }
         },
         {
@@ -1739,36 +1797,36 @@
               "title": "Docker docs",
               "url": "https://docs.docker.com/",
               "kind": "docs",
-              "level": "intro",
-              "why": "Official Docker documentation; clear introductions with commands to try."
+              "level": "reference",
+              "why": "Docker docs: images, Dockerfiles, Compose, BuildKit and GPU access (--gpus). The container basics behind every inference deployment."
             },
             {
               "title": "Firecracker",
               "url": "https://firecracker-microvm.github.io/",
               "kind": "docs",
-              "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "level": "intermediate",
+              "why": "Firecracker: AWS's open-source microVM monitor (powers Lambda and Fargate) for strongly isolated, fast-booting sandboxes. Used for agent code execution."
             },
             {
               "title": "gVisor",
               "url": "https://gvisor.dev/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on gVisor that complements the Infra Security & Isolation lesson with another author's explanation and examples."
+              "why": "gVisor: a user-space application kernel that intercepts container syscalls, adding isolation for untrusted workloads with low overhead."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
               "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP's project page for the LLM Top 10: prompt injection, sensitive information disclosure, supply chain, excessive agency and more. A shared vocabulary for security reviews."
             }
           ],
           "project": "Tenant isolation design: network policies, secrets, MIG vs nodes.",
@@ -1892,7 +1950,10 @@
               "Restrict egress by default."
             ],
             "diagram": "flowchart LR\n  DEV[Build system] -->|sign + SBOM| REG[(Registry)]\n  REG --> ADM{Admission controller}\n  ADM -->|signed, allowed| POD[Pod in tenant namespace]\n  ADM -->|unsigned| REJ[Reject]\n  POD --> NP[Network policy + egress allowlist]\n  VAULT[(Secrets vault)] -.short-lived.-> POD",
-            "diagramAlt": "Diagram: the build system signs images into a registry, an admission controller admits only signed pods into tenant namespaces with network policies and egress allowlists, and a vault provides short-lived secrets."
+            "diagramAlt": "Diagram: the build system signs images into a registry, an admission controller admits only signed pods into tenant namespaces with network policies and egress allowlists, and a vault provides short-lived secrets.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Lock down an inference pod: non-root, read-only FS, no privilege escalation, egress denied by default\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata: {name: deny-egress, namespace: inference}\nspec:\n  podSelector: {}\n  policyTypes: [Egress]\n  egress: []            # add explicit allow rules (e.g. to the model store) as needed\n---\n# in the pod spec:\n# securityContext: {runAsNonRoot: true, readOnlyRootFilesystem: true, allowPrivilegeEscalation: false}"
           }
         },
         {
@@ -1905,36 +1966,36 @@
               "title": "AWS Bedrock",
               "url": "https://docs.aws.amazon.com/bedrock/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "level": "reference",
+              "why": "Amazon Bedrock docs: foundation model access, Knowledge Bases, Agents, Guardrails, model evaluation and data automation. Check here for what is managed vs what you build."
             },
             {
               "title": "Azure AI Foundry",
               "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "level": "reference",
+              "why": "Azure AI Foundry ('the AI app and agent factory'): model catalog, agent service, evaluation and governance features on Azure."
             },
             {
               "title": "Vertex AI",
               "url": "https://cloud.google.com/vertex-ai/docs",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "level": "reference",
+              "why": "Google's Vertex AI docs, now positioned around the Gemini Enterprise Agent Platform: model garden, agent building, tuning and evaluation on GCP."
             },
             {
               "title": "GCP MLOps",
               "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "why": "Google Cloud's MLOps levels 0/1/2: manual workflow, pipeline automation with continuous training, then CI/CD for pipelines. A maturity yardstick."
             },
             {
               "title": "FinOps Foundation",
               "url": "https://www.finops.org/",
               "kind": "framework",
-              "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "level": "intro",
+              "why": "FinOps Foundation: framework, personas and maturity model for cloud financial management (inform, optimize, operate). The base vocabulary for AI cost work."
             }
           ],
           "project": "Private inference endpoint with VPC, logging, quota alerts.",
@@ -2056,7 +2117,9 @@
               "Landing zones make secure defaults easy."
             ],
             "diagram": "flowchart TB\n  LZ[Landing zone: org policies, logging, budgets] --> ACC1[Team account A]\n  LZ --> ACC2[Team account B]\n  ACC1 --> PE[Private endpoint: managed model API]\n  ACC1 --> K8S[Managed K8s GPU pool]\n  ACC2 --> VM[GPU VMs / serverless GPU]\n  LZ --> COST[Cost anomaly alerts]",
-            "diagramAlt": "Diagram: a landing zone with org policies, logging and budgets provides team accounts that use private endpoints to managed model APIs, managed Kubernetes GPU pools, or GPU VMs, with cost alerts."
+            "diagramAlt": "Diagram: a landing zone with org policies, logging and budgets provides team accounts that use private endpoints to managed model APIs, managed Kubernetes GPU pools, or GPU VMs, with cost alerts.",
+            "enterpriseLabel": "Illustrative scenario",
+            "conceptual": true
           }
         },
         {
@@ -2069,22 +2132,22 @@
               "title": "FinOps Foundation",
               "url": "https://www.finops.org/",
               "kind": "framework",
-              "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "level": "intro",
+              "why": "FinOps Foundation: framework, personas and maturity model for cloud financial management (inform, optimize, operate). The base vocabulary for AI cost work."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             },
             {
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             }
           ],
           "project": "Estimate power for N GPUs at TDP; propose cooling constraints for BOM.",
@@ -2206,7 +2269,10 @@
               "Measure energy per token; schedule flexibly."
             ],
             "diagram": "flowchart LR\n  GRID[Grid power] --> FAC[Facility: PUE]\n  FAC --> RACK[GPU racks: tens to 100+ kW]\n  RACK --> COOL{Cooling}\n  COOL --> AIR[Air]\n  COOL --> LIQ[Direct liquid]\n  RACK --> TOK[Tokens served]\n  TOK --> KPI[kWh per 1M tokens]",
-            "diagramAlt": "Diagram: grid power enters a facility with a PUE, powering GPU racks cooled by air or liquid, producing tokens measured as kWh per million tokens."
+            "diagramAlt": "Diagram: grid power enters a facility with a PUE, powering GPU racks cooled by air or liquid, producing tokens measured as kWh per million tokens.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Facility power for a GPU cluster: IT load x PUE.\ngpus, gpu_kw, server_overhead = 1024, 0.70, 1.5   # ~700 W per H100 SXM; CPUs, NICs, fans add ~50%\nit_kw = gpus * gpu_kw * server_overhead\nfor pue in (1.1, 1.3, 1.5):\n    mw = it_kw * pue / 1000\n    print(f\"PUE {pue}: {mw:.2f} MW, {mw*8760:,.0f} MWh/year\")"
           }
         },
         {
@@ -2219,29 +2285,29 @@
               "title": "NVIDIA Xid errors",
               "url": "https://docs.nvidia.com/deploy/xid-errors/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NVIDIA Xid error catalog: what each Xid code means (for example 48 DBE ECC, 79 GPU fell off the bus) and the recommended action."
             },
             {
               "title": "DCGM user guide",
               "url": "https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "DCGM user guide: GPU health checks, diagnostics, policies and telemetry. dcgm-exporter feeds Prometheus."
             },
             {
               "title": "GPU memory error management",
               "url": "https://docs.nvidia.com/deploy/a100-gpu-mem-error-mgmt/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NVIDIA GPU memory error management: ECC, row remapping and page retirement, and when a GPU needs a reset vs RMA."
             },
             {
               "title": "PyTorch distributed elastic",
               "url": "https://pytorch.org/docs/stable/distributed.elastic.html",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Official PyTorch documentation or tutorial with runnable code."
+              "why": "PyTorch elastic (torchrun): fault-tolerant distributed training with rendezvous, restarts and membership changes."
             }
           ],
           "project": "Write a node health controller: watch dmesg for Xids and DCGM health, classify them, cordon and drain on fatal codes, run dcgmi diag level 2 before returning the node, and open a ticket with logs on repeats. Test it with simulated log lines.",
@@ -2409,7 +2475,17 @@
               "Checkpoint frequency and spares bound the loss."
             ],
             "diagram": "flowchart LR\n  DET[Detect: Xid, ECC, NCCL timeout] --> CLS{Classify}\n  CLS -->|app| APP[Fix job / restart]\n  CLS -->|recoverable| RST[Cordon, drain, reset]\n  CLS -->|hardware| RMA[RMA + spare]\n  RST --> DIAG[DCGM diag + burn-in]\n  DIAG -->|pass| RET[Return to pool]\n  DIAG -->|fail| RMA",
-            "diagramAlt": "Diagram: detected errors are classified as application, recoverable or hardware; recoverable nodes are drained, reset and diagnosed before returning to the pool, and hardware faults go to RMA with a spare."
+            "diagramAlt": "Diagram: detected errors are classified as application, recoverable or hardware; recoverable nodes are drained, reset and diagnosed before returning to the pool, and hardware faults go to RMA with a spare.",
+            "case": {
+              "org": "Meta",
+              "title": "The Llama 3 Herd of Models (arXiv 2407.21783), section on infrastructure reliability",
+              "url": "https://arxiv.org/abs/2407.21783",
+              "summary": "During a 54-day snapshot of Llama 3 pre-training, Meta saw 466 job interruptions: 47 planned and 419 unexpected. About 78% of the unexpected ones were attributed to confirmed or suspected hardware issues such as GPU failures. Even so, they achieved more than 90% effective training time with automated maintenance.",
+              "lesson": "At this scale, failure is routine. Fast detection, automated restarts and checkpointing decide how much compute you actually get."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Goodput under failures: checkpoint interval vs lost work (Young/Daly approximation).\nimport math\nmtbf_h = 3.0            # cluster-level mean time between interruptions\nckpt_cost_h = 0.05      # time to write a checkpoint\noptimal = math.sqrt(2 * ckpt_cost_h * mtbf_h)\ndef goodput(interval_h, restart_h=0.25):\n    waste = ckpt_cost_h / interval_h + (interval_h / 2 + restart_h) / mtbf_h\n    return 1 - waste\nprint(f\"optimal interval {optimal*60:.0f} min, goodput {goodput(optimal):.1%}\")\nprint(f\"hourly checkpoints, goodput {goodput(1.0):.1%}\")"
           }
         },
         {
@@ -2422,36 +2498,36 @@
               "title": "OWASP Top 10 for LLM Applications",
               "url": "https://genai.owasp.org/llm-top-10/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP GenAI Security Project's 2025 Top 10 for LLM and GenAI apps, including the new system prompt leakage, vector/embedding weaknesses and unbounded consumption."
             },
             {
               "title": "MCP security best practices",
               "url": "https://modelcontextprotocol.io/specification/draft/basic/security_best_practices",
               "kind": "spec",
-              "level": "reference",
-              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
+              "level": "intermediate",
+              "why": "MCP security best practices: confused-deputy, token passthrough, session hijacking and SSRF attack vectors, with mitigations for MCP implementers."
             },
             {
               "title": "RAND: Securing AI Model Weights",
               "url": "https://www.rand.org/pubs/research_reports/RRA2849-1.html",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on RAND: Securing AI Model Weights that complements the AI-Specific Security for Platforms lesson with another author's explanation and examples."
+              "level": "advanced",
+              "why": "RAND report on securing frontier model weights: attack vectors and security levels (SL1–SL5) mapped to attacker capabilities."
             },
             {
               "title": "MITRE ATLAS",
               "url": "https://atlas.mitre.org/",
               "kind": "security",
               "level": "reference",
-              "why": "MITRE ATLAS knowledge base of adversary tactics and techniques against AI systems."
+              "why": "MITRE ATLAS: an ATT&CK-style knowledge base of adversary tactics and techniques against AI systems, with real-world case studies. Use it to name threats in a threat model."
             },
             {
               "title": "Simon Willison: the lethal trifecta",
               "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
               "kind": "blog",
-              "level": "intermediate",
-              "why": "Widely cited practitioner blog with clear explanations of LLM security issues."
+              "level": "intro",
+              "why": "Simon Willison's 'lethal trifecta': private data plus untrusted content plus external communication equals exfiltration risk. Remove one leg."
             }
           ],
           "project": "Threat-model an internal agent that reads tickets, queries a database and posts to Slack. Map it to the lethal trifecta, then implement controls: scoped per-user tokens, an egress allowlist, an approval gate on posts, and a pinned MCP manifest. Red-team it with an injected ticket.",
@@ -2618,7 +2694,10 @@
               "Treat weights as crown jewels."
             ],
             "diagram": "flowchart LR\n  PD[Private data] --> AG[Agent]\n  UC[Untrusted content] --> AG\n  AG --> EX[Exfiltration channel]\n  GW[Gateway policy] -.blocks.-> EX\n  REG[Approved MCP registry] -.-> AG\n  TOK[Per-user scoped tokens] -.-> AG",
-            "diagramAlt": "Diagram: the lethal trifecta of private data, untrusted content and an exfiltration channel meeting in an agent, with gateway policy blocking egress and an approved MCP registry and scoped tokens limiting the agent."
+            "diagramAlt": "Diagram: the lethal trifecta of private data, untrusted content and an exfiltration channel meeting in an agent, with gateway policy blocking egress and an approved MCP registry and scoped tokens limiting the agent.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import hashlib, pathlib, tempfile\n# Verify model artifacts against pinned digests before loading (supply-chain control).\nd = pathlib.Path(tempfile.mkdtemp()); (d / \"model.safetensors\").write_bytes(b\"fake weights\")\nPINNED = {\"model.safetensors\": hashlib.sha256(b\"fake weights\").hexdigest()}\ndef verify(dirpath):\n    for name, digest in PINNED.items():\n        h = hashlib.sha256((dirpath / name).read_bytes()).hexdigest()\n        if h != digest: raise RuntimeError(f\"digest mismatch for {name}\")\n    bad = [p.name for p in dirpath.iterdir() if p.suffix in {\".pkl\", \".bin\", \".pt\"}]\n    if bad: raise RuntimeError(f\"pickle-based files not allowed: {bad}\")\n    return \"ok\"\nprint(verify(d))"
           }
         }
       ]
@@ -2637,29 +2716,29 @@
               "title": "PyTorch tutorials",
               "url": "https://docs.pytorch.org/tutorials/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Official PyTorch documentation or tutorial with runnable code."
+              "level": "intro",
+              "why": "Official PyTorch tutorials, organized from basics (tensors, autograd, nn.Module) through distributed training and compilation. Follow these when you start writing training code."
             },
             {
               "title": "NCCL user guide",
               "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "NCCL overview: collectives (all-reduce, all-gather, reduce-scatter), communicators and topology awareness across NVLink, PCIe and InfiniBand."
             },
             {
               "title": "Slurm docs",
               "url": "https://slurm.schedmd.com/documentation.html",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Slurm docs that complements the Training Infrastructure at Scale lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Slurm documentation index for users and admins: sbatch/srun, partitions, GRES for GPUs and scheduling policies on HPC clusters."
             },
             {
               "title": "Ray docs",
               "url": "https://docs.ray.io/en/latest/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Ray documentation; distributed compute patterns with examples."
+              "why": "Ray docs: Core tasks and actors, Ray Train, Serve and Data. A common substrate for distributed training, batch inference and RL."
             }
           ],
           "project": "Runbook for 8–64 GPU SFT: staging, checkpoints, restart, NCCL debug.",
@@ -2785,7 +2864,17 @@
               "Checkpoint and rehearse failure."
             ],
             "diagram": "flowchart LR\n  DATA[Data shards] --> G1[GPU 1: shard of params, grads, optimizer]\n  DATA --> G2[GPU 2: shard]\n  DATA --> GN[GPU N: shard]\n  G1 <-->|all-gather / reduce-scatter| G2\n  G2 <--> GN\n  G1 --> CK[(Checkpoints)]",
-            "diagramAlt": "Diagram: data shards feed GPUs that each hold a shard of parameters, gradients and optimizer state, exchanging data with all-gather and reduce-scatter, and saving checkpoints."
+            "diagramAlt": "Diagram: data shards feed GPUs that each hold a shard of parameters, gradients and optimizer state, exchanging data with all-gather and reduce-scatter, and saving checkpoints.",
+            "case": {
+              "org": "Meta",
+              "title": "Maintaining large-scale AI capacity at Meta (Engineering at Meta, Jun 2024)",
+              "url": "https://engineering.fb.com/2024/06/12/production-engineering/maintaining-large-scale-ai-capacity-meta/",
+              "summary": "Meta describes keeping GPU training clusters healthy while constantly upgrading them. That means more than 30 maintenance operations touching over 50 components, with many rollouts overlapping at any time, done without stalling training jobs.",
+              "lesson": "Training infrastructure needs maintenance designed in from the start: rolling, overlapping and coordinated with job scheduling."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Training time estimate: FLOPs ~= 6 * params * tokens, divided by achieved cluster throughput.\ndef days(params_b, tokens_t, gpus, peak_tflops=989, mfu=0.40):\n    flops = 6 * params_b * 1e9 * tokens_t * 1e12\n    return flops / (gpus * peak_tflops * 1e12 * mfu) / 86_400\nprint(f\"8B on 15T tokens, 1024 GPUs: {days(8, 15, 1024):.0f} days\")\nprint(f\"70B on 15T tokens, 8192 GPUs: {days(70, 15, 8192):.0f} days\")"
           }
         },
         {
@@ -2799,28 +2888,28 @@
               "url": "https://ml-ops.org/",
               "kind": "guide",
               "level": "intro",
-              "why": "Community overview of MLOps principles and lifecycle."
+              "why": "ml-ops.org explains MLOps principles (versioning, testing, automation, reproducibility) and the ML lifecycle in plain language with diagrams."
             },
             {
               "title": "Full Stack Deep Learning",
               "url": "https://fullstackdeeplearning.com/",
               "kind": "course",
               "level": "intermediate",
-              "why": "Practitioner course material focused on shipping ML systems."
+              "why": "Full Stack Deep Learning: courses and lectures on shipping ML and LLM products, including deployment, monitoring, UX and project management."
             },
             {
               "title": "Hugging Face TRL docs",
               "url": "https://huggingface.co/docs/trl/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face TRL docs: SFT, DPO, GRPO, PPO and reward-model trainers for post-training language models."
             },
             {
               "title": "OpenTelemetry",
               "url": "https://opentelemetry.io/docs/",
               "kind": "spec",
               "level": "reference",
-              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
+              "why": "OpenTelemetry docs: the vendor-neutral standard for traces, metrics and logs. Instrument gateways and agents once and send the data to any backend."
             }
           ],
           "project": "Tracking + registry for LoRA; CI promote to staging with eval gate.",
@@ -2942,7 +3031,10 @@
               "Link deployments to evidence."
             ],
             "diagram": "flowchart LR\n  EXP[Experiment] --> TRK[(Run tracking: params, data, metrics)]\n  TRK --> ART[(Artifact store)]\n  ART --> CI[CI eval gate]\n  CI --> CAN[Canary / shadow]\n  CAN --> PROD[Production]\n  PROD --> AUD[(Audit trail)]",
-            "diagramAlt": "Diagram: experiments are tracked with parameters, data and metrics into an artifact store, pass a CI eval gate and canary to production, with an audit trail."
+            "diagramAlt": "Diagram: experiments are tracked with parameters, data and metrics into an artifact store, pass a CI eval gate and canary to production, with an audit trail.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import json, hashlib, time\n# Minimal model registry entry: immutable version, lineage, eval evidence, stage.\ndef register(name, artifact_bytes, data_snapshot, evals, stage=\"staging\"):\n    rec = {\"name\": name, \"version\": hashlib.sha256(artifact_bytes).hexdigest()[:12],\n           \"data_snapshot\": data_snapshot, \"evals\": evals, \"stage\": stage, \"created\": int(time.time())}\n    if stage == \"production\" and evals.get(\"golden_set\", 0) < 0.9:\n        raise ValueError(\"promotion blocked: golden_set < 0.9\")\n    return rec\nprint(json.dumps(register(\"ticket-router\", b\"weights-v7\", \"s3://data/tickets@2026-10-01\", {\"golden_set\": 0.93}), indent=1))"
           }
         },
         {
@@ -2955,29 +3047,29 @@
               "title": "vLLM benchmarking docs",
               "url": "https://docs.vllm.ai/en/latest/contributing/benchmarks.html",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
+              "level": "reference",
+              "why": "vLLM benchmarking docs (site blocked our fetcher): benchmark_serving and throughput/latency scripts for measuring TTFT, TPOT and throughput."
             },
             {
               "title": "NVIDIA NIM LLM benchmarking guide",
               "url": "https://docs.nvidia.com/nim/benchmarking/llm/latest/index.html",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "intermediate",
+              "why": "NVIDIA NIM LLM benchmarking guide: metric definitions (TTFT, ITL, TPS), load patterns and how to benchmark latency and throughput properly."
             },
             {
               "title": "FinOps Foundation: FinOps for AI",
               "url": "https://www.finops.org/wg/finops-for-ai-overview/",
               "kind": "framework",
               "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "why": "FinOps Foundation's FinOps for AI: tokenomics, AI cost allocation, unit economics and optimization levers for AI spend."
             },
             {
               "title": "Uptime Institute research",
               "url": "https://uptimeinstitute.com/resources/research-and-reports",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Uptime Institute research that complements the AI Unit Economics & Capacity Planning lesson with another author's explanation and examples."
+              "level": "reference",
+              "why": "Uptime Institute research: data center surveys and reports on power, PUE, outages and resiliency trends."
             }
           ],
           "project": "Benchmark one model at three latency SLOs, compute $/1M tokens for each at 40%, 70% and 90% utilization, compare with two API prices, and write a one-page sizing memo for 200 req/s peak including GPUs, nodes and kW.",
@@ -3143,7 +3235,10 @@
             ],
             "diagram": "flowchart LR\n  PRICE[GPU $/hour] --> CPT[Cost per 1M tokens]\n  TPS[Tokens/s at SLO] --> CPT\n  UTIL[Utilization] --> CPT\n  OVH[Overheads] --> CPT\n  CPT --> CMP{vs API price}\n  DEM[Demand forecast] --> CAP[GPUs needed + headroom]\n  TPS --> CAP",
             "diagramAlt": "Diagram: GPU price, tokens per second at SLO, utilization and overheads give cost per million tokens, compared with API prices; demand forecast and throughput give the GPUs needed.",
-            "widget": "budget"
+            "widget": "budget",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Unit economics for serving: $ per million output tokens from GPU price and measured throughput.\ndef usd_per_mtok(gpu_hr, tok_s_per_gpu, utilization):\n    return gpu_hr / (tok_s_per_gpu * 3600 * utilization) * 1e6\nfor batch_label, tps in [(\"batch 1\", 80), (\"batch 32\", 1800), (\"batch 128\", 4200)]:\n    print(f\"{batch_label:<9} ${usd_per_mtok(3.0, tps, 0.6):7.2f} / Mtok\")"
           }
         }
       ]
@@ -3162,29 +3257,29 @@
               "title": "Docker docs",
               "url": "https://docs.docker.com/",
               "kind": "docs",
-              "level": "intro",
-              "why": "Official Docker documentation; clear introductions with commands to try."
+              "level": "reference",
+              "why": "Docker docs: images, Dockerfiles, Compose, BuildKit and GPU access (--gpus). The container basics behind every inference deployment."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "Firecracker",
               "url": "https://firecracker-microvm.github.io/",
               "kind": "docs",
-              "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "level": "intermediate",
+              "why": "Firecracker: AWS's open-source microVM monitor (powers Lambda and Fargate) for strongly isolated, fast-booting sandboxes. Used for agent code execution."
             },
             {
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             }
           ],
           "project": "BOM + signed update pipeline for on-prem 4–8 GPU appliance.",
@@ -3306,7 +3401,10 @@
               "Plan support for places you can't easily visit."
             ],
             "diagram": "flowchart LR\n  HQ[Build + sign bundle] --> MEDIA[Approved media]\n  MEDIA --> SITE[Site: verify hash + signature]\n  SITE --> STG[Staging slot]\n  STG -->|smoke tests pass| LIVE[Live slot]\n  LIVE -->|attestation| HQ",
-            "diagramAlt": "Diagram: headquarters builds and signs an update bundle, delivered on approved media; the site verifies it, installs to a staging slot, promotes to live after tests, and sends attestation back."
+            "diagramAlt": "Diagram: headquarters builds and signs an update bundle, delivered on approved media; the site verifies it, installs to a staging slot, promotes to live after tests, and sends attestation back.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "bash",
+            "code": "# Air-gapped model delivery: package on the connected side, verify on the isolated side\ntar -cf model-bundle.tar model/ && sha256sum model-bundle.tar > model-bundle.sha256\n# ... transfer by approved media ...\nsha256sum -c model-bundle.sha256 && tar -xf model-bundle.tar\ndocker load -i vllm-image.tar        # images are mirrored too: no registry pulls inside the enclave"
           }
         },
         {
@@ -3319,22 +3417,22 @@
               "title": "FinOps Foundation",
               "url": "https://www.finops.org/",
               "kind": "framework",
-              "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "level": "intro",
+              "why": "FinOps Foundation: framework, personas and maturity model for cloud financial management (inform, optimize, operate). The base vocabulary for AI cost work."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             },
             {
               "title": "Kueue",
               "url": "https://kueue.sigs.k8s.io/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "Kubernetes SIG project documentation for specialized scheduling and batch workloads."
+              "level": "intermediate",
+              "why": "Kueue: Kubernetes-native job queueing with quotas, fair sharing and all-or-nothing admission for batch, HPC and AI workloads."
             }
           ],
           "project": "Idle-GPU killer + showback by team and endpoint.",
@@ -3461,7 +3559,10 @@
             ],
             "diagram": "flowchart LR\n  TAG[Tags: team, project, env] --> ALLOC[Cost allocation]\n  ALLOC --> SHOW[Showback / chargeback]\n  ALLOC --> WASTE[Idle + oversize detection]\n  WASTE --> AUTO[Auto-stop + rightsizing]\n  SHOW --> BUD[Budgets + anomaly alerts]\n  BUD --> EXEC[Exec report: cost per outcome]",
             "diagramAlt": "Diagram: tagged workloads feed cost allocation, which drives showback, waste detection with auto-stop and rightsizing, budgets with alerts and executive reports.",
-            "widget": "budget"
+            "widget": "budget",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "from collections import defaultdict\n# Showback: allocate shared GPU cluster cost by measured GPU-hours, with idle cost spread proportionally.\ncluster_cost = 100_000.0\nusage = {\"search\": 3_000, \"support-bot\": 1_500, \"research\": 4_500}   # GPU-hours this month\ncapacity = 12_000\nidle = capacity - sum(usage.values())\nbill = defaultdict(float)\nfor team, h in usage.items():\n    bill[team] = cluster_cost * h / capacity + cluster_cost * idle / capacity * h / sum(usage.values())\nfor t, v in bill.items(): print(f\"{t:<12} ${v:,.0f}\")\nprint(\"idle share:\", f\"{idle/capacity:.0%}\")"
           }
         }
       ]

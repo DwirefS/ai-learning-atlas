@@ -18,36 +18,36 @@
               "title": "OpenAI prompt engineering",
               "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "level": "intro",
+              "why": "OpenAI's prompt engineering guide: clear instructions, message roles, examples, structuring with Markdown/XML, and model-specific advice."
             },
             {
               "title": "Anthropic prompt engineering",
               "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "level": "intro",
+              "why": "Anthropic's prompt engineering docs: when prompting is the right fix, plus techniques (clarity, examples, XML tags, chain of thought, prefill) and an interactive tutorial."
             },
             {
               "title": "PyTorch tutorials",
               "url": "https://docs.pytorch.org/tutorials/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Official PyTorch documentation or tutorial with runnable code."
+              "level": "intro",
+              "why": "Official PyTorch tutorials, organized from basics (tensors, autograd, nn.Module) through distributed training and compilation. Follow these when you start writing training code."
             },
             {
               "title": "Twelve-Factor App",
               "url": "https://12factor.net/",
               "kind": "guide",
               "level": "intro",
-              "why": "Short classic guide to building deployable services."
+              "why": "The Twelve-Factor App: config in the environment, stateless processes, disposability, dev/prod parity. Still the checklist for deployable LLM services."
             },
             {
               "title": "Docker docs",
               "url": "https://docs.docker.com/",
               "kind": "docs",
-              "level": "intro",
-              "why": "Official Docker documentation; clear introductions with commands to try."
+              "level": "reference",
+              "why": "Docker docs: images, Dockerfiles, Compose, BuildKit and GPU access (--gpus). The container basics behind every inference deployment."
             }
           ],
           "project": "FastAPI service with streaming chat, retries, timeouts, token accounting, JSON schema mode.",
@@ -172,7 +172,8 @@
               "Count tokens on every call."
             ],
             "diagram": "sequenceDiagram\n  participant App\n  participant API as Model API\n  App->>API: messages + settings (deadline 15s)\n  API-->>App: 429 rate limited\n  App->>App: backoff with jitter\n  App->>API: retry\n  API-->>App: stream tokens (SSE)\n  API-->>App: usage: in / cached / out tokens\n  App->>App: log cost, update state",
-            "diagramAlt": "Sequence diagram: the app sends messages with a deadline, gets a rate-limit error, backs off with jitter, retries, receives streamed tokens and usage, then logs cost and updates state."
+            "diagramAlt": "Sequence diagram: the app sends messages with a deadline, gets a rate-limit error, backs off with jitter, retries, receives streamed tokens and usage, then logs cost and updates state.",
+            "enterpriseLabel": "Illustrative scenario"
           }
         },
         {
@@ -185,29 +186,29 @@
               "title": "OpenAI prompt engineering",
               "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "level": "intro",
+              "why": "OpenAI's prompt engineering guide: clear instructions, message roles, examples, structuring with Markdown/XML, and model-specific advice."
             },
             {
               "title": "Anthropic prompt engineering",
               "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "level": "intro",
+              "why": "Anthropic's prompt engineering docs: when prompting is the right fix, plus techniques (clarity, examples, XML tags, chain of thought, prefill) and an interactive tutorial."
             },
             {
               "title": "Prompting Guide",
               "url": "https://www.promptingguide.ai/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Prompting Guide that complements the Prompt & Context Engineering lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "DAIR.AI's Prompting Guide: catalog of techniques (few-shot, CoT, self-consistency, ReAct, RAG) with examples and paper links."
             },
             {
               "title": "Stanford CS224N",
               "url": "https://web.stanford.edu/class/cs224n/",
               "kind": "course",
-              "level": "intermediate",
-              "why": "University lecture material with a structured treatment of the topic."
+              "level": "advanced",
+              "why": "Stanford CS224N (NLP with Deep Learning): lectures and assignments from word2vec through Transformers and LLMs. The classic foundation course."
             }
           ],
           "project": "Take a flaky prompt; add schema, examples, failure modes; measure on 30 cases before/after.",
@@ -332,7 +333,17 @@
               "Treat prompts as versioned, tested code."
             ],
             "diagram": "flowchart LR\n  SYS[Stable instructions + schema] --> CTX[Context assembly]\n  EX[Examples] --> CTX\n  RET[Retrieved evidence with IDs] --> CTX\n  MEM[Memory summary] --> CTX\n  USER[User request] --> CTX\n  CTX --> LLM[Model]\n  LLM --> VAL[Schema + citation check]",
-            "diagramAlt": "Diagram: stable instructions, examples, retrieved evidence, memory and the user request are assembled into context for the model, whose output is validated against schema and citations."
+            "diagramAlt": "Diagram: stable instructions, examples, retrieved evidence, memory and the user request are assembled into context for the model, whose output is validated against schema and citations.",
+            "case": {
+              "org": "Honeycomb",
+              "title": "All the Hard Stuff Nobody Talks About when Building Products with LLMs",
+              "url": "https://www.honeycomb.io/blog/hard-stuff-nobody-talks-about-llm",
+              "summary": "Honeycomb shipped Query Assistant, which turns natural language into Honeycomb queries. The post explains that the prompt must carry domain knowledge, the user's actual schema (real column names), several few-shot examples and the existing query, all inside a limited context window. That forced hard choices about which columns to include for large schemas.",
+              "lesson": "Context engineering is product engineering. Decide what the model must see (schema, examples, current state) and budget the window for it."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Assemble context with an explicit token budget: instructions > schema > examples > history.\ndef ntok(s): return len(s) // 4 + 1          # rough estimate; use the model's tokenizer in production\ndef build_prompt(parts, budget):\n    out, used = [], 0\n    for name, text, required in parts:          # parts are in priority order\n        t = ntok(text)\n        if used + t > budget:\n            if required: raise ValueError(f\"required part '{name}' does not fit\")\n            continue\n        out.append(f\"## {name}\\n{text}\"); used += t\n    return \"\\n\\n\".join(out), used\nparts = [(\"Instructions\", \"Answer using only the schema columns.\", True),\n         (\"Schema\", \"columns: service.name, duration_ms, http.status_code\", True),\n         (\"Examples\", \"Q: slow requests -> HEATMAP(duration_ms)\" * 20, False),\n         (\"History\", \"previous query: COUNT WHERE status>=500\", False)]\nprompt, used = build_prompt(parts, budget=120)\nprint(used, \"tokens\\n\", prompt)"
           }
         },
         {
@@ -346,35 +357,35 @@
               "url": "https://github.com/karpathy/minbpe",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "Minimal, clean Byte Pair Encoding code, including a GPT-4-style regex tokenizer. Read it to see why token counts, odd splits and prices behave the way they do."
             },
             {
               "title": "Hugging Face LLM Course",
               "url": "https://huggingface.co/learn/llm-course/chapter1/1",
               "kind": "course",
               "level": "intro",
-              "why": "Free hands-on course chapters with code; good first practical exposure."
+              "why": "Hugging Face's free LLM course: Transformers library basics, tokenizers, fine-tuning and sharing models on the Hub, with runnable notebooks."
             },
             {
               "title": "Retrieval-Augmented Generation",
               "url": "https://arxiv.org/abs/2005.11401",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "Lewis et al. (2020), the original RAG paper: a parametric seq2seq model combined with a dense retriever over Wikipedia, and why it beats closed-book models on knowledge tasks."
             },
             {
               "title": "Anthropic: Effective context engineering for AI agents",
               "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
               "kind": "guide",
               "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "why": "Anthropic on context engineering: treat context as a finite attention budget. Covers system prompts, tools, examples, just-in-time retrieval, compaction and note-taking for long tasks."
             },
             {
               "title": "Anthropic prompt caching docs",
               "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
               "kind": "guide",
               "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "why": "Anthropic prompt caching docs: put cache_control breakpoints on stable prefixes to cut cost and latency. Explains TTLs, minimum lengths and pricing for cache writes vs reads."
             }
           ],
           "project": "Tokenize 20 real docs; report fertility; chunk three ways and compare retrieval hit rate.",
@@ -555,7 +566,10 @@
             ],
             "diagram": "flowchart LR\n  TXT[Document] --> CH[Chunker]\n  CH --> EMB[Embedding model]\n  EMB --> V[(Vectors: dim x bytes)]\n  Q[Query] --> EMB\n  V --> SIM[Cosine similarity]\n  SIM --> TOP[Top-k chunks]\n  TOP --> BUD[Context budget]",
             "diagramAlt": "Diagram: a document is chunked and embedded into vectors; queries use the same embedding model; cosine similarity picks top chunks that go into the context budget.",
-            "widget": "tokenizer"
+            "widget": "tokenizer",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "from collections import Counter\n# Byte-pair encoding: repeatedly merge the most frequent adjacent pair.\nwords = Counter({\"l o w\": 5, \"l o w e r\": 2, \"n e w e s t\": 6, \"w i d e s t\": 3})\ndef merge_once(words):\n    pairs = Counter()\n    for w, f in words.items():\n        s = w.split()\n        for a, b in zip(s, s[1:]): pairs[a, b] += f\n    (a, b), _ = pairs.most_common(1)[0]\n    new = Counter({w.replace(f\"{a} {b}\", a + b): f for w, f in words.items()})\n    return (a, b), new\nfor _ in range(4):\n    pair, words = merge_once(words)\n    print(\"merge\", pair, \"->\", list(words))"
           }
         }
       ]
@@ -574,22 +588,22 @@
               "title": "OpenAI prompt engineering",
               "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "level": "intro",
+              "why": "OpenAI's prompt engineering guide: clear instructions, message roles, examples, structuring with Markdown/XML, and model-specific advice."
             },
             {
               "title": "Anthropic Building Effective Agents",
               "url": "https://www.anthropic.com/engineering/building-effective-agents",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "level": "intro",
+              "why": "Anthropic's widely cited guide: start simple, prefer workflows (prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer) before autonomous agents."
             },
             {
               "title": "Model Context Protocol",
               "url": "https://modelcontextprotocol.io/",
               "kind": "spec",
-              "level": "reference",
-              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
+              "level": "intro",
+              "why": "MCP home: what the Model Context Protocol is (an open standard connecting AI apps to tools and data), what it enables, and links to the spec and SDKs."
             }
           ],
           "project": "Implement 5 tools with strict schemas, validation, and safe errors back to the model.",
@@ -715,7 +729,17 @@
             ],
             "diagram": "sequenceDiagram\n  participant U as User\n  participant M as Model\n  participant H as Your code\n  participant T as Tool\n  U->>M: Where is order 123?\n  M->>H: call get_order_status(order_id=123)\n  H->>H: validate schema + permissions\n  H->>T: execute (timeout 5s)\n  T-->>H: {status: shipped, eta: Fri}\n  H-->>M: tool result\n  M-->>U: Shipped, arriving Friday",
             "diagramAlt": "Sequence diagram: the user asks about an order, the model emits a tool call, your code validates and executes it with a timeout, returns the result, and the model answers.",
-            "widget": "agentloop"
+            "widget": "agentloop",
+            "case": {
+              "org": "LinkedIn",
+              "title": "Musings on Building a Generative AI Product (LinkedIn Engineering)",
+              "url": "https://www.linkedin.com/blog/engineering/generative-ai/musings-on-building-a-generative-ai-product",
+              "summary": "LinkedIn's team routes each question to a specialized agent and calls internal APIs as 'skills'. The LLM outputs the call parameters in structured form, and they chose YAML over JSON because it uses fewer tokens. They also inject retrieved response examples into prompts with embedding-based retrieval. They note that getting to 80% quality was fast, but the last 20% took most of the work.",
+              "lesson": "Structured tool calls need a compact format, schema-matching parameters and a plan for malformed output. Budget most of your effort for the long tail of quality."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import json\n# Validate a model's tool call against a JSON-schema-like spec before executing it.\nTOOLS = {\"get_order\": {\"required\": {\"order_id\": str}, \"optional\": {\"include_items\": bool}}}\ndef validate(call):\n    spec = TOOLS.get(call.get(\"name\"))\n    if not spec: return f\"unknown tool {call.get('name')!r}\"\n    args = call.get(\"arguments\", {})\n    for k, t in spec[\"required\"].items():\n        if not isinstance(args.get(k), t): return f\"missing/invalid {k}\"\n    extra = set(args) - set(spec[\"required\"]) - set(spec[\"optional\"])\n    return f\"unexpected args {sorted(extra)}\" if extra else None\nraw = '{\"name\": \"get_order\", \"arguments\": {\"order_id\": \"A-17\", \"verbose\": true}}'\nerr = validate(json.loads(raw))\nprint(\"error fed back to the model:\" if err else \"ok\", err)"
           }
         },
         {
@@ -729,56 +753,56 @@
               "url": "https://arxiv.org/abs/2005.11401",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "Lewis et al. (2020), the original RAG paper: a parametric seq2seq model combined with a dense retriever over Wikipedia, and why it beats closed-book models on knowledge tasks."
             },
             {
               "title": "LlamaIndex",
               "url": "https://developers.llamaindex.ai/python/framework/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on LlamaIndex that complements the RAG Systems Deep Dive lesson with another author's explanation and examples."
+              "why": "LlamaIndex framework docs: data connectors, indexes, query engines and agent workflows for RAG, plus LlamaParse document parsing."
             },
             {
               "title": "LangChain",
               "url": "https://docs.langchain.com/oss/python/langchain/overview",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on LangChain that complements the RAG Systems Deep Dive lesson with another author's explanation and examples."
+              "why": "LangChain docs: create_agent as a minimal, configurable agent harness, plus models, tools, middleware and integrations."
             },
             {
               "title": "Ragas",
               "url": "https://docs.ragas.io/en/stable/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "RAG evaluation library documentation; metric definitions you can run."
+              "why": "Ragas docs: metrics and test-data generation for RAG and agent apps, such as faithfulness, context precision/recall and answer relevancy."
             },
             {
               "title": "Anthropic: Introducing contextual retrieval",
               "url": "https://www.anthropic.com/news/contextual-retrieval",
               "kind": "guide",
               "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "why": "Anthropic's Contextual Retrieval: prepend chunk-specific context before embedding and BM25 indexing. Reports up to 67% fewer retrieval failures when reranking is added."
             },
             {
               "title": "Corrective RAG (CRAG) paper (arXiv)",
               "url": "https://arxiv.org/abs/2401.15884",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "Corrective RAG: a lightweight evaluator grades retrieved documents and triggers web search or decomposition when retrieval is poor, which makes RAG robust to bad retrieval."
             },
             {
               "title": "Self-RAG paper (arXiv)",
               "url": "https://arxiv.org/abs/2310.11511",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "Self-RAG: train the model to decide when to retrieve and to critique its own generations with reflection tokens."
             },
             {
               "title": "LangGraph agentic RAG tutorial",
               "url": "https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/",
               "kind": "docs",
-              "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "level": "intermediate",
+              "why": "LangGraph's agentic RAG tutorial (now redirected to the new docs site): build a graph that decides whether to retrieve, grades documents and rewrites queries."
             }
           ],
           "project": "Hybrid BM25+vector RAG with citations, refusal, ACL filters, and a Ragas-style report.",
@@ -1018,7 +1042,17 @@
             ],
             "diagram": "flowchart LR\n  DOC[Documents] --> CH[Chunk + metadata + ACL]\n  CH --> VI[(Vector index)]\n  CH --> KI[(BM25 index)]\n  Q[Question] --> RW[Rewrite]\n  RW --> VI\n  RW --> KI\n  VI --> F[Fuse + rerank]\n  KI --> F\n  F --> G[Generate with citations]\n  G --> A[Answer or 'not found']",
             "diagramAlt": "Diagram: documents are chunked with metadata into vector and BM25 indexes; a rewritten question searches both, results are fused and reranked, and the model answers with citations or says not found.",
-            "widget": "rag"
+            "widget": "rag",
+            "case": {
+              "org": "Anthropic",
+              "title": "Introducing Contextual Retrieval (Sep 2024)",
+              "url": "https://www.anthropic.com/news/contextual-retrieval",
+              "summary": "Anthropic prepends a short, model-generated context to each chunk before embedding it and indexing it for BM25. In their experiments, contextual embeddings cut the top-20 retrieval failure rate by 35% (5.7% → 3.7%). Adding contextual BM25 brought it to 49% (→ 2.9%), and adding reranking to 67% (→ 1.9%).",
+              "lesson": "Many retrieval failures are chunks that lost their context. Fix the chunk and combine lexical plus semantic search with reranking before you reach for a bigger model."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import math, re\nfrom collections import Counter\n# Hybrid retrieval: BM25 + a toy \"dense\" score, fused with Reciprocal Rank Fusion.\ndocs = {\"d1\": \"refund policy for bereavement fares\", \"d2\": \"baggage allowance and fees\",\n        \"d3\": \"how to request a refund after travel\", \"d4\": \"loyalty points expiry\"}\ntok = lambda s: re.findall(r\"\\w+\", s.lower())\nN, avgdl = len(docs), sum(len(tok(d)) for d in docs.values()) / len(docs)\ndf = Counter(t for d in docs.values() for t in set(tok(d)))\ndef bm25(q, d, k1=1.5, b=0.75):\n    tf, dl = Counter(tok(d)), len(tok(d))\n    return sum(math.log(1 + (N - df[t] + .5) / (df[t] + .5)) * tf[t]*(k1+1) / (tf[t] + k1*(1-b+b*dl/avgdl))\n               for t in tok(q) if t in tf)\ndef dense(q, d): return len(set(tok(q)) & set(tok(d))) / math.sqrt(len(tok(d)))   # stand-in for embeddings\ndef rrf(rankings, k=60):\n    s = Counter()\n    for r in rankings:\n        for i, d in enumerate(r): s[d] += 1 / (k + i + 1)\n    return [d for d, _ in s.most_common()]\nq = \"refund bereavement\"\nr1 = sorted(docs, key=lambda d: -bm25(q, docs[d])); r2 = sorted(docs, key=lambda d: -dense(q, docs[d]))\nprint(rrf([r1, r2])[:2])"
           }
         },
         {
@@ -1032,21 +1066,21 @@
               "url": "https://docs.litellm.ai/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM: the open-source gateway/SDK that gives 100+ providers one OpenAI-format API, with spend tracking, budgets, fallbacks and an admin UI."
             },
             {
               "title": "OpenTelemetry",
               "url": "https://opentelemetry.io/docs/",
               "kind": "spec",
               "level": "reference",
-              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
+              "why": "OpenTelemetry docs: the vendor-neutral standard for traces, metrics and logs. Instrument gateways and agents once and send the data to any backend."
             },
             {
               "title": "Ragas",
               "url": "https://docs.ragas.io/en/stable/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "RAG evaluation library documentation; metric definitions you can run."
+              "why": "Ragas docs: metrics and test-data generation for RAG and agent apps, such as faithfulness, context precision/recall and answer relevancy."
             }
           ],
           "project": "Add a semantic cache with tenant keys; measure hit rate and quality on 100 repeated queries.",
@@ -1171,7 +1205,10 @@
               "Version and tenant belong in the key."
             ],
             "diagram": "flowchart LR\n  Q[Request] --> K[Key: tenant + model + prompt v + policy v]\n  K --> EX{Exact hit?}\n  EX -->|yes| R[Return]\n  EX -->|no| SEM{Semantic hit >= threshold?}\n  SEM -->|yes| R\n  SEM -->|no| LLM[Call model with cached prefix]\n  LLM --> STORE[Store with TTL]\n  STORE --> R",
-            "diagramAlt": "Diagram: a request builds a key with tenant and versions, checks an exact cache, then a semantic cache, and otherwise calls the model and stores the answer with a TTL."
+            "diagramAlt": "Diagram: a request builds a key with tenant and versions, checks an exact cache, then a semantic cache, and otherwise calls the model and stores the answer with a TTL.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import math\n# Semantic cache: return a stored answer when a new query is close enough in embedding space.\ndef embed(text):            # toy bag-of-letters embedding; use a real embedding model in practice\n    v = [0]*26\n    for ch in text.lower():\n        if ch.isalpha(): v[ord(ch)-97] += 1\n    n = math.sqrt(sum(x*x for x in v)) or 1\n    return [x/n for x in v]\ncache = []\ndef lookup(q, threshold=0.95):\n    e = embed(q)\n    best = max(cache, key=lambda it: sum(a*b for a, b in zip(e, it[0])), default=None)\n    if best and sum(a*b for a, b in zip(e, best[0])) >= threshold: return best[1]\ndef store(q, answer): cache.append((embed(q), answer))\nstore(\"What is your refund policy?\", \"Refunds within 30 days.\")\nprint(lookup(\"what's your refund policy\"))     # hit\nprint(lookup(\"How do I reset my password?\"))   # miss -> None\n# Tune the threshold on real paraphrase pairs; false hits are worse than misses."
           }
         },
         {
@@ -1185,35 +1222,35 @@
               "url": "https://github.com/openai/evals",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "OpenAI's open-source eval framework and benchmark registry. Read the eval templates to learn how to write model-graded and exact-match evals."
             },
             {
               "title": "Ragas",
               "url": "https://docs.ragas.io/en/stable/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "RAG evaluation library documentation; metric definitions you can run."
+              "why": "Ragas docs: metrics and test-data generation for RAG and agent apps, such as faithfulness, context precision/recall and answer relevancy."
             },
             {
               "title": "Stanford HELM",
               "url": "https://crfm.stanford.edu/helm/",
               "kind": "research",
-              "level": "advanced",
-              "why": "Research output from Stanford CRFM; useful for the original framing and evaluation methodology."
+              "level": "intermediate",
+              "why": "Stanford CRFM's HELM: a living benchmark that scores many models across scenarios and metrics (accuracy, calibration, robustness, toxicity) side by side."
             },
             {
               "title": "Judging LLM-as-a-Judge",
               "url": "https://arxiv.org/abs/2306.05685",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "MT-Bench and Chatbot Arena paper: strong LLM judges reach over 80% agreement with humans, and it documents position, verbosity and self-enhancement biases."
             },
             {
               "title": "lm-evaluation-harness",
               "url": "https://github.com/EleutherAI/lm-evaluation-harness",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "EleutherAI's harness behind many open-model leaderboards. Run standard few-shot benchmarks against HF, vLLM or API models with one CLI."
             }
           ],
           "project": "CI evals: 40 golden cases; fail PR on >3% quality drop or cost/latency regress.",
@@ -1338,7 +1375,17 @@
             ],
             "diagram": "flowchart LR\n  PR[Pull request] --> CI[CI eval run]\n  CI --> S1[Capability slice]\n  CI --> S2[Safety slice]\n  CI --> S3[Style slice]\n  S1 --> CMP{Compare to baseline}\n  S2 --> CMP\n  S3 --> CMP\n  CMP -->|ok| MERGE[Merge]\n  CMP -->|regression| BLOCK[Block]\n  PROD[Production samples] --> LABEL[Label failures] --> CI",
             "diagramAlt": "Diagram: a pull request triggers CI evals across capability, safety and style slices, compared to a baseline to merge or block; labeled production failures feed back into the suite.",
-            "widget": "eval"
+            "widget": "eval",
+            "case": {
+              "org": "Rechat (via Hamel Husain)",
+              "title": "Your AI Product Needs Evals: Case Study: Lucy, A Real Estate AI Assistant",
+              "url": "https://hamel.dev/blog/posts/evals/",
+              "summary": "Rechat's assistant Lucy improved quickly with prompt engineering, then plateaued. Fixing one failure caused another, quality was judged by 'vibe checks', and prompts grew unwieldy. The case study shows how they built unit-test-style assertions, trace logging and human plus model evaluation to make progress measurable again.",
+              "lesson": "When quality plateaus, stop tweaking prompts and build the eval system: look at traces, write assertions, and iterate against them."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Assertion-style evals (cheap, deterministic) run on every prompt change.\ncases = [\n  {\"input\": \"list homes in Detroit under 300k\", \"output\": \"Found 3 listings in Detroit ...\", \"must\": [\"Detroit\"], \"must_not\": [\"Chicago\"]},\n  {\"input\": \"email the client\",                \"output\": \"I sent the email to {client}\",   \"must\": [],        \"must_not\": [\"{\", \"}\"]},\n]\ndef check(c):\n    fails = [f\"missing {m!r}\" for m in c[\"must\"] if m not in c[\"output\"]]\n    fails += [f\"contains {m!r}\" for m in c[\"must_not\"] if m in c[\"output\"]]\n    return fails\nfor c in cases:\n    f = check(c); print(\"PASS\" if not f else \"FAIL\", c[\"input\"], f)"
           }
         },
         {
@@ -1352,21 +1399,21 @@
               "url": "https://arxiv.org/abs/1603.09320",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "HNSW paper: hierarchical navigable small-world graphs, the ANN index inside most vector databases. Read it to understand the M and efConstruction/efSearch knobs."
             },
             {
               "title": "Faiss wiki",
               "url": "https://github.com/facebookresearch/faiss/wiki",
               "kind": "code",
-              "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "level": "reference",
+              "why": "Faiss wiki: index types (Flat, IVF, PQ, HNSW), the index factory, GPU indexes and guidelines for choosing an index by dataset size and memory."
             },
             {
               "title": "pgvector",
               "url": "https://github.com/pgvector/pgvector",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "pgvector README: vector types, distance operators, HNSW and IVFFlat indexes, and filtering in Postgres. Often all the vector database you need."
             }
           ],
           "project": "Index 1M vectors with HNSW and IVF-PQ in Faiss. Plot recall@10 vs latency for several efSearch and nprobe values, measure memory, then add a tenant filter and observe recall with pre- vs post-filtering.",
@@ -1503,7 +1550,10 @@
               "Size memory before choosing a database."
             ],
             "diagram": "flowchart TB\n  Q[Query vector] --> L2[Top layer: few nodes]\n  L2 --> L1[Middle layer]\n  L1 --> L0[Base layer: all nodes]\n  L0 --> C[Candidate list size ef]\n  C --> K[Top-k results]",
-            "diagramAlt": "Diagram: an HNSW search starts at a sparse top layer, descends through a middle layer to the base layer containing all nodes, keeps a candidate list of size ef and returns the top-k results."
+            "diagramAlt": "Diagram: an HNSW search starts at a sparse top layer, descends through a middle layer to the base layer containing all nodes, keeps a candidate list of size ef and returns the top-k results.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import random, math\n# Why ANN indexes exist: exact search is O(N); IVF searches only the nearest clusters.\nrng = random.Random(1); D = 8\nvecs = [[rng.gauss(0, 1) for _ in range(D)] for _ in range(2000)]\ndist = lambda a, b: sum((x-y)**2 for x, y in zip(a, b))\ncents = rng.sample(vecs, 16)\nfor _ in range(5):                                   # a few k-means iterations\n    buckets = [[] for _ in cents]\n    for v in vecs: buckets[min(range(len(cents)), key=lambda i: dist(v, cents[i]))].append(v)\n    cents = [[sum(c)/len(b) for c in zip(*b)] if b else cents[i] for i, b in enumerate(buckets)]\nq = [rng.gauss(0, 1) for _ in range(D)]\nexact = min(vecs, key=lambda v: dist(q, v))\nprobe = sorted(range(len(cents)), key=lambda i: dist(q, cents[i]))[:3]   # nprobe=3\ncand = [v for i in probe for v in buckets[i]]\napprox = min(cand, key=lambda v: dist(q, v))\nprint(f\"scanned {len(cand)}/{len(vecs)} vectors; found exact NN: {approx == exact}\")"
           }
         },
         {
@@ -1517,35 +1567,35 @@
               "url": "https://platform.openai.com/docs/guides/reasoning",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "why": "OpenAI reasoning models guide: reasoning effort, reasoning tokens and their cost, context-window management and prompting differences in the Responses API."
             },
             {
               "title": "Anthropic extended thinking",
               "url": "https://docs.claude.com/en/docs/build-with-claude/extended-thinking",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Vendor documentation with exact API behavior and examples."
+              "why": "Anthropic extended thinking docs: budget_tokens, how thinking blocks are returned and billed, interaction with tool use, and migration to newer adaptive modes."
             },
             {
               "title": "OpenAI Batch API",
               "url": "https://platform.openai.com/docs/guides/batch",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "level": "intro",
+              "why": "OpenAI Batch API: submit JSONL jobs for asynchronous processing within 24h at a discount and with higher rate limits. Ideal for evals and backfills."
             },
             {
               "title": "OpenAI reinforcement fine-tuning",
               "url": "https://platform.openai.com/docs/guides/reinforcement-fine-tuning",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "level": "advanced",
+              "why": "OpenAI reinforcement fine-tuning guide: define a grader, prepare a dataset and train a reasoning model on it, with a worked security-review example."
             },
             {
               "title": "Amazon Bedrock model evaluation",
               "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html",
               "kind": "docs",
               "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "why": "Amazon Bedrock model evaluation: automatic and human evaluation jobs for models and knowledge bases, including LLM-as-judge metrics."
             }
           ],
           "project": "On 50 multi-step tasks, compare a non-reasoning model with a reasoning model at low, medium and high effort. Report accuracy, latency, total tokens and cost per correct answer. Then move an offline summarization job to a batch API and add prompt caching to the agent's system prompt, and measure the savings.",
@@ -1700,7 +1750,10 @@
             ],
             "diagram": "flowchart LR\n  R[Request] --> C{Hard multi-step?}\n  C -->|no| FAST[Standard model / low effort]\n  C -->|yes| THINK[Reasoning model, high effort]\n  THINK --> TOOLS[Tools with preserved reasoning]\n  FAST --> OUT[Answer]\n  TOOLS --> OUT\n  JOBS[Offline jobs] --> BATCH[Batch API]",
             "diagramAlt": "Diagram: requests are routed by difficulty to a standard model or a reasoning model with high effort and tools; offline jobs go to a batch API.",
-            "widget": "routing"
+            "widget": "routing",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import random\nfrom collections import Counter\n# Test-time compute in its simplest form: self-consistency (sample N, majority vote).\ndef noisy_solver(rng):                      # stand-in for a model that is right 60% of the time\n    return \"42\" if rng.random() < 0.6 else rng.choice([\"41\", \"43\", \"24\"])\ndef accuracy(n_samples, trials=2000, rng=random.Random(0)):\n    ok = 0\n    for _ in range(trials):\n        votes = Counter(noisy_solver(rng) for _ in range(n_samples))\n        ok += votes.most_common(1)[0][0] == \"42\"\n    return ok / trials\nfor n in (1, 5, 15):\n    print(f\"{n:>2} samples -> {accuracy(n):.2f}\")    # more compute, higher accuracy, higher cost"
           }
         }
       ]
@@ -1719,22 +1772,22 @@
               "title": "Anthropic Building Effective Agents",
               "url": "https://www.anthropic.com/engineering/building-effective-agents",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "level": "intro",
+              "why": "Anthropic's widely cited guide: start simple, prefer workflows (prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer) before autonomous agents."
             },
             {
               "title": "LangChain",
               "url": "https://docs.langchain.com/oss/python/langchain/overview",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on LangChain that complements the Application-Level Agents lesson with another author's explanation and examples."
+              "why": "LangChain docs: create_agent as a minimal, configurable agent harness, plus models, tools, middleware and integrations."
             },
             {
               "title": "Model Context Protocol",
               "url": "https://modelcontextprotocol.io/",
               "kind": "spec",
-              "level": "reference",
-              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
+              "level": "intro",
+              "why": "MCP home: what the Model Context Protocol is (an open standard connecting AI apps to tools and data), what it enables, and links to the spec and SDKs."
             }
           ],
           "project": "Replace a brittle chain with one agent plus tools and stop conditions; compare evals and cost.",
@@ -1860,7 +1913,17 @@
             ],
             "diagram": "flowchart LR\n  G[Goal + state] --> P[Plan next step]\n  P --> A[Act: tool call]\n  A --> O[Observe result]\n  O --> D{Done or budget hit?}\n  D -->|no| P\n  D -->|done| OUT[Answer]\n  D -->|budget / low confidence| H[Escalate to human]",
             "diagramAlt": "Diagram: an agent loop of plan, act and observe repeats until done, or escalates to a human when the budget runs out or confidence is low.",
-            "widget": "agentloop"
+            "widget": "agentloop",
+            "case": {
+              "org": "Google",
+              "title": "How is Google using AI for internal code migrations? (arXiv 2501.06972)",
+              "url": "https://arxiv.org/abs/2501.06972",
+              "summary": "Google reports on using LLMs, combined with conventional tooling, for large internal code migrations. They find evidence that this can significantly reduce the time needed for migrations and lower the barrier to starting and finishing them.",
+              "lesson": "Agents work best on long, repetitive, verifiable tasks, with existing build and test systems acting as the check."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# A bounded agent loop: plan -> act -> observe, with step and error caps. The \"model\" is scripted.\ndef fake_model(history):\n    if not any(h[0] == \"obs\" for h in history): return (\"tool\", \"search\", \"weather Detroit\")\n    return (\"final\", \"It is 12°C in Detroit.\")\nTOOLS = {\"search\": lambda q: \"Detroit: 12°C, cloudy\"}\ndef run(task, max_steps=5):\n    history = [(\"user\", task)]\n    for step in range(max_steps):\n        kind, *rest = fake_model(history)\n        if kind == \"final\": return rest[0], step\n        name, arg = rest\n        try: obs = TOOLS[name](arg)\n        except Exception as e: obs = f\"error: {e}\"\n        history.append((\"obs\", obs))\n    raise RuntimeError(\"step budget exhausted\")\nprint(run(\"What's the weather in Detroit?\"))"
           }
         },
         {
@@ -1874,56 +1937,56 @@
               "url": "https://12factor.net/",
               "kind": "guide",
               "level": "intro",
-              "why": "Short classic guide to building deployable services."
+              "why": "The Twelve-Factor App: config in the environment, stateless processes, disposability, dev/prod parity. Still the checklist for deployable LLM services."
             },
             {
               "title": "OpenTelemetry",
               "url": "https://opentelemetry.io/docs/",
               "kind": "spec",
               "level": "reference",
-              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
+              "why": "OpenTelemetry docs: the vendor-neutral standard for traces, metrics and logs. Instrument gateways and agents once and send the data to any backend."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
               "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP's project page for the LLM Top 10: prompt injection, sensitive information disclosure, supply chain, excessive agency and more. A shared vocabulary for security reviews."
             },
             {
               "title": "Docker docs",
               "url": "https://docs.docker.com/",
               "kind": "docs",
-              "level": "intro",
-              "why": "Official Docker documentation; clear introductions with commands to try."
+              "level": "reference",
+              "why": "Docker docs: images, Dockerfiles, Compose, BuildKit and GPU access (--gpus). The container basics behind every inference deployment."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             },
             {
               "title": "MDN: Using server-sent events",
               "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
               "kind": "docs",
-              "level": "reference",
-              "why": "MDN web docs; precise reference for web platform behavior."
+              "level": "intro",
+              "why": "MDN guide to server-sent events: EventSource, the text/event-stream format and reconnection. SSE is how most LLM APIs stream tokens."
             },
             {
               "title": "MDN: WebSockets API",
               "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
               "kind": "docs",
-              "level": "reference",
-              "why": "MDN web docs; precise reference for web platform behavior."
+              "level": "intro",
+              "why": "MDN WebSockets API: two-way sessions between browser and server, used by realtime voice and agent UIs."
             },
             {
               "title": "OpenAI streaming responses guide",
               "url": "https://platform.openai.com/docs/guides/streaming-responses",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "level": "intro",
+              "why": "OpenAI streaming guide: stream Responses API output as server-sent events and handle the semantic event types as they arrive."
             }
           ],
           "project": "Add tracing, rate limits, spend caps, and a kill switch to your LLM API app.",
@@ -2132,7 +2195,17 @@
               "Stream for perceived speed; alert on quality."
             ],
             "diagram": "flowchart LR\n  U[User] --> GW[API + auth]\n  GW --> Q[Queue / backpressure]\n  Q --> BR{Circuit breaker}\n  BR -->|closed| PA[Provider A]\n  BR -->|open| PB[Provider B]\n  PA --> S[Stream SSE to user]\n  PB --> S\n  GW --> TR[(Traces: tokens, $, latency, redacted)]",
-            "diagramAlt": "Diagram: user requests pass auth and a queue to a circuit breaker that picks provider A or B; responses stream back via SSE and every request is traced with tokens, cost and latency."
+            "diagramAlt": "Diagram: user requests pass auth and a queue to a circuit breaker that picks provider A or B; responses stream back via SSE and every request is traced with tokens, cost and latency.",
+            "case": {
+              "org": "DoorDash",
+              "title": "Path to high-quality LLM-based Dasher support automation (Sep 2024)",
+              "url": "https://careersatdoordash.com/blog/large-language-modules-based-dasher-support-automation/",
+              "summary": "DoorDash's RAG support bot is checked by a two-tier LLM Guardrail: first a cheap semantic-similarity check against knowledge-base segments, then an LLM evaluator for groundedness, coherence and compliance. They report it reduced hallucinations by 90% and severe compliance issues by 99%. An LLM Judge monitors five quality aspects, calibrated against a human review team, and new issues become promptfoo regression tests.",
+              "lesson": "Put a cheap check first and an LLM judge second, keep humans calibrating the judge, and turn found failures into regression tests."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import random, time\n# Retry with exponential backoff + jitter, a timeout budget, and a fallback model.\nclass Transient(Exception): pass\ndef flaky(prompt, rng=random.Random(3)):\n    if rng.random() < 0.6: raise Transient(\"429 rate limited\")\n    return \"primary: ok\"\ndef call_with_retries(fn, prompt, attempts=4, base=0.05, deadline_s=1.0):\n    start = time.monotonic()\n    for i in range(attempts):\n        try: return fn(prompt)\n        except Transient:\n            sleep = base * 2**i * random.uniform(0.5, 1.5)\n            if time.monotonic() - start + sleep > deadline_s: break\n            time.sleep(sleep)\n    return \"fallback-model: ok\"\nprint(call_with_retries(flaky, \"hi\"))"
           }
         },
         {
@@ -2146,35 +2219,35 @@
               "url": "https://arxiv.org/abs/2106.09685",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "LoRA paper: freeze base weights and learn low-rank update matrices, cutting trainable parameters by up to 10,000× with comparable quality."
             },
             {
               "title": "QLoRA",
               "url": "https://arxiv.org/abs/2305.14314",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "QLoRA: fine-tune a 4-bit (NF4) quantized base model with LoRA adapters, double quantization and paged optimizers. 65B models on one 48GB GPU."
             },
             {
               "title": "Direct Preference Optimization",
               "url": "https://arxiv.org/abs/2305.18290",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DPO paper: optimize directly on preference pairs with a simple classification-style loss, without training a separate reward model or running RL."
             },
             {
               "title": "Hugging Face PEFT docs",
               "url": "https://huggingface.co/docs/peft/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face PEFT docs: LoRA, QLoRA, prefix and prompt tuning and other adapters, with integration into Transformers and Accelerate."
             },
             {
               "title": "Hugging Face TRL docs",
               "url": "https://huggingface.co/docs/trl/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face TRL docs: SFT, DPO, GRPO, PPO and reward-model trainers for post-training language models."
             }
           ],
           "project": "LoRA-tune a small open model on 500 curated examples; compare to prompt+RAG on the same eval.",
@@ -2329,7 +2402,10 @@
             ],
             "diagram": "flowchart LR\n  BASE[Best prompt + RAG] --> EV{Ceiling reached?}\n  EV -->|no| ITER[Improve prompt / retrieval]\n  EV -->|yes| DATA[Curate examples]\n  DATA --> M{Method}\n  M --> SFT[SFT]\n  M --> LORA[LoRA / QLoRA]\n  M --> DPO[DPO]\n  SFT --> TEST[Held-out + regression evals]\n  LORA --> TEST\n  DPO --> TEST\n  TEST --> SHIP[Ship with rollback]",
             "diagramAlt": "Diagram: start from the best prompt and RAG; if the ceiling is reached, curate examples, choose SFT, LoRA or DPO, run held-out and regression evals, and ship with rollback.",
-            "widget": "quant"
+            "widget": "quant",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import json\n# Prepare chat-format SFT data and hold out an eval split before any fine-tuning job.\nexamples = [(\"Classify: 'refund not received'\", \"billing\"), (\"Classify: 'app crashes on login'\", \"bug\"),\n            (\"Classify: 'how do I export data'\", \"how-to\"), (\"Classify: 'charged twice'\", \"billing\")]\nrows = [{\"messages\": [{\"role\": \"system\", \"content\": \"Label the ticket.\"},\n                      {\"role\": \"user\", \"content\": q}, {\"role\": \"assistant\", \"content\": a}]} for q, a in examples]\ntrain, held_out = rows[:-1], rows[-1:]\nwith open(\"/tmp/train.jsonl\", \"w\") as f:\n    for r in train: f.write(json.dumps(r) + \"\\n\")\nprint(len(train), \"train rows;\", len(held_out), \"held out. First row:\", json.dumps(train[0])[:90], \"...\")"
           }
         },
         {
@@ -2343,21 +2419,21 @@
               "url": "https://arxiv.org/abs/2203.02155",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "InstructGPT: SFT on demonstrations, then a reward model from rankings, then PPO. A 1.3B model was preferred over 175B GPT-3, the recipe behind modern assistants."
             },
             {
               "title": "Hugging Face TRL docs",
               "url": "https://huggingface.co/docs/trl/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face TRL docs: SFT, DPO, GRPO, PPO and reward-model trainers for post-training language models."
             },
             {
               "title": "Direct Preference Optimization",
               "url": "https://arxiv.org/abs/2305.18290",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DPO paper: optimize directly on preference pairs with a simple classification-style loss, without training a separate reward model or running RL."
             }
           ],
           "project": "Generate synthetic tool-call traces; filter with a critic; train a small student; eval on human gold.",
@@ -2482,7 +2558,10 @@
               "Students inherit teacher blind spots."
             ],
             "diagram": "flowchart LR\n  GOLD[Real gold examples] --> T[Teacher prompts: varied]\n  T --> GEN[Generate candidates]\n  GEN --> F1[Dedup + checks]\n  F1 --> F2[Critique model]\n  F2 --> F3[Human spot check]\n  F3 --> TRAIN[Train student]\n  TRAIN --> EVAL[Eval on held-out real data]\n  GOLD --> EVAL",
-            "diagramAlt": "Diagram: real gold examples guide varied teacher prompts; generated candidates pass deduplication, critique and human checks; a student is trained and evaluated on held-out real data."
+            "diagramAlt": "Diagram: real gold examples guide varied teacher prompts; generated candidates pass deduplication, critique and human checks; a student is trained and evaluated on held-out real data.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import random\n# Template-based synthetic data with dedup and a quality filter (an LLM would generate; a judge would filter).\nrng = random.Random(5)\nintents = {\"billing\": [\"I was charged {n} times\", \"refund my {item}\"], \"bug\": [\"{item} crashes on start\", \"error {code} when saving\"]}\nfill = lambda t: t.format(n=rng.randint(2, 3), item=rng.choice([\"app\", \"order\", \"plugin\"]), code=rng.randint(400, 599))\ndata = {(fill(t), label) for label, ts in intents.items() for t in ts for _ in range(5)}\ndata = [d for d in data if len(d[0].split()) >= 3]           # trivial quality filter\nprint(len(data), \"unique examples, e.g.\", sorted(data)[:3])"
           }
         },
         {
@@ -2496,28 +2575,28 @@
               "url": "https://arxiv.org/abs/2407.01449",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "ColPali: embed document page images with a vision-language model and late interaction, skipping OCR and layout pipelines for document retrieval."
             },
             {
               "title": "Docling (IBM) document conversion",
               "url": "https://github.com/docling-project/docling",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "IBM's Docling: converts PDF, DOCX, PPTX and images into structured Markdown/JSON with layout, tables and reading order. Strong default for document RAG ingestion."
             },
             {
               "title": "Byaldi (ColPali made easy)",
               "url": "https://github.com/AnswerDotAI/byaldi",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "Byaldi wraps ColPali-style late-interaction models in a few lines of code so you can try page-image retrieval quickly."
             },
             {
               "title": "Azure AI Document Intelligence",
               "url": "https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "level": "reference",
+              "why": "Azure AI Document Intelligence: prebuilt and custom models for OCR, layout, tables, invoices, receipts and IDs."
             }
           ],
           "project": "Take 30 annual-report PDFs. Build (a) a parse-then-embed pipeline with Docling plus VLM chart captions and (b) a ColPali/ColQwen page index. Write 40 questions (15 about tables, 15 about charts, 10 prose) and compare recall@5 and answer accuracy per question type, plus index size and cost.",
@@ -2675,7 +2754,10 @@
               "Evaluate per question type."
             ],
             "diagram": "flowchart LR\n  PDF[PDF / scan] --> LP[Layout parser]\n  LP --> TXT[Text chunks]\n  LP --> TAB[Tables as Markdown + headers]\n  LP --> FIG[Charts -> VLM description]\n  PDF --> IMG[Page images] --> VIS[(Visual index)]\n  TXT --> TI[(Text index)]\n  TAB --> TI\n  FIG --> TI\n  TI --> FUSE[Fuse + rerank]\n  VIS --> FUSE\n  FUSE --> GEN[Answer with page + box cites]",
-            "diagramAlt": "Diagram: a PDF is parsed into text, tables and chart descriptions for a text index, page images go to a visual index, results are fused and reranked, and answers cite page and box."
+            "diagramAlt": "Diagram: a PDF is parsed into text, tables and chart descriptions for a text index, page images go to a visual index, results are fused and reranked, and answers cite page and box.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Keep tables intact when chunking documents: one table = one chunk, with its caption as context.\ndoc = [(\"h\", \"Q3 results\"), (\"p\", \"Revenue grew in all regions.\"),\n       (\"table\", \"| region | revenue |\\n| EU | 10 |\\n| US | 14 |\"), (\"caption\", \"Table 1: Revenue by region ($M)\"),\n       (\"p\", \"Costs were flat.\")]\nchunks, cur, heading = [], [], \"\"\nfor kind, text in doc:\n    if kind == \"h\": heading = text; continue\n    if kind == \"table\": chunks.append(f\"[{heading}] TABLE\\n{text}\"); continue\n    if kind == \"caption\": chunks[-1] += f\"\\n{text}\"; continue\n    chunks.append(f\"[{heading}] {text}\")\nfor c in chunks: print(\"---\\n\" + c)"
           }
         },
         {
@@ -2688,29 +2770,29 @@
               "title": "AWS Textract AnalyzeExpense",
               "url": "https://docs.aws.amazon.com/textract/latest/dg/analyzing-document-expense.html",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "level": "reference",
+              "why": "AWS Textract AnalyzeExpense: extracts vendor, totals and line items from invoices and receipts into structured fields with confidence scores."
             },
             {
               "title": "PaddleOCR",
               "url": "https://github.com/PaddlePaddle/PaddleOCR",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "PaddleOCR: a lightweight open-source OCR and document-parsing toolkit that turns PDFs and images into structured data for LLMs."
             },
             {
               "title": "OpenAI structured outputs",
               "url": "https://platform.openai.com/docs/guides/structured-outputs",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "why": "OpenAI Structured Outputs: constrain responses to your JSON Schema (strict mode), compared with JSON mode, including refusals and supported schema features."
             },
             {
               "title": "Google Document AI",
               "url": "https://cloud.google.com/document-ai/docs/overview",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "level": "reference",
+              "why": "Google Document AI overview: processors for OCR, form parsing and specialized documents, plus workbench custom extractors."
             }
           ],
           "project": "Build a receipt reader: photo in, validated JSON out (vendor, date, currency, line items, tax, total) logged to a SQLite expenses table. Compare a VLM with structured output against OCR + rules on 50 hand-labeled receipts; report per-field accuracy, validation catch rate and cost per receipt.",
@@ -2864,7 +2946,10 @@
               "Measure straight-through rate and field accuracy."
             ],
             "diagram": "flowchart LR\n  IMG[Photo / scan] --> PRE[Preprocess]\n  PRE --> EX{Extractor}\n  EX --> OCR[OCR + rules]\n  EX --> PB[Prebuilt processor]\n  EX --> VLM[VLM + JSON schema]\n  OCR --> VAL[Validate: sums, formats, vendors]\n  PB --> VAL\n  VLM --> VAL\n  VAL -->|pass| DB[(Records)]\n  VAL -->|fail| HR[Human review]",
-            "diagramAlt": "Diagram: a photo is preprocessed and extracted by OCR, a prebuilt processor or a VLM; results are validated and either saved or sent to human review."
+            "diagramAlt": "Diagram: a photo is preprocessed and extracted by OCR, a prebuilt processor or a VLM; results are validated and either saved or sent to human review.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import json\n# Validate VLM/OCR extraction output against a schema and cross-check totals before trusting it.\nraw = '{\"invoice_no\": \"INV-881\", \"lines\": [{\"desc\": \"GPU hours\", \"qty\": 10, \"unit\": 2.5}], \"total\": 25.0}'\ndef validate_invoice(d):\n    errs = []\n    if not str(d.get(\"invoice_no\", \"\")).startswith(\"INV-\"): errs.append(\"invoice_no\")\n    calc = round(sum(l[\"qty\"] * l[\"unit\"] for l in d.get(\"lines\", [])), 2)\n    if abs(calc - d.get(\"total\", -1)) > 0.01: errs.append(f\"total mismatch {calc} != {d.get('total')}\")\n    return errs\nerrs = validate_invoice(json.loads(raw))\nprint(\"accept\" if not errs else f\"send to human review: {errs}\")"
           }
         }
       ]
@@ -2884,21 +2969,21 @@
               "url": "https://docs.litellm.ai/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM: the open-source gateway/SDK that gives 100+ providers one OpenAI-format API, with spend tracking, budgets, fallbacks and an admin UI."
             },
             {
               "title": "Stanford HELM",
               "url": "https://crfm.stanford.edu/helm/",
               "kind": "research",
-              "level": "advanced",
-              "why": "Research output from Stanford CRFM; useful for the original framing and evaluation methodology."
+              "level": "intermediate",
+              "why": "Stanford CRFM's HELM: a living benchmark that scores many models across scenarios and metrics (accuracy, calibration, robustness, toxicity) side by side."
             },
             {
               "title": "Judging LLM-as-a-Judge",
               "url": "https://arxiv.org/abs/2306.05685",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "MT-Bench and Chatbot Arena paper: strong LLM judges reach over 80% agreement with humans, and it documents position, verbosity and self-enhancement biases."
             }
           ],
           "project": "Build a difficulty router: easy to small model, hard to frontier; report $ and quality.",
@@ -3024,7 +3109,10 @@
             ],
             "diagram": "flowchart LR\n  R[Request] --> RT{Router}\n  RT -->|easy| S[Small model]\n  RT -->|hard| L[Large model]\n  S --> V{Verifier}\n  V -->|pass| OUT[Answer]\n  V -->|fail| L\n  L --> BON[Best-of-N + verifier]\n  BON --> OUT",
             "diagramAlt": "Diagram: a router sends easy requests to a small model and hard ones to a large model; small-model answers that fail a verifier escalate, and the large model can use best-of-N with a verifier.",
-            "widget": "routing"
+            "widget": "routing",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Cascade routing: try the cheap model; escalate when its confidence is low.\ndef small(q): return (\"Paris\", 0.97) if \"capital of France\" in q else (\"not sure\", 0.40)\ndef large(q): return (\"A detailed answer\", 0.90)\nCOST = {\"small\": 0.1, \"large\": 1.0}\ndef route(q, threshold=0.8):\n    ans, conf = small(q)\n    if conf >= threshold: return ans, COST[\"small\"]\n    return large(q)[0], COST[\"small\"] + COST[\"large\"]\nfor q in [\"capital of France?\", \"explain our Q3 churn drivers\"]:\n    print(q, \"->\", route(q))"
           }
         },
         {
@@ -3037,36 +3125,36 @@
               "title": "Hugging Face TRL docs",
               "url": "https://huggingface.co/docs/trl/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face TRL docs: SFT, DPO, GRPO, PPO and reward-model trainers for post-training language models."
             },
             {
               "title": "OpenAI Evals",
               "url": "https://github.com/openai/evals",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "OpenAI's open-source eval framework and benchmark registry. Read the eval templates to learn how to write model-graded and exact-match evals."
             },
             {
               "title": "Designing Machine Learning Systems",
               "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "why": "Chip Huyen's book (O'Reilly, page gated): data, features, deployment, monitoring and continual learning, framed as iterative system design."
             },
             {
               "title": "DPO paper (arXiv)",
               "url": "https://arxiv.org/abs/2305.18290",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DPO paper: optimize directly on preference pairs with a simple classification-style loss, without training a separate reward model or running RL."
             },
             {
               "title": "Hugging Face TRL DPO Trainer",
               "url": "https://huggingface.co/docs/trl/dpo_trainer",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "TRL DPOTrainer docs: dataset format (prompt, chosen, rejected), loss variants and config options. Use it to turn feedback logs into a preference-tuning run."
             }
           ],
           "project": "Thumbs and tool-success signals → weekly curated fine-tune and eval delta sets.",
@@ -3242,7 +3330,10 @@
               "Consent, redaction and filtering are non-negotiable."
             ],
             "diagram": "flowchart LR\n  USE[Usage] --> CAP[Capture redacted traces + feedback]\n  CAP --> MINE[Mine failure clusters]\n  MINE --> EVAL[Grow eval set]\n  MINE --> PAIRS[SFT data + DPO pairs]\n  PAIRS --> TRAIN[Train / re-prompt]\n  EVAL --> GATE{Eval gate}\n  TRAIN --> GATE\n  GATE --> SHIP[Ship] --> USE",
-            "diagramAlt": "Diagram: usage is captured as redacted traces and feedback, failures are mined into eval cases and training pairs, training is gated by evals, and shipped improvements bring more usage."
+            "diagramAlt": "Diagram: usage is captured as redacted traces and feedback, failures are mined into eval cases and training pairs, training is gated by evals, and shipped improvements bring more usage.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "from collections import Counter\n# Turn production feedback into the next eval set and training candidates.\nlogs = [{\"q\": \"cancel order\", \"thumb\": \"down\", \"reason\": \"wrong policy\"},\n        {\"q\": \"cancel order\", \"thumb\": \"down\", \"reason\": \"wrong policy\"},\n        {\"q\": \"track parcel\", \"thumb\": \"up\"},\n        {\"q\": \"change address\", \"thumb\": \"down\", \"reason\": \"tool error\"}]\nfails = [l for l in logs if l[\"thumb\"] == \"down\"]\nprint(\"top failure reasons:\", Counter(l[\"reason\"] for l in fails).most_common())\nnew_eval_cases = sorted({l[\"q\"] for l in fails})\nprint(\"add to golden set (after human labeling):\", new_eval_cases)"
           }
         },
         {
@@ -3256,21 +3347,21 @@
               "url": "https://github.com/ggml-org/llama.cpp",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "llama.cpp: C/C++ inference with GGUF quantization (2–8 bit), Metal/CUDA/Vulkan backends and an OpenAI-compatible server. The workhorse of on-device LLMs."
             },
             {
               "title": "Hugging Face LLM Course",
               "url": "https://huggingface.co/learn/llm-course/chapter1/1",
               "kind": "course",
               "level": "intro",
-              "why": "Free hands-on course chapters with code; good first practical exposure."
+              "why": "Hugging Face's free LLM course: Transformers library basics, tokenizers, fine-tuning and sharing models on the Hub, with runnable notebooks."
             },
             {
               "title": "PyTorch tutorials",
               "url": "https://docs.pytorch.org/tutorials/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Official PyTorch documentation or tutorial with runnable code."
+              "level": "intro",
+              "why": "Official PyTorch tutorials, organized from basics (tensors, autograd, nn.Module) through distributed training and compilation. Follow these when you start writing training code."
             }
           ],
           "project": "Local RAG demo with llama.cpp or similar; compare quality/latency to cloud on 20 queries.",
@@ -3393,7 +3484,17 @@
             ],
             "diagram": "flowchart LR\n  U[User request] --> LOC[On-device model: 4-bit]\n  LOC --> C{Confident / in scope?}\n  C -->|yes| OUT[Answer locally]\n  C -->|no| CONSENT{User consents?}\n  CONSENT -->|yes| CLOUD[Cloud model]\n  CONSENT -->|no| DEG[Degraded answer]\n  CLOUD --> OUT",
             "diagramAlt": "Diagram: a request goes to an on-device 4-bit model; if it isn't confident, the app asks for consent to use a cloud model or returns a degraded answer.",
-            "widget": "quant"
+            "widget": "quant",
+            "case": {
+              "org": "Apple",
+              "title": "Introducing Apple's On-Device and Server Foundation Models (Apple ML Research, Jun 2024)",
+              "url": "https://machinelearning.apple.com/research/introducing-apple-foundation-models",
+              "summary": "Apple's ~3B-parameter on-device model uses mixed 2-bit and 4-bit palettization averaging 3.7 bits per weight, at the same accuracy as the uncompressed model, and can go to 3.5 bits without significant quality loss. Task-specific LoRA adapters (rank 16, tens of MB each) are loaded dynamically on top of one base model.",
+              "lesson": "On device, memory dictates the design. Compress the base model aggressively and specialize with small swappable adapters."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Will a model fit on the device? weights + KV cache + runtime overhead vs available RAM.\ndef fits(params_b, bits, ctx, layers, kv_heads, head_dim, ram_gb, overhead_gb=0.5):\n    weights = params_b * 1e9 * bits / 8 / 1e9\n    kv = 2 * layers * kv_heads * head_dim * ctx * 2 / 1e9\n    total = weights + kv + overhead_gb\n    return round(total, 2), total <= ram_gb\nprint(\"3B @3.7 bits, 4k ctx:\", fits(3, 3.7, 4096, 26, 8, 128, ram_gb=4))\nprint(\"8B @16 bits, 4k ctx:\", fits(8, 16, 4096, 32, 8, 128, ram_gb=4))"
           }
         },
         {
@@ -3407,42 +3508,42 @@
               "url": "https://docs.litellm.ai/docs/simple_proxy",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM proxy docs: what the gateway does (virtual keys, spend tracking, routing), how to set it up and call it, and the admin UI."
             },
             {
               "title": "MLflow GenAI docs",
               "url": "https://mlflow.org/docs/latest/genai/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on MLflow GenAI docs that complements the AI Platform and LLMOps for Agents lesson with another author's explanation and examples."
+              "why": "MLflow GenAI: tracing, evaluation with LLM judges, prompt registry and optimization for LLM apps and agents."
             },
             {
               "title": "Backstage (developer portal)",
               "url": "https://backstage.io/docs/overview/what-is-backstage",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Backstage (developer portal) that complements the AI Platform and LLMOps for Agents lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Backstage, the CNCF developer portal: software catalog, templates and TechDocs. Often the front door of an internal AI platform."
             },
             {
               "title": "Google: Practitioners guide to MLOps",
               "url": "https://cloud.google.com/resources/mlops-whitepaper",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "why": "Google's Practitioners Guide to MLOps whitepaper: the MLOps lifecycle, capabilities (pipelines, registry, feature store, monitoring) and process for enterprises."
             },
             {
               "title": "LiteLLM: fallbacks and reliability",
               "url": "https://docs.litellm.ai/docs/proxy/reliability",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM fallbacks: provider failover, content-policy and context-window fallbacks, retries and cooldowns. Configure these before your first provider outage."
             },
             {
               "title": "AWS Well-Architected: graceful degradation",
               "url": "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
               "kind": "docs",
               "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "why": "AWS reliability best practice on graceful degradation: keep core functions working with stale data or reduced features when dependencies fail."
             }
           ],
           "project": "Stand up a mini platform: LiteLLM gateway with per-team keys and budgets, a Git-based prompt and agent manifest registry, a CI pipeline that runs evals and blocks regressions, OpenTelemetry tracing with cost attribution, and a cookiecutter/Backstage template that creates a new compliant agent repo. Time how long a new agent takes to reach staging.",
@@ -3651,7 +3752,10 @@
             ],
             "diagram": "flowchart LR\n  MAN[Agent manifest: prompt v, tools v, model alias] --> CI[CI eval gate]\n  CI --> CAN[Canary + online evals]\n  CAN -->|ok| PROD[Production]\n  CAN -->|regression| RB[Auto rollback]\n  PROD --> GW[Gateway]\n  GW --> F[Frontier]\n  GW -.fallback.-> M[Mid-tier]\n  GW -.fallback.-> LOC[Local]\n  GW -.fallback.-> CACHE[Cache]",
             "diagramAlt": "Diagram: an agent manifest passes a CI eval gate and a canary with online evals to production or rollback; production calls go through a gateway with fallbacks from frontier to mid-tier, local and cache.",
-            "widget": "routing"
+            "widget": "routing",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# CI gate for a prompt/model change (GitHub Actions + promptfoo-style eval)\nname: llm-eval\non: [pull_request]\njobs:\n  eval:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npx promptfoo@latest eval -c evals/promptfooconfig.yaml --output results.json\n      - run: python scripts/gate.py results.json --min-pass-rate 0.92   # fail the PR on regression"
           }
         },
         {
@@ -3665,28 +3769,28 @@
               "url": "https://docs.livekit.io/agents/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on LiveKit Agents docs that complements the Real-Time Voice Agents: STT, TTS, Turn-Taking and Telephony lesson with another author's explanation and examples."
+              "why": "LiveKit Agents: a realtime framework for voice, video and physical AI agents, with STT/LLM/TTS pipelines, turn detection and telephony."
             },
             {
               "title": "Pipecat (open-source voice agent framework)",
               "url": "https://github.com/pipecat-ai/pipecat",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "Pipecat, Daily's open-source framework for voice and multimodal agents, composes transports, STT, LLM and TTS into real-time pipelines."
             },
             {
               "title": "OpenAI Realtime API guide",
               "url": "https://platform.openai.com/docs/guides/realtime",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
+              "why": "OpenAI Realtime API guide: build low-latency speech-to-speech agents over WebRTC or WebSocket, with the Agents SDK."
             },
             {
               "title": "Twilio Media Streams",
               "url": "https://www.twilio.com/docs/voice/media-streams",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on Twilio Media Streams that complements the Real-Time Voice Agents: STT, TTS, Turn-Taking and Telephony lesson with another author's explanation and examples."
+              "why": "Twilio Media Streams: receive raw call audio over WebSockets to connect phone calls to STT and voice agents."
             }
           ],
           "project": "Build a phone receptionist for a local business (hours, booking, FAQs, transfer to a human) with LiveKit Agents or Pipecat and a Twilio number. Measure voice-to-voice latency p50/p95, barge-in stop time and task success on 20 scripted calls; compare cascaded vs speech-to-speech.",
@@ -3839,7 +3943,10 @@
               "Barge-in must cancel audio, generation and context."
             ],
             "diagram": "sequenceDiagram\n  participant U as Caller\n  participant V as VAD / end-of-turn\n  participant S as STT\n  participant L as LLM + tools\n  participant T as TTS\n  U->>V: speech\n  V->>S: end of turn\n  S->>L: transcript\n  L->>T: first sentence (streaming)\n  T-->>U: audio starts\n  U->>V: interrupts (barge-in)\n  V->>T: stop audio\n  V->>L: cancel + trim context",
-            "diagramAlt": "Sequence diagram: caller speech goes through voice activity detection to speech-to-text, the LLM streams its first sentence to text-to-speech, audio starts, and a user interruption stops audio and cancels generation."
+            "diagramAlt": "Sequence diagram: caller speech goes through voice activity detection to speech-to-text, the LLM streams its first sentence to text-to-speech, audio starts, and a user interruption stops audio and cancels generation.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Voice-agent latency budget: each stage adds up before the user hears anything.\nbudget_ms = {\"endpointing (VAD silence)\": 300, \"STT final\": 150, \"LLM time-to-first-token\": 350,\n             \"TTS first audio\": 120, \"network + jitter buffer\": 100}\ntotal = sum(budget_ms.values())\nfor k, v in budget_ms.items(): print(f\"{k:<28}{v:>5} ms\")\nprint(f\"{'total':<28}{total:>5} ms  ->\", \"feels natural\" if total <= 1000 else \"feels slow\")\n# Streaming every stage and barge-in (stop TTS when the user speaks) matter more than any single model."
           }
         }
       ]
@@ -3859,35 +3966,35 @@
               "url": "https://arxiv.org/abs/2203.02155",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "InstructGPT: SFT on demonstrations, then a reward model from rankings, then PPO. A 1.3B model was preferred over 175B GPT-3, the recipe behind modern assistants."
             },
             {
               "title": "Direct Preference Optimization",
               "url": "https://arxiv.org/abs/2305.18290",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DPO paper: optimize directly on preference pairs with a simple classification-style loss, without training a separate reward model or running RL."
             },
             {
               "title": "DeepSeekMath / GRPO",
               "url": "https://arxiv.org/abs/2402.03300",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DeepSeekMath introduced GRPO, which drops PPO's value model by using group-relative advantages. That makes RL on reasoning tasks cheaper; it later drove DeepSeek-R1."
             },
             {
               "title": "Hugging Face TRL docs",
               "url": "https://huggingface.co/docs/trl/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face TRL docs: SFT, DPO, GRPO, PPO and reward-model trainers for post-training language models."
             },
             {
               "title": "OpenEnv",
               "url": "https://github.com/meta-pytorch/openenv",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "OpenEnv: an interface library (Meta PyTorch and Hugging Face) for RL post-training environments with a standard step/reset API."
             }
           ],
           "project": "Read a GRPO/DPO report; write a one-pager on product signals that would improve reward.",
@@ -4042,7 +4149,10 @@
               "Often the right fix isn't training."
             ],
             "diagram": "flowchart LR\n  PT[Pretrained model] --> SFT[SFT on demonstrations]\n  SFT --> PREF[Preference optimization: DPO / RLHF]\n  PREF --> RL[RL with verifiable rewards: GRPO]\n  RL --> EV[Capability + safety evals]\n  EV --> REL[Release]",
-            "diagramAlt": "Diagram: a pretrained model goes through supervised fine-tuning, preference optimization, reinforcement learning with verifiable rewards, evaluation and release."
+            "diagramAlt": "Diagram: a pretrained model goes through supervised fine-tuning, preference optimization, reinforcement learning with verifiable rewards, evaluation and release.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import json\n# Preference pairs for DPO-style post-training: prompt, chosen, rejected, plus provenance.\npairs = [{\"prompt\": \"Summarize the refund policy.\",\n          \"chosen\": \"Refunds are available within 30 days with a receipt.\",\n          \"rejected\": \"Refunds are always available, no questions asked.\",\n          \"labeler\": \"policy-team\", \"reason\": \"rejected is factually wrong\"}]\nfor p in pairs:\n    assert p[\"chosen\"] != p[\"rejected\"] and p[\"reason\"]\nprint(json.dumps(pairs[0], indent=1))"
           }
         },
         {
@@ -4056,21 +4166,21 @@
               "url": "https://huggingface.co/learn/llm-course/chapter1/1",
               "kind": "course",
               "level": "intro",
-              "why": "Free hands-on course chapters with code; good first practical exposure."
+              "why": "Hugging Face's free LLM course: Transformers library basics, tokenizers, fine-tuning and sharing models on the Hub, with runnable notebooks."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
               "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP's project page for the LLM Top 10: prompt injection, sensitive information disclosure, supply chain, excessive agency and more. A shared vocabulary for security reviews."
             },
             {
               "title": "Anthropic Building Effective Agents",
               "url": "https://www.anthropic.com/engineering/building-effective-agents",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "level": "intro",
+              "why": "Anthropic's widely cited guide: start simple, prefer workflows (prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer) before autonomous agents."
             }
           ],
           "project": "Build an upload path: MIME allowlist, size cap, text-first extraction, VLM fallback, eval set with photos.",
@@ -4195,7 +4305,10 @@
               "Eval on messy real inputs."
             ],
             "diagram": "flowchart LR\n  UP[Upload] --> GATE[Size + MIME + malware]\n  GATE --> ROUTE{Modality}\n  ROUTE -->|PDF| TXT[Text extraction] --> VLMF[VLM fallback for figures]\n  ROUTE -->|image| VLM[VLM]\n  ROUTE -->|audio| STT[Speech-to-text]\n  TXT --> APP[App / agent: treat as untrusted]\n  VLMF --> APP\n  VLM --> APP\n  STT --> APP",
-            "diagramAlt": "Diagram: uploads pass size, type and malware gates, then are routed by modality to text extraction with VLM fallback, a VLM or speech-to-text, and the results enter the app as untrusted content."
+            "diagramAlt": "Diagram: uploads pass size, type and malware gates, then are routed by modality to text extraction with VLM fallback, a VLM or speech-to-text, and the results enter the app as untrusted content.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import base64, json\n# Build a multimodal chat message (OpenAI-style content parts) from local image bytes.\npng_1x1 = base64.b64decode(\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==\")\nmsg = {\"role\": \"user\", \"content\": [\n    {\"type\": \"text\", \"text\": \"Describe any damage visible in this photo.\"},\n    {\"type\": \"image_url\", \"image_url\": {\"url\": \"data:image/png;base64,\" + base64.b64encode(png_1x1).decode()}}]}\nprint(json.dumps(msg)[:140], \"...\")\n# Downscale images before sending: image tokens scale with resolution and dominate cost."
           }
         },
         {
@@ -4208,36 +4321,36 @@
               "title": "verl (Volcano Engine RL for LLMs)",
               "url": "https://github.com/volcengine/verl",
               "kind": "code",
-              "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "level": "advanced",
+              "why": "verl (HybridFlow): ByteDance's flexible, efficient RL post-training framework, with PPO and GRPO at scale on FSDP/Megatron and vLLM/SGLang rollouts."
             },
             {
               "title": "DeepSeekMath (GRPO) paper (arXiv)",
               "url": "https://arxiv.org/abs/2402.03300",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DeepSeekMath introduced GRPO, which drops PPO's value model by using group-relative advantages. That makes RL on reasoning tasks cheaper; it later drove DeepSeek-R1."
             },
             {
               "title": "DSPy",
               "url": "https://dspy.ai/",
               "kind": "guide",
               "level": "intermediate",
-              "why": "An external guide on DSPy that complements the RL Environments, Reward Design and Prompt Optimization lesson with another author's explanation and examples."
+              "why": "DSPy: program LMs with signatures and modules, then let optimizers tune prompts and few-shot examples against your metric."
             },
             {
               "title": "GEPA: Reflective prompt evolution (arXiv)",
               "url": "https://arxiv.org/abs/2507.19457",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "GEPA: reflective prompt evolution that reads traces in natural language and mutates prompts. It reports beating GRPO-style RL with far fewer rollouts."
             },
             {
               "title": "mergekit",
               "url": "https://github.com/arcee-ai/mergekit",
               "kind": "code",
               "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "why": "mergekit: merge pretrained LLMs (linear, SLERP, TIES, DARE and more) without training. Useful for combining fine-tunes."
             }
           ],
           "project": "Build a sandboxed tool-use environment with 200 verifiable tasks. First optimize the prompt with DSPy or GEPA and record the gain. Then run GRPO on a small open model with verl or TRL, add one deliberate reward loophole, detect the reward hacking from trajectories, close it, and compare held-out results.",
@@ -4390,7 +4503,10 @@
               "Audit trajectories; watch held-out evals."
             ],
             "diagram": "flowchart LR\n  ENV[Environment: tasks + sandboxed tools] --> RO[Rollouts: policy acts]\n  RO --> RW[Reward: tests / graders]\n  RW --> ALG[RL update: GRPO / PPO]\n  ALG --> POL[Updated policy]\n  POL --> RO\n  RO --> AUD[Trajectory audits]\n  POL --> HO[Held-out evals]",
-            "diagramAlt": "Diagram: an environment provides tasks and tools, the policy rolls out actions, rewards come from tests or graders, an RL update produces a new policy, with trajectory audits and held-out evals alongside."
+            "diagramAlt": "Diagram: an environment provides tasks and tools, the policy rolls out actions, rewards come from tests or graders, an RL update produces a new policy, with trajectory audits and held-out evals alongside.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import random\n# A tiny RL environment with a verifiable reward, plus a reward-hacking check.\nclass MathEnv:\n    def reset(self, rng=random.Random(0)):\n        self.a, self.b = rng.randint(1, 50), rng.randint(1, 50)\n        return f\"What is {self.a}+{self.b}? Answer with a number.\"\n    def step(self, answer: str):\n        try: ok = int(answer.strip()) == self.a + self.b\n        except ValueError: ok = False\n        return (1.0 if ok else 0.0), True\nenv = MathEnv(); obs = env.reset(); print(obs)\nprint(\"correct:\", env.step(str(env.a + env.b)), \" hack attempt:\", env.step(\"the answer is correct\"))"
           }
         },
         {
@@ -4404,28 +4520,28 @@
               "url": "https://arxiv.org/abs/2006.11239",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DDPM paper (Ho et al. 2020): the forward noising and learned reverse denoising process behind modern image diffusion."
             },
             {
               "title": "Hugging Face Diffusers docs",
               "url": "https://huggingface.co/docs/diffusers/index",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Hugging Face documentation or guide with practical, code-level detail."
+              "level": "reference",
+              "why": "Hugging Face Diffusers: pipelines, schedulers and models for image, video and audio diffusion, with guides for LoRA, ControlNet and optimization."
             },
             {
               "title": "C2PA content provenance",
               "url": "https://c2pa.org/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on C2PA content provenance that complements the Image and Video Generation: Diffusion Models in Products lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "C2PA: the open standard for content credentials, which attach signed provenance to images and video so viewers can verify origin and edits."
             },
             {
               "title": "Scalable Diffusion Models with Transformers (DiT, arXiv)",
               "url": "https://arxiv.org/abs/2212.09748",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "DiT paper: replace the U-Net with a Transformer on latent patches. Diffusion then scales with compute, the basis of many video and image models."
             }
           ],
           "project": "Build an agent that turns a product description into three ad images: it writes prompts, calls a diffusion model (local Diffusers or an API), checks each image with a VLM against a brand checklist, regenerates failures, and attaches C2PA provenance. Report cost per approved image and the rejection rate.",
@@ -4579,7 +4695,10 @@
               "Measure cost per approved asset; add provenance."
             ],
             "diagram": "flowchart LR\n  N[Random noise] --> D1[Denoise step 1]\n  D1 --> D2[Denoise step ...]\n  D2 --> DN[Denoise step N]\n  P[Text prompt] -.guidance.-> D1\n  P -.guidance.-> D2\n  P -.guidance.-> DN\n  DN --> DEC[Decode latent to image]\n  DEC --> SAFE[Safety filter + C2PA]\n  SAFE --> REV[Human review]",
-            "diagramAlt": "Diagram: random noise is denoised over N steps guided by a text prompt, decoded from latent space into an image, passed through a safety filter with C2PA provenance, and reviewed by a human."
+            "diagramAlt": "Diagram: random noise is denoised over N steps guided by a text prompt, decoded from latent space into an image, passed through a safety filter with C2PA provenance, and reviewed by a human.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import math, random\n# The core of diffusion: the forward noising process x_t = sqrt(a_bar)*x0 + sqrt(1-a_bar)*eps.\nT = 1000\nbetas = [1e-4 + (0.02 - 1e-4) * t / (T - 1) for t in range(T)]   # linear schedule (DDPM)\na_bar, p = [], 1.0\nfor b in betas: p *= (1 - b); a_bar.append(p)\nx0, rng = 1.0, random.Random(0)\nfor t in (0, 250, 500, 999):\n    eps = rng.gauss(0, 1)\n    xt = math.sqrt(a_bar[t]) * x0 + math.sqrt(1 - a_bar[t]) * eps\n    print(f\"t={t:>4} signal={math.sqrt(a_bar[t]):.3f} x_t={xt:+.3f}\")\n# A model learns to predict eps from x_t; sampling runs this backwards."
           }
         }
       ]

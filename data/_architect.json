@@ -18,43 +18,43 @@
               "title": "Designing Data-Intensive Applications",
               "url": "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/",
               "kind": "book",
-              "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "level": "advanced",
+              "why": "Kleppmann's DDIA (O'Reilly, page gated): reliability, replication, partitioning, transactions, and batch vs stream. The systems foundation under every RAG and agent platform."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             },
             {
               "title": "Azure AI architecture",
               "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "why": "Azure Architecture Center hub for AI/ML: reference architectures for RAG and agents, AI landing-zone guidance and best practices to adapt to any cloud."
             },
             {
               "title": "Designing Machine Learning Systems",
               "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "why": "Chip Huyen's book (O'Reilly, page gated): data, features, deployment, monitoring and continual learning, framed as iterative system design."
             },
             {
               "title": "ADR GitHub organization",
               "url": "https://adr.github.io/",
               "kind": "docs",
               "level": "reference",
-              "why": "Project documentation; the authoritative description of the spec or tool."
+              "why": "The ADR community site: what an Architectural Decision Record is, templates (MADR, Nygard) and tooling. Use it to record build-vs-buy and model choices."
             },
             {
               "title": "Michael Nygard: Documenting architecture decisions",
               "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Michael Nygard: Documenting architecture decisions that complements the Systems Thinking for AI Products lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Nygard's original 2011 post proposing short ADRs with Context, Decision, Status and Consequences, plus an experience report. Five minutes to read."
             }
           ],
           "project": "Write an ADR for customer-support AI: workflow vs agent, retrieval vs fine-tune, rollback plan.",
@@ -229,7 +229,9 @@
               "ADRs make decisions reviewable and reversible."
             ],
             "diagram": "flowchart LR\n  REQ[Requirements + SLOs] --> FLOW[Data flow map]\n  FLOW --> BC[Bounded contexts]\n  BC --> SYNC[Sync chat path]\n  BC --> ASYNC[Async agent workers]\n  SYNC --> DEG[Degraded modes]\n  ASYNC --> HITL[Human review]\n  BC --> ADR[ADRs]",
-            "diagramAlt": "Diagram: requirements and SLOs feed a data-flow map, which is split into bounded contexts with sync and async paths, degraded modes, human review and ADRs."
+            "diagramAlt": "Diagram: requirements and SLOs feed a data-flow map, which is split into bounded contexts with sync and async paths, degraded modes, human review and ADRs.",
+            "enterpriseLabel": "Illustrative scenario",
+            "conceptual": true
           }
         },
         {
@@ -243,35 +245,35 @@
               "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "why": "Chip Huyen's book (O'Reilly, page gated): data, features, deployment, monitoring and continual learning, framed as iterative system design."
             },
             {
               "title": "Chip Huyen ML Systems Design",
               "url": "https://github.com/chiphuyen/machine-learning-systems-design",
               "kind": "code",
-              "level": "intermediate",
-              "why": "Source repository: read the README and examples to see how it is used in practice."
+              "level": "intro",
+              "why": "Chip Huyen's free booklet on ML systems design (not the book repo), with exercises on framing problems, data, model selection and deployment trade-offs."
             },
             {
               "title": "Full Stack Deep Learning",
               "url": "https://fullstackdeeplearning.com/",
               "kind": "course",
               "level": "intermediate",
-              "why": "Practitioner course material focused on shipping ML systems."
+              "why": "Full Stack Deep Learning: courses and lectures on shipping ML and LLM products, including deployment, monitoring, UX and project management."
             },
             {
               "title": "ml-ops.org",
               "url": "https://ml-ops.org/",
               "kind": "guide",
               "level": "intro",
-              "why": "Community overview of MLOps principles and lifecycle."
+              "why": "ml-ops.org explains MLOps principles (versioning, testing, automation, reproducibility) and the ML lifecycle in plain language with diagrams."
             },
             {
               "title": "GCP MLOps",
               "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "why": "Google Cloud's MLOps levels 0/1/2: manual workflow, pipeline automation with continuous training, then CI/CD for pipelines. A maturity yardstick."
             }
           ],
           "project": "Map a past project onto the lifecycle; list every place drift can hide.",
@@ -394,7 +396,10 @@
               "Close the loop from production back to data."
             ],
             "diagram": "flowchart LR\n  DATA[Data] --> ADAPT[Train / adapt / prompt]\n  ADAPT --> EVAL[Offline eval gate]\n  EVAL --> SERVE[Shadow / canary / serve]\n  SERVE --> MON[Monitor]\n  MON --> FB[Feedback + failures]\n  FB --> DATA",
-            "diagramAlt": "Diagram: a loop from data to adaptation, offline eval gate, serving with shadow or canary, monitoring and feedback back to data."
+            "diagramAlt": "Diagram: a loop from data to adaptation, offline eval gate, serving with shadow or canary, monitoring and feedback back to data.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# A minimal LLM-feature lifecycle as a pipeline definition (illustrative schema)\nfeature: support-answering\nstages:\n  - name: offline-eval\n    gate: {golden_set: evals/support_v3.jsonl, min_pass_rate: 0.90}\n  - name: shadow\n    traffic_percent: 0          # mirror traffic, don't show users\n    duration: 3d\n  - name: canary\n    traffic_percent: 5\n    rollback_if: {error_rate: \">2%\", p95_latency_ms: \">4000\", judge_score: \"<0.85\"}\n  - name: ga\nmonitoring: [cost_per_resolution, deflection_rate, thumbs_down_rate, drift_alerts]"
           }
         },
         {
@@ -408,28 +413,28 @@
               "url": "https://huggingface.co/learn/llm-course/chapter1/1",
               "kind": "course",
               "level": "intro",
-              "why": "Free hands-on course chapters with code; good first practical exposure."
+              "why": "Hugging Face's free LLM course: Transformers library basics, tokenizers, fine-tuning and sharing models on the Hub, with runnable notebooks."
             },
             {
               "title": "Stanford CS336",
               "url": "https://cs336.stanford.edu/",
               "kind": "course",
               "level": "advanced",
-              "why": "University course material that builds the topic from scratch; best when you want depth and exercises."
+              "why": "Stanford CS336 'Language Modeling from Scratch': assignments where you implement a tokenizer, Transformer, training loop, scaling experiments and alignment yourself."
             },
             {
               "title": "Chinchilla scaling laws",
               "url": "https://arxiv.org/abs/2203.15556",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "The Chinchilla paper: for a fixed compute budget, model size and training tokens should scale roughly equally. This is why 'compute-optimal' replaced 'just make it bigger'."
             },
             {
               "title": "Mixture of Experts (Shazeer et al.)",
               "url": "https://arxiv.org/abs/1701.06538",
               "kind": "paper",
               "level": "advanced",
-              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
+              "why": "Shazeer et al. (2017): the sparsely-gated Mixture-of-Experts layer with a trainable gate and load-balancing loss. The original idea behind today's MoE LLMs."
             }
           ],
           "project": "Build a one-page scorecard comparing one frontier API, one open 70B, and one small edge model for a fixed use case.",
@@ -552,7 +557,10 @@
               "Keep evals portable so the model is a replaceable part."
             ],
             "diagram": "flowchart TD\n  C[Constraints: residency, latency, budget, license] --> S[Shortlist by shape]\n  S --> F[Frontier API]\n  S --> O[Open-weight dense / MoE]\n  S --> SM[Small / on-device]\n  F --> E[Eval on your data]\n  O --> E\n  SM --> E\n  E --> P[Pick + keep portable]",
-            "diagramAlt": "Diagram: constraints lead to a shortlist of frontier, open-weight and small models, which are all evaluated on your data before picking one."
+            "diagramAlt": "Diagram: constraints lead to a shortlist of frontier, open-weight and small models, which are all evaluated on your data before picking one.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Shortlist models by hard constraints first, then by quality per dollar (numbers are placeholders you fill in).\nmodels = [\n  {\"name\": \"frontier-large\", \"ctx\": 200_000, \"usd_per_mtok\": 15.0, \"quality\": 0.92, \"self_host\": False},\n  {\"name\": \"mid-tier\",       \"ctx\": 128_000, \"usd_per_mtok\": 3.0,  \"quality\": 0.86, \"self_host\": False},\n  {\"name\": \"open-8b\",        \"ctx\": 128_000, \"usd_per_mtok\": 0.2,  \"quality\": 0.74, \"self_host\": True},\n]\nneed = {\"min_ctx\": 100_000, \"must_self_host\": False, \"min_quality\": 0.80}\nok = [m for m in models if m[\"ctx\"] >= need[\"min_ctx\"] and m[\"quality\"] >= need[\"min_quality\"]\n      and (m[\"self_host\"] or not need[\"must_self_host\"])]\nfor m in sorted(ok, key=lambda m: m[\"quality\"] / m[\"usd_per_mtok\"], reverse=True):\n    print(m[\"name\"], round(m[\"quality\"] / m[\"usd_per_mtok\"], 3))"
           }
         }
       ]
@@ -572,28 +580,28 @@
               "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "why": "Azure Architecture Center hub for AI/ML: reference architectures for RAG and agents, AI landing-zone guidance and best practices to adapt to any cloud."
             },
             {
               "title": "GCP MLOps",
               "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "why": "Google Cloud's MLOps levels 0/1/2: manual workflow, pipeline automation with continuous training, then CI/CD for pipelines. A maturity yardstick."
             },
             {
               "title": "AWS Bedrock",
               "url": "https://docs.aws.amazon.com/bedrock/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "level": "reference",
+              "why": "Amazon Bedrock docs: foundation model access, Knowledge Bases, Agents, Guardrails, model evaluation and data automation. Check here for what is managed vs what you build."
             },
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             }
           ],
           "project": "Produce a one-page reference for multi-tenant RAG SaaS with auth, quotas, and audit.",
@@ -714,7 +722,9 @@
               "Templates spread good defaults faster than documents do."
             ],
             "diagram": "flowchart TD\n  EDGE[Edge: auth, rate limit] --> API[API]\n  API --> ORCH[Orchestration / agents]\n  ORCH --> GW[Model gateway]\n  ORCH --> DATA[Data + retrieval]\n  ORCH --> TOOLS[Tools]\n  CP[Control plane: prompts, policies, evals] -.-> ORCH\n  CP -.-> GW",
-            "diagramAlt": "Diagram: layered reference architecture from edge to API to orchestration, which calls a model gateway, data and tools; a control plane configures orchestration and the gateway."
+            "diagramAlt": "Diagram: layered reference architecture from edge to API to orchestration, which calls a model gateway, data and tools; a control plane configures orchestration and the gateway.",
+            "enterpriseLabel": "Illustrative scenario",
+            "conceptual": true
           }
         },
         {
@@ -727,36 +737,36 @@
               "title": "AWS Bedrock",
               "url": "https://docs.aws.amazon.com/bedrock/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "level": "reference",
+              "why": "Amazon Bedrock docs: foundation model access, Knowledge Bases, Agents, Guardrails, model evaluation and data automation. Check here for what is managed vs what you build."
             },
             {
               "title": "Azure AI Foundry",
               "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "level": "reference",
+              "why": "Azure AI Foundry ('the AI app and agent factory'): model catalog, agent service, evaluation and governance features on Azure."
             },
             {
               "title": "Vertex AI",
               "url": "https://cloud.google.com/vertex-ai/docs",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "level": "reference",
+              "why": "Google's Vertex AI docs, now positioned around the Gemini Enterprise Agent Platform: model garden, agent building, tuning and evaluation on GCP."
             },
             {
               "title": "LiteLLM",
               "url": "https://docs.litellm.ai/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM: the open-source gateway/SDK that gives 100+ providers one OpenAI-format API, with spend tracking, budgets, fallbacks and an admin UI."
             },
             {
               "title": "vLLM documentation",
               "url": "https://docs.vllm.ai/en/latest/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
+              "level": "reference",
+              "why": "vLLM docs (the site blocked our fetcher; content known from the project): install, OpenAI-compatible server, supported models, PagedAttention, quantization and distributed serving."
             }
           ],
           "project": "Scored decision matrix: Bedrock vs Azure AI Foundry vs self-hosted vLLM for a mid-market client.",
@@ -881,7 +891,10 @@
               "A gateway keeps the decision reversible."
             ],
             "diagram": "flowchart LR\n  N[Need] --> D{Volume, control, latency}\n  D -->|low volume, best quality| API[Frontier API]\n  D -->|enterprise controls| CM[Cloud managed]\n  D -->|high steady volume or sovereignty| SH[Self-host open weights]\n  API --> GW[Gateway]\n  CM --> GW\n  SH --> GW",
-            "diagramAlt": "Diagram: a need is routed by volume, control and latency to a frontier API, cloud-managed platform or self-hosted open weights, all behind one gateway."
+            "diagramAlt": "Diagram: a need is routed by volume, control and latency to a frontier API, cloud-managed platform or self-hosted open weights, all behind one gateway.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Break-even between paying per token and self-hosting a GPU (inputs are assumptions to replace).\napi_usd_per_mtok = 0.60          # blended API price\ngpu_usd_per_hour = 2.50          # one rented GPU\ngpu_tok_per_sec  = 1_500         # sustained throughput you measured, not a spec sheet\nutilization      = 0.40          # real traffic is bursty\nself_usd_per_mtok = gpu_usd_per_hour / (gpu_tok_per_sec * 3600 * utilization / 1e6)\nprint(f\"self-host ${self_usd_per_mtok:.2f}/Mtok vs API ${api_usd_per_mtok:.2f}/Mtok\")\nfor u in (0.2, 0.4, 0.6, 0.8):\n    print(f\"util {u:.0%}: ${gpu_usd_per_hour / (gpu_tok_per_sec*3600*u/1e6):.2f}/Mtok\")\n# Add people, on-call and upgrades before deciding; utilization dominates."
           }
         },
         {
@@ -895,21 +908,21 @@
               "url": "https://www.databricks.com/product/machine-learning",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Databricks documentation or guide on platform features discussed here."
+              "why": "Databricks' AI platform overview: building, deploying, evaluating and governing agent systems on lakehouse data (Mosaic AI, Unity Catalog)."
             },
             {
               "title": "Designing Machine Learning Systems",
               "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "why": "Chip Huyen's book (O'Reilly, page gated): data, features, deployment, monitoring and continual learning, framed as iterative system design."
             },
             {
               "title": "Designing Data-Intensive Applications",
               "url": "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/",
               "kind": "book",
-              "level": "intermediate",
-              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
+              "level": "advanced",
+              "why": "Kleppmann's DDIA (O'Reilly, page gated): reliability, replication, partitioning, transactions, and batch vs stream. The systems foundation under every RAG and agent platform."
             }
           ],
           "project": "Design a data contract and retrieval slice for one domain including PII handling.",
@@ -1032,7 +1045,10 @@
               "Deletion must reach every copy, including embeddings."
             ],
             "diagram": "flowchart LR\n  SRC[Sources + owners] --> LAKE[Lakehouse / warehouse]\n  LAKE --> CAT[Catalog, lineage, quality]\n  LAKE --> SCAN[PII / secrets scan]\n  SCAN --> CHUNK[Chunk + metadata + ACLs]\n  CHUNK --> IDX[(Vector + keyword index)]\n  IDX --> APP[AI apps]",
-            "diagramAlt": "Diagram: sources land in a lakehouse with catalog and quality checks, are scanned for PII, chunked with metadata and permissions, indexed, and used by AI apps."
+            "diagramAlt": "Diagram: sources land in a lakehouse with catalog and quality checks, are scanned for PII, chunked with metadata and permissions, indexed, and used by AI apps.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "sql",
+            "code": "-- Expose a governed, AI-ready view instead of raw tables: documented, filtered, PII-free.\nCREATE VIEW ai.customer_tickets_v1 AS\nSELECT t.ticket_id,\n       t.created_at,\n       t.product_area,\n       t.status,\n       t.resolution_text,            -- free text for retrieval\n       c.segment                     -- no name / email / phone\nFROM   support.tickets t\nJOIN   crm.customers  c ON c.customer_id = t.customer_id\nWHERE  t.created_at >= CURRENT_DATE - INTERVAL '2 years'\n  AND  c.consent_ai_processing = TRUE;\nCOMMENT ON VIEW ai.customer_tickets_v1 IS 'Owner: support-data. Refresh: hourly. Allowed: RAG, analytics.';"
           }
         },
         {
@@ -1046,21 +1062,21 @@
               "url": "https://docs.litellm.ai/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM: the open-source gateway/SDK that gives 100+ providers one OpenAI-format API, with spend tracking, budgets, fallbacks and an admin UI."
             },
             {
               "title": "OpenTelemetry",
               "url": "https://opentelemetry.io/docs/",
               "kind": "spec",
               "level": "reference",
-              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
+              "why": "OpenTelemetry docs: the vendor-neutral standard for traces, metrics and logs. Instrument gateways and agents once and send the data to any backend."
             },
             {
               "title": "AWS Bedrock",
               "url": "https://docs.aws.amazon.com/bedrock/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "level": "reference",
+              "why": "Amazon Bedrock docs: foundation model access, Knowledge Bases, Agents, Guardrails, model evaluation and data automation. Check here for what is managed vs what you build."
             }
           ],
           "project": "Sketch a gateway: routes, cache key design, tenant isolation, and fallback chain.",
@@ -1186,7 +1202,17 @@
             ],
             "diagram": "flowchart LR\n  APP[Apps] --> GW[Gateway: auth, budgets, policy]\n  GW --> C{Semantic cache hit?}\n  C -->|yes| APP\n  C -->|no| R[Router]\n  R --> P1[Provider A]\n  R --> P2[Provider B]\n  R --> P3[Self-hosted]\n  GW --> TR[(Traces + cost)]",
             "diagramAlt": "Diagram: apps call a gateway that checks auth and budgets, then a semantic cache, then routes to provider A, provider B or a self-hosted model, logging traces and cost.",
-            "widget": "routing"
+            "widget": "routing",
+            "case": {
+              "org": "Uber",
+              "title": "Navigating the LLM Landscape: Uber's Innovation with GenAI Gateway (Uber Engineering, Jul 2024)",
+              "url": "https://www.uber.com/blog/genai-gateway/",
+              "summary": "Uber's Michelangelo team built a single GenAI Gateway, a Go service, for more than 60 LLM use cases. It mirrors the OpenAI HTTP/JSON interface while routing to external vendors and Uber-hosted models. It adds a PII redactor that anonymizes requests before they go to vendors and restores the entities afterwards, plus auth, metrics and audit logs for cost attribution. At the time of writing it served about 30 customer teams and 16 million queries per month.",
+              "lesson": "One OpenAI-compatible front door lets you add security review, PII handling, budgets and logging once, for every team. PII redaction has latency and quality costs that you need to measure."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import hashlib, time\n# Gateway core: auth -> budget -> exact cache -> route -> log. Provider calls are stubbed.\nBUDGET = {\"team-a\": 5.00}; SPENT = {\"team-a\": 0.0}; CACHE = {}\nROUTES = {\"cheap\": (\"small-model\", 0.0002), \"smart\": (\"large-model\", 0.003)}\ndef call_provider(model, prompt): return f\"[{model}] answer to: {prompt[:30]}\"\ndef handle(team, prompt, tier=\"cheap\"):\n    if SPENT.get(team, 0) >= BUDGET.get(team, 0): return {\"error\": \"budget_exceeded\"}\n    key = hashlib.sha256(f\"{tier}|{prompt}\".encode()).hexdigest()\n    if key in CACHE: return {\"text\": CACHE[key], \"cached\": True}\n    model, usd_per_ktok = ROUTES[tier]; t0 = time.perf_counter()\n    text = call_provider(model, prompt)\n    SPENT[team] += usd_per_ktok * (len(prompt) + len(text)) / 4 / 1000   # ~4 chars/token\n    CACHE[key] = text\n    print({\"team\": team, \"model\": model, \"ms\": round((time.perf_counter()-t0)*1000, 2)})\n    return {\"text\": text, \"cached\": False}\nprint(handle(\"team-a\", \"Summarize ticket 123\"))\nprint(handle(\"team-a\", \"Summarize ticket 123\"))   # served from cache"
           }
         },
         {
@@ -1199,22 +1225,22 @@
               "title": "a16z: Trading margin for moat — the FDE model",
               "url": "https://a16z.com/services-led-growth/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on a16z: Trading margin for moat — the FDE model that complements the Forward Deployed Engineering: Discovery to Production lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "a16z on 'services-led growth': AI vendors use forward-deployed engineers to set up the product and trade margin for moat. Context for FDE roles."
             },
             {
               "title": "The Mom Test (customer conversations)",
               "url": "https://www.momtestbook.com/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on The Mom Test (customer conversations) that complements the Forward Deployed Engineering: Discovery to Production lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "The Mom Test: ask customers about their past behavior, not your idea, so discovery interviews give real requirements instead of polite lies."
             },
             {
               "title": "Anthropic: Building effective agents",
               "url": "https://www.anthropic.com/engineering/building-effective-agents",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
+              "level": "intro",
+              "why": "Anthropic's widely cited guide: start simple, prefer workflows (prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer) before autonomous agents."
             }
           ],
           "project": "Run a mock engagement: interview a 'customer' (a friend or LLM role-play) about a real workflow, write a one-page scope with success metric and data access plan, build a working prototype on their real-shaped data in 3 days, then a production-readiness checklist (security, evals, monitoring, runbook, handover) and a 10-minute exec readout.",
@@ -1396,7 +1422,9 @@
               "Handover and adoption are part of the job."
             ],
             "diagram": "flowchart LR\n  D[Discover: shadow + measure] --> S[Scope: score use cases]\n  S --> P[Prototype in days]\n  P --> H[Harden in weeks]\n  H --> HO[Handover + adoption]\n  HO --> FB[Field feedback to product]\n  FB -.-> D",
-            "diagramAlt": "Diagram: the forward deployed engineering loop from discovery to scoping, prototype, hardening, handover and field feedback back to discovery."
+            "diagramAlt": "Diagram: the forward deployed engineering loop from discovery to scoping, prototype, hardening, handover and field feedback back to discovery.",
+            "enterpriseLabel": "Illustrative scenario",
+            "conceptual": true
           }
         }
       ]
@@ -1415,29 +1443,29 @@
               "title": "OWASP Top 10 for LLM Apps",
               "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP's project page for the LLM Top 10: prompt injection, sensitive information disclosure, supply chain, excessive agency and more. A shared vocabulary for security reviews."
             },
             {
               "title": "MITRE ATLAS",
               "url": "https://atlas.mitre.org/",
               "kind": "security",
               "level": "reference",
-              "why": "MITRE ATLAS knowledge base of adversary tactics and techniques against AI systems."
+              "why": "MITRE ATLAS: an ATT&CK-style knowledge base of adversary tactics and techniques against AI systems, with real-world case studies. Use it to name threats in a threat model."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "Securing MCP (InfoQ)",
               "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/",
               "kind": "talk",
               "level": "intermediate",
-              "why": "Conference talk or article with real-world experience reports."
+              "why": "InfoQ article on defense-in-depth for MCP in production: four architectural layers, gateway-centered controls, authentication and tool vetting."
             }
           ],
           "project": "STRIDE-style threat model for an agent with email-read and ticket-write tools.",
@@ -1563,7 +1591,10 @@
               "Re-run the threat model whenever tools change."
             ],
             "diagram": "flowchart LR\n  IN[Untrusted inputs] --> M[Model / agent]\n  M --> T1[Read tools]\n  M --> T2[Write / send tools]\n  T2 --> GATE{Allowlist + approval}\n  GATE --> EXT[External systems]\n  SEC[(Vaulted secrets)] -.scoped.-> T1\n  SEC -.scoped.-> T2\n  M --> AUD[(Immutable audit)]",
-            "diagramAlt": "Diagram: untrusted inputs reach the agent, which uses read tools and write tools; write tools pass an allowlist and approval gate before external systems, with scoped secrets and an immutable audit log."
+            "diagramAlt": "Diagram: untrusted inputs reach the agent, which uses read tools and write tools; write tools pass an allowlist and approval gate before external systems, with scoped secrets and an immutable audit log.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Lightweight STRIDE-style threat register for an agent, scored likelihood x impact.\nthreats = [\n  (\"Prompt injection via retrieved docs\", \"Tampering\", 4, 4, \"treat as data; no tool choice from docs\"),\n  (\"Over-scoped API token\",               \"Elevation\", 3, 5, \"per-task scoped tokens\"),\n  (\"PII in logs\",                          \"Info disclosure\", 3, 4, \"redact before logging\"),\n  (\"Runaway tool loop\",                    \"DoS\", 3, 3, \"step and cost caps\"),\n]\nfor name, cat, l, i, ctl in sorted(threats, key=lambda t: t[2]*t[3], reverse=True):\n    print(f\"{l*i:>2}  {cat:<16} {name:<38} -> {ctl}\")"
           }
         },
         {
@@ -1577,28 +1608,28 @@
               "url": "https://artificialintelligenceact.eu/",
               "kind": "regulation",
               "level": "reference",
-              "why": "Browsable text and summaries of the EU AI Act; check dates against the Official Journal."
+              "why": "Independent EU AI Act site: the AI Act Explorer, a Compliance Checker, a high-level summary and a small business guide. Faster to navigate than EUR-Lex."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "ISO/IEC 42001",
               "url": "https://www.iso.org/standard/81230.html",
               "kind": "standard",
               "level": "reference",
-              "why": "Official ISO standard page; scope and structure of the standard (full text is paid)."
+              "why": "ISO/IEC 42001 (the ISO page blocked our fetcher): the certifiable AI management system standard covering policy, risk assessment, controls (Annex A) and continual improvement."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
               "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP's project page for the LLM Top 10: prompt injection, sensitive information disclosure, supply chain, excessive agency and more. A shared vocabulary for security reviews."
             }
           ],
           "project": "Classify a proposed system under EU AI Act tiers; draft a conformity checklist.",
@@ -1721,7 +1752,10 @@
               "Collect evidence continuously."
             ],
             "diagram": "flowchart LR\n  REG[Regulations + standards] --> CLS[Risk classification]\n  CLS --> CTRL[Technical controls]\n  CTRL --> DOC[Cards, assessments, eval reports]\n  CTRL --> LOGS[(Logs + approvals)]\n  DOC --> EV[Evidence pack]\n  LOGS --> EV\n  EV --> AUD[Auditors / customers]",
-            "diagramAlt": "Diagram: regulations lead to risk classification and technical controls, which produce documentation and logs that form an evidence pack for auditors and customers."
+            "diagramAlt": "Diagram: regulations lead to risk classification and technical controls, which produce documentation and logs that form an evidence pack for auditors and customers.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# AI use-case intake record (policy-as-data); fields map to risk tiers and required controls\nuse_case: hr-resume-screening\nowner: talent-acquisition\nrisk_tier: high              # employment decisions are high-risk under EU AI Act Annex III\ndata: [resumes, job_descriptions]\nhuman_oversight: required    # a recruiter makes every decision\ncontrols:\n  - bias_eval: quarterly\n  - model_card: required\n  - logging_retention_days: 365\n  - user_notice: true\napprovals: [legal, privacy, ai-review-board]"
           }
         },
         {
@@ -1734,22 +1768,22 @@
               "title": "FinOps Foundation",
               "url": "https://www.finops.org/",
               "kind": "framework",
-              "level": "intermediate",
-              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
+              "level": "intro",
+              "why": "FinOps Foundation: framework, personas and maturity model for cloud financial management (inform, optimize, operate). The base vocabulary for AI cost work."
             },
             {
               "title": "AWS Bedrock",
               "url": "https://docs.aws.amazon.com/bedrock/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "level": "reference",
+              "why": "Amazon Bedrock docs: foundation model access, Knowledge Bases, Agents, Guardrails, model evaluation and data automation. Check here for what is managed vs what you build."
             },
             {
               "title": "vLLM documentation",
               "url": "https://docs.vllm.ai/en/latest/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
+              "level": "reference",
+              "why": "vLLM docs (the site blocked our fetcher; content known from the project): install, OpenAI-compatible server, supported models, PagedAttention, quantization and distributed serving."
             }
           ],
           "project": "Spreadsheet: tokens in/out, cache hit rate, tool calls, GPU-hour alternative; find break-even.",
@@ -1876,7 +1910,10 @@
             ],
             "diagram": "flowchart LR\n  T[Tokens per call] --> CALLS[× calls per task]\n  CALLS --> PRICE[× price per 1M]\n  PRICE --> OTHER[+ tools, embeddings, storage, evals]\n  OTHER --> VOL[× tasks per month]\n  VOL --> LEV[Levers: cache, route, batch, trim]\n  LEV --> BUD[Budgets + alerts]",
             "diagramAlt": "Diagram: tokens per call times calls per task times price, plus other costs, times monthly volume, then cost levers and budgets.",
-            "widget": "budget"
+            "widget": "budget",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Cost per resolved task, not cost per token.\nprice_in, price_out = 3.00, 15.00          # $ per million tokens (placeholder list prices)\ncalls_per_task, tok_in, tok_out = 4, 6_000, 700\ncache_hit_rate, cached_discount = 0.5, 0.9 # share of input served from prompt cache, discount on it\neff_in = tok_in * (1 - cache_hit_rate * cached_discount)\nper_call = (eff_in * price_in + tok_out * price_out) / 1e6\nsuccess_rate = 0.80\nprint(f\"per call ${per_call:.4f}; per task ${per_call*calls_per_task:.4f}; \"\n      f\"per SUCCESSFUL task ${per_call*calls_per_task/success_rate:.4f}\")"
           }
         },
         {
@@ -1889,22 +1926,22 @@
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "EU AI Act",
               "url": "https://artificialintelligenceact.eu/",
               "kind": "regulation",
               "level": "reference",
-              "why": "Browsable text and summaries of the EU AI Act; check dates against the Official Journal."
+              "why": "Independent EU AI Act site: the AI Act Explorer, a Compliance Checker, a high-level summary and a small business guide. Faster to navigate than EUR-Lex."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
               "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
               "kind": "security",
-              "level": "intermediate",
-              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
+              "level": "intro",
+              "why": "OWASP's project page for the LLM Top 10: prompt injection, sensitive information disclosure, supply chain, excessive agency and more. A shared vocabulary for security reviews."
             }
           ],
           "project": "Design a PII redaction path for prompts, tools, logs, and embeddings with deletion workflow.",
@@ -2027,7 +2064,17 @@
               "Deletion must reach every copy."
             ],
             "diagram": "flowchart LR\n  SRC[Customer data] --> MIN[Select needed fields]\n  MIN --> RED[Redact / tokenize PII]\n  RED --> LLM[Model endpoint: region + no training]\n  LLM --> REID[Re-identify in app]\n  RED --> LOGS[(Redacted logs, short retention)]\n  DEL[Deletion request] --> ALL[DB + index + cache + logs]",
-            "diagramAlt": "Diagram: customer data is minimized and redacted before the model, re-identified in the app, logged in redacted form, and deletion requests reach the database, index, cache and logs."
+            "diagramAlt": "Diagram: customer data is minimized and redacted before the model, re-identified in the app, logged in redacted form, and deletion requests reach the database, index, cache and logs.",
+            "case": {
+              "org": "Grab",
+              "title": "LLM-powered data classification for data entities at scale (Grab Engineering)",
+              "url": "https://engineering.grab.com/llm-powered-data-classification",
+              "summary": "Grab uses LLMs to tag data entities (for example columns holding PII or other sensitive types) at scale, orchestrated by an internal service. That service is named Gemini, a name that predates Google's model.",
+              "lesson": "Automated classification makes privacy controls scalable, but verify the tags and route uncertain ones to data owners."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import re\n# Redact obvious PII before text leaves your boundary; keep a reversible map server-side.\nPATTERNS = {\"EMAIL\": r\"[\\w.+-]+@[\\w-]+\\.[\\w.]+\", \"PHONE\": r\"\\+?\\d[\\d\\s().-]{8,}\\d\", \"SSN\": r\"\\b\\d{3}-\\d{2}-\\d{4}\\b\"}\ndef redact(text):\n    mapping, n = {}, 0\n    for label, pat in PATTERNS.items():\n        for m in set(re.findall(pat, text)):\n            n += 1; token = f\"<{label}_{n}>\"; mapping[token] = m; text = text.replace(m, token)\n    return text, mapping\ndef restore(text, mapping):\n    for k, v in mapping.items(): text = text.replace(k, v)\n    return text\nred, m = redact(\"Contact jane.doe@example.com or +1 (313) 555-0199, SSN 123-45-6789.\")\nprint(red); assert \"example.com\" not in red\nprint(restore(red, m))\n# Regex catches structured PII only; names and addresses need an NER model (e.g. Presidio)."
           }
         },
         {
@@ -2041,21 +2088,21 @@
               "url": "https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html",
               "kind": "docs",
               "level": "intermediate",
-              "why": "AWS documentation; exact service behavior, limits and configuration."
+              "why": "AWS Well-Architected Generative AI Lens: questions and best practices across the six pillars, specific to generative AI workloads. Use it as a design-review checklist."
             },
             {
               "title": "Azure AI architecture center",
               "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "why": "Azure Architecture Center hub for AI/ML: reference architectures for RAG and agents, AI landing-zone guidance and best practices to adapt to any cloud."
             },
             {
               "title": "Google Cloud architecture: generative AI",
               "url": "https://cloud.google.com/architecture/ai-ml",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "Google Cloud documentation or architecture guide."
+              "level": "reference",
+              "why": "Google Cloud architecture center for AI/ML: reference designs for generative AI, RAG and agent deployments on GCP."
             }
           ],
           "project": "For a mock RFP (e.g. insurer claims intake), produce a solution proposal: requirements and NFRs, reference architecture diagram, build-vs-buy table, monthly cost model at three volumes, phased roadmap with autonomy levels, risks and a proof-of-value plan with eval exit criteria.",
@@ -2209,7 +2256,10 @@
               "Always show the exit path."
             ],
             "diagram": "flowchart LR\n  REQ[Requirements + NFRs] --> RA[Reference architecture]\n  RA --> MAP[Map to customer cloud]\n  MAP --> SIZE[Sizing + cost]\n  SIZE --> POV[Proof of value + exit criteria]\n  POV --> PROP[Proposal + roadmap]",
-            "diagramAlt": "Diagram: requirements lead to a reference architecture, mapped to the customer's cloud, sized and costed, validated by a proof of value, and written up as a proposal and roadmap."
+            "diagramAlt": "Diagram: requirements lead to a reference architecture, mapped to the customer's cloud, sized and costed, validated by a proof of value, and written up as a proposal and roadmap.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Size a deployment from traffic: peak concurrency via Little's law.\ndaily_requests = 200_000\npeak_factor = 3.0                       # peak hour vs average hour\navg_latency_s = 6.0                     # end-to-end per request\nrps_peak = daily_requests / 86_400 * peak_factor\nconcurrency = rps_peak * avg_latency_s  # L = lambda * W\nper_replica = 32                        # concurrent sequences one replica sustains at SLO (measure it)\nreplicas = -(-concurrency // per_replica) + 1   # ceil + 1 for headroom/failover\nprint(f\"peak {rps_peak:.1f} rps -> {concurrency:.0f} in flight -> {replicas:.0f} replicas\")"
           }
         }
       ]
@@ -2229,21 +2279,21 @@
               "url": "https://sre.google/sre-book/table-of-contents/",
               "kind": "book",
               "level": "intermediate",
-              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
+              "why": "Free Google SRE book: SLOs, error budgets, toil, monitoring, incident management, release engineering. Read chapters 4 and 6 before running AI in production."
             },
             {
               "title": "Azure AI architecture",
               "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
+              "why": "Azure Architecture Center hub for AI/ML: reference architectures for RAG and agents, AI landing-zone guidance and best practices to adapt to any cloud."
             },
             {
               "title": "K8s scheduling",
               "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "Official Kubernetes documentation; the reference for the concepts used here."
+              "why": "Kubernetes scheduling concepts: kube-scheduler, node affinity, taints and tolerations, pod priority and preemption. All of these matter for GPU placement."
             }
           ],
           "project": "Design active-active inference across two regions with failover runbook and degraded mode.",
@@ -2366,7 +2416,10 @@
               "Rehearse failover."
             ],
             "diagram": "flowchart LR\n  TA[Tenant A] --> Q[Weighted fair queue]\n  TB[Tenant B] --> Q\n  TC[Tenant C] --> Q\n  Q --> R1[Region 1 GPU pool]\n  Q -. failover .-> R2[Region 2 GPU pool]\n  R1 <--> IDX1[(Index R1)]\n  IDX1 -- replicate --> IDX2[(Index R2)]\n  R2 <--> IDX2",
-            "diagramAlt": "Diagram: three tenants share a weighted fair queue that sends traffic to a primary region, with failover to a second region whose index is replicated from the first."
+            "diagramAlt": "Diagram: three tenants share a weighted fair queue that sends traffic to a primary region, with failover to a second region whose index is replicated from the first.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "import zlib\n# Deterministic tenant -> region/cell placement with data-residency pinning.\nCELLS = {\"eu\": [\"eu-1\", \"eu-2\"], \"us\": [\"us-1\", \"us-2\", \"us-3\"]}\ndef place(tenant_id: str, residency: str) -> str:\n    cells = CELLS[residency]\n    return cells[zlib.crc32(tenant_id.encode()) % len(cells)]   # stable across restarts\nfor t, r in [(\"acme\", \"us\"), (\"globex\", \"eu\"), (\"initech\", \"us\")]:\n    print(t, \"->\", place(t, r))\n# A failed cell only affects its tenants (blast radius); fail over within the same residency."
           }
         },
         {
@@ -2380,28 +2433,28 @@
               "url": "https://fullstackdeeplearning.com/",
               "kind": "course",
               "level": "intermediate",
-              "why": "Practitioner course material focused on shipping ML systems."
+              "why": "Full Stack Deep Learning: courses and lectures on shipping ML and LLM products, including deployment, monitoring, UX and project management."
             },
             {
               "title": "ml-ops.org",
               "url": "https://ml-ops.org/",
               "kind": "guide",
               "level": "intro",
-              "why": "Community overview of MLOps principles and lifecycle."
+              "why": "ml-ops.org explains MLOps principles (versioning, testing, automation, reproducibility) and the ML lifecycle in plain language with diagrams."
             },
             {
               "title": "Team Topologies",
               "url": "https://teamtopologies.com/",
               "kind": "guide",
               "level": "intro",
-              "why": "Concepts for organizing teams and platforms; light reading with strong ideas."
+              "why": "Team Topologies: stream-aligned, platform, enabling and complicated-subsystem teams with explicit interaction modes. Use it to design an AI platform org."
             },
             {
               "title": "LiteLLM",
               "url": "https://docs.litellm.ai/",
               "kind": "docs",
               "level": "intermediate",
-              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
+              "why": "LiteLLM: the open-source gateway/SDK that gives 100+ providers one OpenAI-format API, with spend tracking, budgets, fallbacks and an admin UI."
             }
           ],
           "project": "Sketch an internal AI platform: registry, eval harness, gateway, sandbox, cost view.",
@@ -2525,7 +2578,17 @@
               "Treat the platform as a product."
             ],
             "diagram": "flowchart TD\n  DEV[Product teams] --> TPL[Golden-path template]\n  TPL --> GW[Gateway]\n  TPL --> REG[Prompt registry]\n  TPL --> EVAL[Eval service]\n  TPL --> SBX[Tool sandbox]\n  TPL --> OBS[Tracing + cost dashboards]",
-            "diagramAlt": "Diagram: product teams start from a golden-path template that connects them to the gateway, prompt registry, eval service, tool sandbox and tracing and cost dashboards."
+            "diagramAlt": "Diagram: product teams start from a golden-path template that connects them to the gateway, prompt registry, eval service, tool sandbox and tracing and cost dashboards.",
+            "case": {
+              "org": "Uber",
+              "title": "Navigating the LLM Landscape: Uber's Innovation with GenAI Gateway (Uber Engineering, Jul 2024)",
+              "url": "https://www.uber.com/blog/genai-gateway/",
+              "summary": "Uber's Michelangelo team built a single GenAI Gateway, a Go service, for more than 60 LLM use cases. It mirrors the OpenAI HTTP/JSON interface while routing to external vendors and Uber-hosted models. It adds a PII redactor that anonymizes requests before they go to vendors and restores the entities afterwards, plus auth, metrics and audit logs for cost attribution. At the time of writing it served about 30 customer teams and 16 million queries per month.",
+              "lesson": "One OpenAI-compatible front door lets you add security review, PII handling, budgets and logging once, for every team. PII redaction has latency and quality costs that you need to measure."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Platform \"golden path\": what a team declares to get a governed LLM endpoint\napiVersion: ai-platform/v1\nkind: LLMApp\nmetadata: {name: claims-assistant, team: claims}\nspec:\n  models: {default: mid-tier, fallback: small}\n  budget: {monthly_usd: 2000, alert_at: 0.8}\n  data_access: [ai.claims_docs_v2]       # governed views only\n  guardrails: [pii_redaction, prompt_injection_scan]\n  evals: {suite: evals/claims.yaml, block_deploy_below: 0.9}\n  logging: {traces: true, retain_days: 30}"
           }
         },
         {
@@ -2539,21 +2602,21 @@
               "url": "https://artificialintelligenceact.eu/",
               "kind": "regulation",
               "level": "reference",
-              "why": "Browsable text and summaries of the EU AI Act; check dates against the Official Journal."
+              "why": "Independent EU AI Act site: the AI Act Explorer, a Compliance Checker, a high-level summary and a small business guide. Faster to navigate than EUR-Lex."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "Hugging Face LLM Course",
               "url": "https://huggingface.co/learn/llm-course/chapter1/1",
               "kind": "course",
               "level": "intro",
-              "why": "Free hands-on course chapters with code; good first practical exposure."
+              "why": "Hugging Face's free LLM course: Transformers library basics, tokenizers, fine-tuning and sharing models on the Hub, with runnable notebooks."
             }
           ],
           "project": "Fill a model/system card for a client-facing RAG assistant; list license and exit risks.",
@@ -2675,7 +2738,10 @@
               "Plan the exit in the contract."
             ],
             "diagram": "flowchart LR\n  M[Model] --> MC[Model card + license]\n  APP[Your application] --> SC[System card]\n  MC --> SC\n  SC --> PROC[Procurement: subprocessors, security, exit]\n  PROC --> GO[Approved for use]\n  CHG[Changes] --> LOG[Change log] --> SC",
-            "diagramAlt": "Diagram: a model's card and license feed your application's system card, which goes through procurement before approval; a change log keeps the system card current."
+            "diagramAlt": "Diagram: a model's card and license feed your application's system card, which goes through procurement before approval; a change log keeps the system card current.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Model card / procurement checklist entry (fields from Hugging Face model card practice)\nmodel: example-org/example-8b-instruct\nlicense: llama3.1            # read it: acceptable-use policy + attribution + MAU threshold\nintended_use: [internal assistant]\nout_of_scope: [medical diagnosis, legal advice]\ntraining_data: \"as disclosed by vendor\"\nevaluations_we_ran: {golden_set_v3: 0.87, refusal_rate: 0.03}\nknown_limitations: [weaker on non-English legal text]\nindemnity: none\napproved_by: [legal, security]\nreview_date: 2026-10-01"
           }
         },
         {
@@ -2688,22 +2754,22 @@
               "title": "Google PAIR Guidebook",
               "url": "https://pair.withgoogle.com/guidebook/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Google PAIR Guidebook that complements the AI Product Management and Product Engineering for Agents lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Google PAIR's People + AI Guidebook: patterns for user needs, mental models, explainability, feedback and graceful failure in AI products."
             },
             {
               "title": "Microsoft HAX Toolkit (human-AI interaction guidelines)",
               "url": "https://www.microsoft.com/en-us/haxtoolkit/",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Microsoft HAX Toolkit (human-AI interaction guidelines) that complements the AI Product Management and Product Engineering for Agents lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Microsoft HAX Toolkit: 18 human-AI interaction guidelines, a design library and a workbook for planning AI experiences responsibly."
             },
             {
               "title": "Lenny's Newsletter: AI product evals",
               "url": "https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete",
               "kind": "guide",
-              "level": "intermediate",
-              "why": "An external guide on Lenny's Newsletter: AI product evals that complements the AI Product Management and Product Engineering for Agents lesson with another author's explanation and examples."
+              "level": "intro",
+              "why": "Lenny's Newsletter guest post on AI evals for PMs: move beyond vibe checks to error analysis, rubrics and LLM judges."
             }
           ],
           "project": "Write a product spec for an agent feature as an eval set (30 cases) plus an autonomy matrix per action. Prototype the UX with source display and one-click correction, define outcome/quality/trust/economics metrics, and design an A/B test with a guardrail metric.",
@@ -2856,7 +2922,17 @@
               "Show your work: sources, progress, undo."
             ],
             "diagram": "flowchart LR\n  SPEC[Examples + unacceptable behaviors] --> EV[Eval set]\n  EV --> AUT{Autonomy level}\n  AUT --> S1[Suggest]\n  AUT --> S2[Draft]\n  AUT --> S3[Act with approval]\n  AUT --> S4[Act autonomously]\n  S3 -->|evidence| S4\n  S1 --> MET[Metrics: outcome, quality, trust, cost]",
-            "diagramAlt": "Diagram: example-driven specs become an eval set that informs the autonomy level, from suggest to act autonomously, with evidence moving actions up and metrics tracking results."
+            "diagramAlt": "Diagram: example-driven specs become an eval set that informs the autonomy level, from suggest to act autonomously, with evidence moving actions up and metrics tracking results.",
+            "case": {
+              "org": "Klarna",
+              "title": "Klarna AI assistant handles two-thirds of customer service chats in its first month (press release, Feb 2024)",
+              "url": "https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/",
+              "summary": "Klarna reported that its OpenAI-powered assistant had 2.3 million conversations in its first month, two-thirds of its customer service chats, doing work it equated to 700 full-time agents. It reported customer satisfaction on par with human agents, a 25% drop in repeat inquiries, and resolution in under 2 minutes versus 11 minutes before, in 23 markets and more than 35 languages.",
+              "lesson": "Product teams should define the outcome metrics up front (resolution time, repeat contacts, satisfaction) and report them against the human baseline. These are company-reported figures, so treat them as a claim to compare against, not an independent benchmark."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "python",
+            "code": "# Product metrics for an agent, computed from conversation outcomes.\nconvos = [\n  {\"resolved\": True,  \"escalated\": False, \"minutes\": 1.5, \"repeat_within_7d\": False},\n  {\"resolved\": True,  \"escalated\": False, \"minutes\": 2.0, \"repeat_within_7d\": True},\n  {\"resolved\": False, \"escalated\": True,  \"minutes\": 6.0, \"repeat_within_7d\": False},\n  {\"resolved\": True,  \"escalated\": False, \"minutes\": 1.0, \"repeat_within_7d\": False},\n]\nn = len(convos)\nprint(\"resolution rate\", sum(c[\"resolved\"] for c in convos)/n)\nprint(\"escalation rate\", sum(c[\"escalated\"] for c in convos)/n)\nprint(\"repeat-contact rate\", sum(c[\"repeat_within_7d\"] for c in convos)/n)\nprint(\"avg handle minutes\", sum(c[\"minutes\"] for c in convos)/n)"
           }
         }
       ]
@@ -2876,28 +2952,28 @@
               "url": "https://artificialintelligenceact.eu/",
               "kind": "regulation",
               "level": "reference",
-              "why": "Browsable text and summaries of the EU AI Act; check dates against the Official Journal."
+              "why": "Independent EU AI Act site: the AI Act Explorer, a Compliance Checker, a high-level summary and a small business guide. Faster to navigate than EUR-Lex."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             },
             {
               "title": "vLLM documentation",
               "url": "https://docs.vllm.ai/en/latest/",
               "kind": "docs",
-              "level": "intermediate",
-              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
+              "level": "reference",
+              "why": "vLLM docs (the site blocked our fetcher; content known from the project): install, OpenAI-compatible server, supported models, PagedAttention, quantization and distributed serving."
             },
             {
               "title": "CUDA docs",
               "url": "https://docs.nvidia.com/cuda/",
               "kind": "docs",
-              "level": "advanced",
-              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
+              "level": "reference",
+              "why": "CUDA documentation hub: programming guide, best practices, toolkit release notes (CUDA 13.x) and libraries. Look things up here when kernel- or driver-level questions come up."
             }
           ],
           "project": "Design an air-gapped inference plus RAG stack with signed update channel.",
@@ -3019,7 +3095,10 @@
               "Plan capacity with redundancy because you can't burst to a public cloud."
             ],
             "diagram": "flowchart LR\n  subgraph B[Sovereign boundary]\n    W[Open weights] --> SRV[Serving]\n    IDX[(Local index)] --> SRV\n    SRV --> LOG[(Local logs)]\n    TEE[Confidential compute] -.-> SRV\n  end\n  EXT[External updates] -->|signed bundle| MIR[Mirror / scanner] --> W",
-            "diagramAlt": "Diagram: inside a sovereign boundary, open weights, a local index, serving, local logs and confidential compute; external updates enter only as signed bundles through a mirror and scanner."
+            "diagramAlt": "Diagram: inside a sovereign boundary, open weights, a local index, serving, local logs and confidential compute; external updates enter only as signed bundles through a mirror and scanner.",
+            "enterpriseLabel": "Illustrative scenario",
+            "lang": "yaml",
+            "code": "# Residency-enforcing deployment policy (illustrative): no egress outside the jurisdiction\ndeployment: gov-assistant\njurisdiction: EU\ninference: {location: self-hosted, region: eu-central, model: open-weights-70b}\negress:\n  allow: [eu-central.internal]\n  deny_all_other: true\nkeys: {kms: customer-managed, hsm_region: eu-central}\nlogs: {store: eu-central, retention_days: 180, operator_access: eu-cleared-staff-only}"
           }
         },
         {
@@ -3033,21 +3112,21 @@
               "url": "https://teamtopologies.com/",
               "kind": "guide",
               "level": "intro",
-              "why": "Concepts for organizing teams and platforms; light reading with strong ideas."
+              "why": "Team Topologies: stream-aligned, platform, enabling and complicated-subsystem teams with explicit interaction modes. Use it to design an AI platform org."
             },
             {
               "title": "Full Stack Deep Learning",
               "url": "https://fullstackdeeplearning.com/",
               "kind": "course",
               "level": "intermediate",
-              "why": "Practitioner course material focused on shipping ML systems."
+              "why": "Full Stack Deep Learning: courses and lectures on shipping ML and LLM products, including deployment, monitoring, UX and project management."
             },
             {
               "title": "NIST AI RMF",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework",
               "kind": "standard",
-              "level": "reference",
-              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
+              "level": "intermediate",
+              "why": "NIST's AI Risk Management Framework hub: the Govern/Map/Measure/Manage core, the playbook, translations and the Generative AI profile."
             }
           ],
           "project": "Propose CoE plus federated squads for a 2,000-person company adopting agents.",
@@ -3169,7 +3248,16 @@
               "Gate pilots on evidence, then scale or stop."
             ],
             "diagram": "flowchart TD\n  HUB[Hub: platform, standards, vendors] --> S1[Spoke: Finance]\n  HUB --> S2[Spoke: HR]\n  HUB --> S3[Spoke: Operations]\n  S1 --> GATE{Pilot-to-scale gate}\n  S2 --> GATE\n  S3 --> GATE\n  GATE -->|pass| SCALE[Scale]\n  GATE -->|fail| STOP[Stop + learn]",
-            "diagramAlt": "Diagram: a hub provides platform, standards and vendors to finance, HR and operations spokes, whose pilots pass a gate to scale or stop."
+            "diagramAlt": "Diagram: a hub provides platform, standards and vendors to finance, HR and operations spokes, whose pilots pass a gate to scale or stop.",
+            "case": {
+              "org": "GitHub",
+              "title": "Research: quantifying GitHub Copilot's impact on developer productivity and happiness (2022)",
+              "url": "https://github.blog/news-insights/research/research-quantifying-github-copilots-impact-on-developer-productivity-and-happiness/",
+              "summary": "In a controlled experiment, 95 professional developers were randomly split into two groups to write an HTTP server in JavaScript. The Copilot group finished 55% faster (1 h 11 min vs 2 h 41 min, P = .0017, 95% CI 21–89%). Completion rate was 78% vs 70%.",
+              "lesson": "Measure AI transformation with controlled comparisons and confidence intervals, not anecdotes. Note the wide interval even for a strong effect."
+            },
+            "enterpriseLabel": "Illustrative scenario",
+            "conceptual": true
           }
         }
       ]
