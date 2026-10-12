@@ -3,7 +3,8 @@
   const DATA = JSON.parse(document.getElementById('curriculum-data').textContent);
   const CONCEPTS = JSON.parse(document.getElementById('concepts-data').textContent);
   const LS='sapient-edge-atlas-v2';
-  const state={track:'shared', query:'', mode:'track', progress:load(), quiz:{}, openSubject:null};
+  const state={track:'shared', query:'', mode:'home', progress:load(), openSubject:null, lesson:null};
+  state.progress.qa=state.progress.qa||{}; state.quiz=state.progress.qa;
   const RANKS=[[0,'Curious Novice 🌱'],[200,'Apprentice ⚙️'],[600,'Practitioner 🧩'],[1500,'Engineer 🚀'],[3000,'Architect 🏔️'],[6000,'Atlas Master 🌌']];
   function rank(xp){let r=RANKS[0][1];for(const [m,n] of RANKS) if(xp>=m) r=n; return r;}
   const HERO = new Proxy({}, {get:(_,k)=>`<img class="svg-hero" src="assets/img/hero-${k}.svg" alt="${k} illustration" loading="lazy"/>`});
@@ -65,27 +66,92 @@
     return 'Track complete — pick another path or review concept cards.';
   }
 
+  /* ---------- v8: lessons, mastery, routes ---------- */
+  const ORDER=[];(function(){for(const s of DATA.shared_core.subjects) ORDER.push({track:'shared',s,level:'Shared Core'});for(const t of DATA.tracks) for(const l of t.levels) for(const s of l.subjects) ORDER.push({track:t.id,s,level:l.name});})();
+  const TRACKNAME=id=>id==='shared'?'Shared Core':(DATA.tracks.find(t=>t.id===id)||{}).name||id;
+  function words(s){const L=s.lesson||{};const parts=[s.why,s.explainer,L.intuition,(L.how||[]).join(' '),L.example,L.code,(L.mistakes||[]).join(' '),L.enterprise,(L.takeaways||[]).join(' '),...s.topics.flatMap(t=>[t.explainer,...t.subtopics.map(x=>x.title+' '+(x.text||''))])];return parts.filter(Boolean).join(' ').split(/\s+/).length;}
+  function readMin(s){return Math.max(1,Math.round(words(s)/200));}
+  function qScore(s){const n=(s.quiz||[]).length;let ok=0;(s.quiz||[]).forEach((_,i)=>{if(state.progress.qa[s.id+':'+i])ok++;});return {ok,n,frac:n?ok/n:0};}
+  const MLEVEL=[['none','Not started','○'],['familiar','Familiar','◔'],['proficient','Proficient','◑'],['mastered','Mastered','●']];
+  function mastery(s){const q=qScore(s),st=subStats(s);if(q.frac===1&&st.pct===100)return 3;if(q.frac>=0.8)return 2;if(q.frac>=0.34||(state.progress.seen||{})[s.id])return 1;return 0;}
+  function mchip(s){const m=MLEVEL[mastery(s)];return `<span class="mchip m-${m[0]}" title="Mastery: ${m[1]}">${m[2]} ${m[1]}</span>`;}
+  function badges(){const b=[];const ms=ORDER.map(o=>mastery(o.s));const c=l=>ms.filter(x=>x>=l).length;
+    if(c(1)>=1)b.push(['🌱','First lesson']);if(c(2)>=1)b.push(['🎯','First proficient']);if(c(3)>=1)b.push(['🏅','First mastered']);if(c(2)>=10)b.push(['📚','10 proficient']);
+    for(const id of ['shared',...DATA.tracks.map(t=>t.id)]){const L=ORDER.filter(o=>o.track===id);if(L.length&&L.every(o=>mastery(o.s)>=2))b.push(['🏆',TRACKNAME(id)+' proficient']);}
+    if((state.progress.streak||0)>=7)b.push(['🔥','7-day streak']);return b;}
+  function go(h){if(location.hash===h)route();else location.hash=h;}
+  function route(){const p=(location.hash||'#/').replace(/^#\/?/,'').split('/');const v=p[0]||'';
+    if(v==='track'&&p[1]){state.mode='track';state.track=p[1];state.openSubject=p[2]||null;}
+    else if(v==='lesson'&&p[1]&&ORDER.some(o=>o.s.id===p[1])){state.mode='lesson';state.lesson=p[1];state.progress.seen=state.progress.seen||{};state.progress.seen[p[1]]=1;state.progress.lastLesson=p[1];save();}
+    else if(['roles','projects','paths','capstones','concepts','glossary','playground'].includes(v)){state.mode=v;}
+    else state.mode='home';
+    render(); if(!(v==='track'&&p[2])) window.scrollTo(0,0);
+    if(state.mode==='track'&&p[2]) setTimeout(()=>{const el=document.getElementById('subj-'+p[2]);if(el)el.scrollIntoView({block:'start'});},40);
+    if(routed){const t=document.getElementById('content'); t.focus({preventScroll:true});} routed=true;}
+  let routed=false;
+  const LV={intro:'Intro',intermediate:'Intermediate',advanced:'Advanced',reference:'Reference'};
+  function renderHome(){
+    const all=ORDER.length,ms=ORDER.map(o=>mastery(o.s)),cnt=l=>ms.filter(x=>x===l).length;const last=state.progress.lastLesson&&ORDER.find(o=>o.s.id===state.progress.lastLesson);
+    const nxt=last?ORDER[Math.min(ORDER.length-1,ORDER.indexOf(last)+(mastery(last.s)>=2?1:0))]:ORDER[0];
+    let h=`<section class="hero home-hero"><h2>Learn AI engineering, one lesson at a time</h2><p class="role">${all} full lessons across ${DATA.tracks.length+1} tracks, centered on agentic AI. Every lesson has an intuition, a step-by-step walkthrough, a diagram, a worked example, common mistakes, an enterprise case, key takeaways, a quiz and annotated resources. Pass quizzes to move from Familiar → Proficient → Mastered.</p>
+      <div class="mstats"><span class="mchip m-familiar">◔ ${cnt(1)} familiar</span><span class="mchip m-proficient">◑ ${cnt(2)} proficient</span><span class="mchip m-mastered">● ${cnt(3)} mastered</span><span class="mchip">${Object.keys(window.AtlasWidgets?AtlasWidgets.list:{}).length} interactive explainers</span></div>
+      <p><a class="cta" href="#/lesson/${nxt.s.id}">${last?'Continue':'Start'}: ${esc(nxt.s.title)} →</a> <a class="cta ghost" href="#/playground">Try the interactive explainers</a></p></section>
+      <h3 class="map-h">Course map</h3><div class="cmap">`;
+    for(const id of ['shared',...DATA.tracks.map(t=>t.id)]){const L=ORDER.filter(o=>o.track===id);const pm=Math.round(100*L.filter(o=>mastery(o.s)>=2).length/L.length);
+      h+=`<section class="cm-track"><div class="cm-head"><span class="mascot">${ICONS[id]||'•'}</span><a href="#/track/${id}"><strong>${esc(TRACKNAME(id))}</strong></a><span class="pp">${L.length} lessons · ${pm}% proficient</span></div><ol class="cm-tiles">`+
+      L.map(o=>{const m=MLEVEL[mastery(o.s)];return `<li><a class="tile m-${m[0]}" href="#/lesson/${o.s.id}" title="${esc(o.s.title)} — ${m[1]}"><span aria-hidden="true">${m[2]}</span> ${esc(o.s.title)}<span class="sr"> (${m[1]})</span></a></li>`;}).join('')+`</ol></section>`;}
+    return h+`</div>`;}
+  function renderSearch(){const q=state.query.trim().toLowerCase();const hits=ORDER.filter(o=>matches(o.s)||JSON.stringify(o.s.lesson||{}).toLowerCase().includes(q));
+    return `<section class="hero"><h2>Search <span class="badge">${hits.length} lessons</span></h2><p class="role">Lessons matching “${esc(state.query)}”.</p></section><ul class="search-list">`+hits.map(o=>`<li><a href="#/lesson/${o.s.id}">${highlight(o.s.title)}</a> <small>${esc(TRACKNAME(o.track))} · ${readMin(o.s)} min</small> ${mchip(o.s)}<p>${highlight(o.s.why)}</p></li>`).join('')+`</ul>`;}
+  function renderLesson(){
+    const i=ORDER.findIndex(o=>o.s.id===state.lesson),o=ORDER[i],s=o.s,L=s.lesson||{};const prev=ORDER[i-1],next=ORDER[i+1];const q=qScore(s);
+    const list=(a,tag)=>`<${tag||'ul'}>${(a||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</${tag||'ul'}>`;
+    let h=`<nav class="crumbs" aria-label="Breadcrumb"><a href="#/">Home</a> › <a href="#/track/${o.track}">${esc(TRACKNAME(o.track))}</a> › <span>${esc(o.level)}</span></nav>
+    <article class="lesson" aria-labelledby="lt"><header class="l-head"><h2 id="lt">${esc(s.title)}</h2><p class="l-meta">⏱ ${readMin(s)} min read · ${s.topics.length} topics · ${q.n} quiz questions · ${mchip(s)}</p><p class="why"><strong>Why it matters:</strong> ${esc(s.why)}</p>
+    <nav class="toc" aria-label="On this page">${[['intuition','Intuition'],['how','How it works'],['diagram','Diagram'],['example','Worked example'],['topics','Topics'],['mistakes','Common mistakes'],['enterprise','In the enterprise'],['takeaways','Key takeaways'],['quiz','Quiz'],['resources','Resources']].map(([a,b])=>`<a href="#/lesson/${s.id}" data-sec="${a}">${b}</a>`).join('')}</nav></header>
+    <section id="sec-intuition"><h3>💡 Intuition</h3><p class="lead">${esc(L.intuition||'')}</p></section>
+    <section id="sec-how"><h3>⚙️ How it works</h3>${s.explainer?`<p>${esc(s.explainer)}</p>`:''}${list(L.how,'ol')}</section>
+    <section id="sec-diagram"><h3>🗺️ Diagram</h3><figure class="ldiagram" role="group" aria-label="${esc(L.diagramAlt||'')}"><div class="mermaid-wrap light" role="img" aria-label="${esc(L.diagramAlt||'')}"><pre class="mermaid">${esc(L.diagram||'')}</pre><pre class="mermaid-fallback">${esc(L.diagram||'')}</pre></div><figcaption>${esc(L.diagramAlt||'')}</figcaption></figure></section>`;
+    if(L.widget) h+=`<section id="sec-widget"><div class="widget-mount" data-widget="${L.widget}"></div></section>`;
+    h+=`<section id="sec-example"><h3>🧮 Worked example</h3><div class="example">${esc(L.example||'')}</div>${L.code?`<pre class="code"><code>${esc(L.code)}</code></pre>`:''}</section>
+    <section id="sec-topics"><h3>📚 Topics</h3>`;
+    for(const t of s.topics){h+=`<div class="ltopic"><h4>${esc(t.title)}</h4><p>${esc(t.explainer||'')}</p><ul class="subs">`;
+      for(const st of t.subtopics){const d=isDone(st.id);h+=`<li class="sub ${d?'done':''}"><input type="checkbox" id="${esc(st.id)}" data-sub="${esc(st.id)}" ${d?'checked':''}/><label for="${esc(st.id)}"><strong>${esc(st.title)}</strong>${st.text?` — <span class="stext">${esc(st.text)}</span>`:''}</label></li>`;}
+      h+=`</ul></div>`;}
+    h+=`</section><section id="sec-mistakes" class="box warnbox"><h3>⚠️ Common mistakes</h3>${list(L.mistakes)}</section>
+    <section id="sec-enterprise" class="box"><h3>🏢 In the enterprise</h3><p>${esc(L.enterprise||'')}</p></section>
+    <section id="sec-takeaways" class="box goodbox"><h3>✅ Key takeaways</h3>${list(L.takeaways)}</section>
+    <section id="sec-quiz"><h3>📝 Quiz <small>(${q.ok}/${q.n} correct · 80% = Proficient, 100% + all topics ticked = Mastered)</small></h3>${quizHtml(s)}</section>
+    <section id="sec-resources"><h3>🔗 Annotated resources</h3><ul class="res">${(s.resources||[]).map(r=>`<li><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.title)}</a> <span class="lvl lvl-${esc(r.level||'')}">${esc(LV[r.level]||r.level||'')}</span><p>${esc(r.why||'')}</p></li>`).join('')}</ul>
+    <div class="card"><h4>Hands-on lab</h4><p>${esc(s.project||'')}</p></div>${s.conceptIds&&s.conceptIds.length?`<p class="deep">Deep dives: ${s.conceptIds.map(id=>{const c=CONCEPTS.find(x=>x.id===id);return `<a href="#/concepts" data-jump-concept="${id}">💡 ${esc(c?c.title:id)}</a>`;}).join(' · ')}</p>`:''}</section>
+    <nav class="pn" aria-label="Lesson navigation">${prev?`<a href="#/lesson/${prev.s.id}" rel="prev">← ${esc(prev.s.title)}</a>`:'<span></span>'}${next?`<a href="#/lesson/${next.s.id}" rel="next">${esc(next.s.title)} →</a>`:''}</nav></article>`;
+    return h;}
+  function renderPlayground(){const W=window.AtlasWidgets?AtlasWidgets.list:{};
+    let h=`<section class="hero"><h2>Interactive explainers <span class="badge">${Object.keys(W).length}</span></h2><p class="role">Small, dependency-free simulations. Change the inputs and watch the numbers move. Each also appears inside the lessons that use it.</p></section>`;
+    for(const [id,name] of Object.entries(W)){const uses=ORDER.filter(o=>(o.s.lesson||{}).widget===id);h+=`<div class="widget-mount" id="pg-${id}" data-widget="${id}"></div><p class="deep">Used in: ${uses.map(o=>`<a href="#/lesson/${o.s.id}">${esc(o.s.title)}</a>`).join(' · ')||'the playground'}</p>`;}
+    return h;}
+
   const sidebar=document.getElementById('sidebar');
   const content=document.getElementById('content');
 
   function renderSidebar(){
     const items=[{id:'shared',name:'Shared Core'},...DATA.tracks.map(t=>({id:t.id,name:t.name}))];
     let h=`<div class="brand"><h1>${esc(DATA.meta.title)}</h1><p>${esc(DATA.meta.subtitle)} · ${esc(DATA.meta.as_of)}</p>
-      <div class="xp"><div class="row"><span>XP ${(state.progress.xp||0)}</span><span>🔥 streak ${state.progress.streak||0}d</span></div><div class="rank">${rank(state.progress.xp||0)}</div><div class="bar"><i style="width:${Math.min(100,(state.progress.xp||0)/10)}%"></i></div></div></div>
+      <div class="xp"><div class="row"><span>XP ${(state.progress.xp||0)}</span><span>🔥 streak ${state.progress.streak||0}d</span></div><div class="rank">${rank(state.progress.xp||0)}</div><div class="bar"><i style="width:${Math.min(100,(state.progress.xp||0)/10)}%"></i></div>
+      <div class="badges" aria-label="Badges">${badges().map(b=>`<span class="bdg" title="${esc(b[1])}">${b[0]} ${esc(b[1])}</span>`).join('')||'<span class="bdg muted">Pass a quiz to earn badges</span>'}</div></div>
+      <a class="nav-btn ${state.mode==='home'?'active':''}" href="#/"><span class="mascot">🏠</span><span>Home · course map</span></a>
       <div class="nav-label">Tracks</div>`;
     for(const it of items){
       const st=stats(it.id);
-      h+=`<button type="button" class="nav-btn ${state.track===it.id&&state.mode==='track'?'active':''}" data-track="${it.id}"><span class="mascot">${ICONS[it.id]||'•'}</span><span style="flex:1;min-width:0"><div>${esc(it.name)}</div><div class="mini"><i style="width:${st.pct}%"></i></div></span><span class="meta">${st.pct}%</span></button>`;
+      h+=`<a class="nav-btn ${state.track===it.id&&(state.mode==='track'||state.mode==='lesson')?'active':''}" href="#/track/${it.id}"><span class="mascot">${ICONS[it.id]||'•'}</span><span style="flex:1;min-width:0"><div>${esc(it.name)}</div><div class="mini"><i style="width:${st.pct}%"></i></div></span><span class="meta">${st.pct}%</span></a>`;
     }
     h+=`<div class="nav-label">Explore</div>`;
-    for(const [m,ic,label] of [['roles','🧑‍🚀','Roles ('+(DATA.roles||[]).length+')'],['projects','🪜','Project ladder ('+(DATA.projects||[]).length+')'],['paths','🧭','Learning paths'],['capstones','🏆','Capstone projects'],['concepts','💡','Concept cards ('+CONCEPTS.length+')'],['glossary','📖','Glossary ('+DATA.glossary.length+')']]){
-      h+=`<button type="button" class="nav-btn ${state.mode===m?'active':''}" data-mode="${m}"><span class="mascot">${ic}</span><span style="flex:1">${label}</span></button>`;
+    for(const [m,ic,label] of [['roles','🧑‍🚀','Roles ('+(DATA.roles||[]).length+')'],['projects','🪜','Project ladder ('+(DATA.projects||[]).length+')'],['paths','🧭','Learning paths'],['capstones','🏆','Capstone projects'],['concepts','💡','Concept cards ('+CONCEPTS.length+')'],['glossary','📖','Glossary ('+DATA.glossary.length+')'],['playground','🧪','Interactive explainers']]){
+      h+=`<a class="nav-btn ${state.mode===m?'active':''}" href="#/${m}"><span class="mascot">${ic}</span><span style="flex:1">${label}</span></a>`;
     }
-    h+=`<div class="side-actions"><button type="button" id="btnConcepts">Concept cards (${CONCEPTS.length})</button><button type="button" id="exportProg">Export progress</button><button type="button" id="importProg">Import progress</button></div>`;
+    h+=`<div class="side-actions"><button type="button" id="exportProg">Export progress</button><button type="button" id="importProg">Import progress</button></div>`;
     sidebar.innerHTML=h;
-    sidebar.querySelectorAll('[data-track]').forEach(b=>b.onclick=()=>{state.track=b.dataset.track;state.mode='track';state.openSubject=null;closeMobile();render();});
-    sidebar.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;closeMobile();render();window.scrollTo(0,0);});
-    document.getElementById('btnConcepts').onclick=()=>{state.mode='concepts';closeMobile();render();};
+    sidebar.querySelectorAll('a.nav-btn').forEach(b=>b.addEventListener('click',closeMobile));
     document.getElementById('exportProg').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state.progress,null,2)],{type:'application/json'}));a.download='atlas-progress.json';a.click();};
     document.getElementById('importProg').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=async()=>{try{state.progress=JSON.parse(await i.files[0].text());save();render();}catch(e){alert(e.message);}};i.click();};
   }
@@ -98,16 +164,16 @@
     let h=`<div class="quiz"><h4>Self-check</h4>`;
     subject.quiz.forEach((qz,qi)=>{
       const key=subject.id+':'+qi;
-      h+=`<div class="qitem" data-qk="${esc(key)}"><p>${esc(qz.q)}</p>`;
-      qz.choices.forEach((c,ci)=>{h+=`<label><input type="radio" name="${esc(key)}" value="${ci}"/> ${esc(c)}</label>`;});
-      h+=`<button type="button" data-check="${esc(key)}" data-ans="${qz.answer}" data-why="${esc(qz.why)}">Check</button><div class="qresult"></div></div>`;
+      h+=`<div class="qitem" data-qk="${esc(key)}"><p id="q-${esc(key).replace(/[^a-z0-9-]/gi,'_')}"><strong>Q${qi+1}.</strong> ${esc(qz.q)}${state.quiz[key]?' <span class="qok">✓</span>':''}</p>`;
+      h+=`<div role="radiogroup" aria-labelledby="q-${esc(key).replace(/[^a-z0-9-]/gi,'_')}">`;qz.choices.forEach((c,ci)=>{h+=`<label><input type="radio" name="${esc(key)}" value="${ci}"/> ${esc(c)}</label>`;});h+=`</div>`;
+      h+=`<button type="button" data-check="${esc(key)}" data-ans="${qz.answer}" data-why="${esc(qz.why)}">Check</button><div class="qresult" aria-live="polite"></div></div>`;
     });
     return h+`</div>`;
   }
   function renderSubject(subject, forceOpen){
     if(!matches(subject)) return '';
     const st=subStats(subject); const open=forceOpen||!!state.query||state.openSubject===subject.id;
-    let h=`<div class="subject ${open?'open':''}" id="subj-${esc(subject.id)}"><button type="button" class="subject-h" data-toggle="subject"><span class="chev">▶</span><span><strong>${highlight(subject.title)}</strong></span><span class="sp">${st.done}/${st.total}</span></button><div class="subject-body">`;
+    let h=`<div class="subject ${open?'open':''}" id="subj-${esc(subject.id)}"><button type="button" class="subject-h" data-toggle="subject"><span class="chev">▶</span><span><strong>${highlight(subject.title)}</strong></span><span class="sp">${mchip(subject)} ${st.done}/${st.total}</span></button><div class="subject-body"><p><a class="cta" href="#/lesson/${esc(subject.id)}">Open full lesson →</a> <small class="muted">⏱ ${readMin(subject)} min</small></p>`;
     h+=`<p class="why"><strong>Why it matters:</strong> ${highlight(subject.why)}</p>`;
     if(subject.explainer) h+=`<div class="explainer">${highlight(subject.explainer)}</div>`;
     h+=`<div class="meta-box"><div class="card"><h4>Resources</h4>${resourcesHtml(subject.resources)}</div><div class="card"><h4>Hands-on lab</h4><p>${highlight(subject.project)}</p></div></div>`;
@@ -241,21 +307,23 @@
 
   function bind(){
     content.querySelectorAll('[data-toggle]').forEach(btn=>btn.onclick=()=>btn.parentElement.classList.toggle('open'));
-    content.querySelectorAll('input[data-sub]').forEach(inp=>inp.onchange=()=>{setDone(inp.dataset.sub,inp.checked);render();});
+    content.querySelectorAll('input[data-sub]').forEach(inp=>inp.onchange=()=>{const y=window.scrollY;setDone(inp.dataset.sub,inp.checked);render();window.scrollTo(0,y);const el=document.getElementById(inp.id);if(el)el.focus({preventScroll:true});});
     content.querySelectorAll('[data-check]').forEach(btn=>btn.onclick=()=>{
       const key=btn.dataset.check; const ans=+btn.dataset.ans; const box=btn.parentElement;
       const picked=box.querySelector('input:checked'); const res=box.querySelector('.qresult');
       if(!picked){res.innerHTML='<span class="qbad">Pick an answer</span>';return;}
-      if(+picked.value===ans){res.innerHTML=`<span class="qok">Correct — ${esc(btn.dataset.why)}</span>`; if(!state.quiz[key]){state.quiz[key]=1; state.progress.xp=(state.progress.xp||0)+5; save(); renderSidebar();}}
+      if(+picked.value===ans){res.innerHTML=`<span class="qok">Correct — ${esc(btn.dataset.why)}</span>`; if(!state.quiz[key]){state.quiz[key]=1; state.progress.xp=(state.progress.xp||0)+5; bumpStreak(); save(); renderSidebar(); const hq=document.querySelector('#sec-quiz h3 small'); if(hq&&state.mode==='lesson'){const s=ORDER.find(o=>o.s.id===state.lesson).s,q=qScore(s);hq.textContent=`(${q.ok}/${q.n} correct · now ${MLEVEL[mastery(s)][1]})`;}}}
       else res.innerHTML=`<span class="qbad">Not quite — ${esc(btn.dataset.why)}</span>`;
     });
-    content.querySelectorAll('[data-jump-concept]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode='concepts';state.query='';document.getElementById('search').value='';render(); setTimeout(()=>{const el=document.getElementById('concept-'+a.dataset.jumpConcept); if(el) el.scrollIntoView({behavior:'smooth'});},50);});
-    content.querySelectorAll('[data-jump-subject]').forEach(a=>a.onclick=e=>{e.preventDefault();const f=findSubject(a.dataset.jumpSubject);if(!f)return;state.mode='track';state.track=f.track;state.openSubject=f.s.id;state.query='';document.getElementById('search').value='';render();setTimeout(()=>{const el=document.getElementById('subj-'+f.s.id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},60);});
-    content.querySelectorAll('[data-jump-cap]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode='capstones';render();setTimeout(()=>{const el=document.getElementById('cap-'+a.dataset.jumpCap);if(el)el.scrollIntoView({behavior:'smooth'});},60);});
+    content.querySelectorAll('[data-jump-concept]').forEach(a=>a.onclick=e=>{e.preventDefault();state.query='';document.getElementById('search').value='';go('#/concepts'); setTimeout(()=>{const el=document.getElementById('concept-'+a.dataset.jumpConcept); if(el) el.scrollIntoView({behavior:'smooth'});},50);});
+    content.querySelectorAll('[data-jump-subject]').forEach(a=>a.onclick=e=>{e.preventDefault();state.query='';document.getElementById('search').value='';go('#/lesson/'+a.dataset.jumpSubject);});
+    content.querySelectorAll('[data-jump-cap]').forEach(a=>a.onclick=e=>{e.preventDefault();go('#/capstones');setTimeout(()=>{const el=document.getElementById('cap-'+a.dataset.jumpCap);if(el)el.scrollIntoView({behavior:'smooth'});},60);});
     content.querySelectorAll('[data-role-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('role-'+a.dataset.roleJump);if(el)el.scrollIntoView({behavior:'smooth'});});
-    content.querySelectorAll('[data-mode-link]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode=a.dataset.modeLink;render();window.scrollTo(0,0);});
+    content.querySelectorAll('[data-mode-link]').forEach(a=>a.onclick=e=>{e.preventDefault();go('#/'+a.dataset.modeLink);});
     content.querySelectorAll('[data-tier-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('tier-'+a.dataset.tierJump);if(el)el.scrollIntoView({behavior:'smooth'});});
     content.querySelectorAll('[data-az]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('gl-'+a.dataset.az);if(el)el.scrollIntoView({behavior:'smooth'});});
+    content.querySelectorAll('[data-sec]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('sec-'+a.dataset.sec);if(el){el.scrollIntoView({behavior:'smooth'});el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}});
+    content.querySelectorAll('[data-widget]').forEach(el=>{if(window.AtlasWidgets)AtlasWidgets.mount(el,el.dataset.widget);});
     runMermaid();
   }
 
@@ -264,7 +332,7 @@
     if(!nodes.length) return;
     if(window.mermaid){
       try{
-        mermaid.initialize({startOnLoad:false, theme:'dark', securityLevel:'strict', fontFamily:'Inter,system-ui,sans-serif'});
+        mermaid.initialize({startOnLoad:false, theme:'base', securityLevel:'strict', fontFamily:'Inter,system-ui,sans-serif', themeVariables:{background:'#f8fafc',primaryColor:'#e0ecff',primaryBorderColor:'#3b82f6',primaryTextColor:'#1e293b',secondaryColor:'#ede9fe',tertiaryColor:'#ecfdf5',lineColor:'#64748b',textColor:'#1e293b',fontSize:'14px'}});
         mermaid.run({nodes}).catch(()=>{content.querySelectorAll('.mermaid-fallback').forEach(n=>n.style.display='block');});
       }catch(e){content.querySelectorAll('.mermaid-fallback').forEach(n=>n.style.display='block');}
     } else {
@@ -276,21 +344,20 @@
 
   function render(){
     renderSidebar();
-    content.innerHTML = ({roles:renderRoles,projects:renderProjects,concepts:renderConcepts,paths:renderPaths,capstones:renderCapstones,glossary:renderGlossary}[state.mode]||renderTrack)();
+    const searching=state.query.trim()&&['home','lesson'].includes(state.mode);
+    content.innerHTML = searching?renderSearch():({home:renderHome,lesson:renderLesson,playground:renderPlayground,roles:renderRoles,projects:renderProjects,concepts:renderConcepts,paths:renderPaths,capstones:renderCapstones,glossary:renderGlossary}[state.mode]||renderTrack)();
+    document.title=(state.mode==='lesson'&&!searching?ORDER.find(o=>o.s.id===state.lesson).s.title+' · ':'')+'AI Learning Atlas';
     bind();
   }
 
   document.getElementById('search').oninput=e=>{state.query=e.target.value;render();};
   document.getElementById('expandAll').onclick=()=>content.querySelectorAll('.level,.subject,.topic,.concept').forEach(el=>el.classList.add('open'));
   document.getElementById('collapseAll').onclick=()=>content.querySelectorAll('.level,.subject,.topic,.concept').forEach(el=>el.classList.remove('open'));
-  document.getElementById('tabConcepts').onclick=()=>{state.mode='concepts';render();};
-  document.getElementById('tabRoles').onclick=()=>{state.mode='roles';render();window.scrollTo(0,0);};
-  document.getElementById('tabProjects').onclick=()=>{state.mode='projects';render();window.scrollTo(0,0);};
-  document.getElementById('tabPaths').onclick=()=>{state.mode='paths';render();};
-  document.getElementById('tabGloss').onclick=()=>{state.mode='glossary';render();};
+
   document.getElementById('resetProgress').onclick=()=>{if(confirm('Reset XP and checkboxes?')){state.progress={done:{},xp:0,streak:0,last:null};save();render();}};
   document.getElementById('menuBtn').onclick=()=>{sidebar.classList.add('open');document.getElementById('backdrop').classList.add('show');};
   document.getElementById('backdrop').onclick=closeMobile;
 
-  render();
+  window.addEventListener('hashchange',route);
+  route();
 })();
