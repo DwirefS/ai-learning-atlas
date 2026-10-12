@@ -1,0 +1,846 @@
+{
+  "title": "Shared Core",
+  "blurb": "Cross-cutting foundations every track leans on. Cover these before specializing hard.",
+  "icon": "nucleus",
+  "subjects": [
+    {
+      "id": "sc-math",
+      "title": "Math & Probability You Actually Use",
+      "why": "You cannot debug loss, calibration, or sampling without this.",
+      "explainer": "Engineers who skip the math eventually hit a wall: a temperature knob that feels wrong, a KL term that blows up, a probability that is not a probability. You do not need a PhD. You need fluency with vectors and matrices as the language of embeddings and attention, gradients as the reason training moves, and entropy as the reason sampling explores.\n\nLinear algebra shows up every time you multiply Q by K transpose. Probability shows up every time the model emits a next-token distribution. Information theory (cross-entropy, KL) is literally the training objective for modern LMs. Optimization (SGD, AdamW, schedules) decides whether your fine-tune converges or memorizes.\n\nCommon mistake: treating softmax temperature as a creativity dial without noticing it rescales the entire distribution and changes entropy. Another: confusing accuracy on a chat demo with calibrated probabilities the product needs for abstention.\n\nIn real systems this literacy lets you read a training curve, argue about whether top-p is hiding a bug, and talk to inference engineers about why speculative decoding acceptance rates tank when the draft model is miscalibrated.",
+      "resources": [
+        {
+          "title": "3Blue1Brown Linear Algebra",
+          "url": "https://3blue1brown.com/topics/linear-algebra"
+        },
+        {
+          "title": "Deep Learning Book",
+          "url": "https://www.deeplearningbook.org/"
+        },
+        {
+          "title": "Dive into Deep Learning",
+          "url": "https://d2l.ai/"
+        },
+        {
+          "title": "Stanford CS229",
+          "url": "https://cs229.stanford.edu/"
+        }
+      ],
+      "project": "Derive cross-entropy and KL by hand; simulate temperature/top-p and plot entropy vs temperature.",
+      "topics": [
+        {
+          "id": "sc-math-la",
+          "title": "Linear Algebra",
+          "subtopics": [
+            {
+              "id": "sc-math-la-s1",
+              "title": "Vectors, matrices, norms"
+            },
+            {
+              "id": "sc-math-la-s2",
+              "title": "Eigenvalues / SVD intuition"
+            },
+            {
+              "id": "sc-math-la-s3",
+              "title": "Dot products as similarity"
+            },
+            {
+              "id": "sc-math-la-s4",
+              "title": "Low-rank approximations"
+            },
+            {
+              "id": "sc-math-la-s5",
+              "title": "Broadcasting mental model"
+            }
+          ],
+          "explainer": "Almost everything in a model is a vector or a matrix. An embedding is a list of numbers; a layer is a matrix that maps one list to another. The dot product of two vectors measures how aligned they are, which is why it shows up as \"similarity\" in attention and in vector search. SVD tells you how much of a matrix is really needed: if a few singular values dominate, a low-rank version is nearly as good, and that is exactly the bet LoRA makes. Broadcasting is the habit of thinking in whole tensors with batch, sequence and hidden dimensions rather than loops. Learn to read shapes like [batch, seq, d_model] and most papers become much easier."
+        },
+        {
+          "id": "sc-math-prob",
+          "title": "Probability & Information",
+          "subtopics": [
+            {
+              "id": "sc-math-prob-s1",
+              "title": "Bayes and conditioning"
+            },
+            {
+              "id": "sc-math-prob-s2",
+              "title": "Expectation / variance"
+            },
+            {
+              "id": "sc-math-prob-s3",
+              "title": "Entropy, cross-entropy, KL"
+            },
+            {
+              "id": "sc-math-prob-s4",
+              "title": "Maximum likelihood"
+            },
+            {
+              "id": "sc-math-prob-s5",
+              "title": "Calibration vs accuracy"
+            }
+          ],
+          "explainer": "A language model outputs a probability distribution over the next token. Training minimizes cross-entropy, the average surprise of the true token under the model, which is the same as maximum likelihood. KL divergence measures how far one distribution drifts from another; it is the leash in RLHF that keeps a tuned model near its reference. Entropy tells you how unsure the model is, which is useful for routing and abstention. Calibration asks whether \"80% confident\" is right 80% of the time, which is different from accuracy. Bayes is the mental tool for reasoning about evaluations: a 95%-accurate classifier on a 1% base-rate problem still produces mostly false alarms."
+        },
+        {
+          "id": "sc-math-opt",
+          "title": "Optimization",
+          "subtopics": [
+            {
+              "id": "sc-math-opt-s1",
+              "title": "Gradients and chain rule"
+            },
+            {
+              "id": "sc-math-opt-s2",
+              "title": "SGD, Adam, AdamW"
+            },
+            {
+              "id": "sc-math-opt-s3",
+              "title": "LR schedules and warmup"
+            },
+            {
+              "id": "sc-math-opt-s4",
+              "title": "Overfitting vs underfitting"
+            },
+            {
+              "id": "sc-math-opt-s5",
+              "title": "Gradient clipping"
+            }
+          ],
+          "explainer": "Training is gradient descent: compute how the loss changes with each weight (backprop is the chain rule applied efficiently) and nudge weights the other way. Adam keeps running averages of gradients and their squares so each weight gets its own step size; AdamW separates weight decay from that update, which matters for generalization. Learning-rate warmup avoids blowing up early when statistics are noisy, then cosine or linear decay settles the model. Gradient clipping caps rare huge updates. Watch both training and validation loss: if validation rises while training falls you are overfitting; if both stay high you are underfitting or the learning rate is wrong."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Raising temperature generally…",
+          "choices": [
+            "Increases entropy of the next-token distribution",
+            "Always improves factual accuracy",
+            "Removes the need for top-p",
+            "Zeros the KL term"
+          ],
+          "answer": 0,
+          "why": "Higher T flattens the distribution, raising entropy."
+        },
+        {
+          "q": "Cross-entropy LM training is closest to…",
+          "choices": [
+            "Maximum likelihood of next tokens",
+            "Minimizing cosine distance only",
+            "Maximizing BLEU",
+            "Random search"
+          ],
+          "answer": 0,
+          "why": "NLL/cross-entropy is MLE for next-token prediction."
+        },
+        {
+          "q": "LoRA works because weight updates during fine-tuning are often…",
+          "choices": [
+            "Exactly zero",
+            "Larger than the base weights",
+            "Random noise",
+            "Well approximated by a low-rank matrix"
+          ],
+          "answer": 3,
+          "why": "If a few singular values dominate the update, two thin matrices capture most of it."
+        },
+        {
+          "q": "A 95%-accurate detector on a 1%-prevalence problem will flag mostly…",
+          "choices": [
+            "False positives",
+            "Nothing",
+            "True positives",
+            "Duplicates"
+          ],
+          "answer": 0,
+          "why": "Base rates dominate: about 5% of the 99% negatives get flagged, versus at most 1% true positives."
+        },
+        {
+          "q": "AdamW differs from Adam mainly by…",
+          "choices": [
+            "Using no momentum",
+            "Removing learning rates",
+            "Using integer weights",
+            "Decoupling weight decay from the gradient update"
+          ],
+          "answer": 3,
+          "why": "Decoupled weight decay behaves more predictably and usually generalizes better."
+        }
+      ],
+      "conceptIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "sc-nn",
+      "title": "Neural Nets & Representation Learning",
+      "why": "Everything after this is a specialization of these ideas.",
+      "explainer": "A neural net is a stack of differentiable transforms that learn representations. Depth and width buy capacity; inductive biases buy sample efficiency. For LLMs the representation is a contextual embedding at every layer.\n\nResiduals and norms (LayerNorm/RMSNorm) are why deep stacks train. Activations are not cosmetics. Regularization fights memorization — and in LLM fine-tunes, weight decay and LoRA rank interact in ways that surprise people who only know classical ML.\n\nCommon mistake: blaming the model when the learning rate is an order of magnitude off. Another: assuming more parameters always help when you are data-limited (see Chinchilla).\n\nRepresentation thinking helps you decide when embeddings alone solve retrieval, when you need cross-encoders, and when a small specialist net beats prompting a giant LM.",
+      "resources": [
+        {
+          "title": "Karpathy Zero to Hero",
+          "url": "https://karpathy.ai/zero-to-hero.html"
+        },
+        {
+          "title": "PyTorch tutorials",
+          "url": "https://docs.pytorch.org/tutorials/"
+        },
+        {
+          "title": "Deep Learning Book",
+          "url": "https://www.deeplearningbook.org/"
+        },
+        {
+          "title": "Chinchilla scaling laws",
+          "url": "https://arxiv.org/abs/2203.15556"
+        }
+      ],
+      "project": "Train a tiny MLP and a nano-scale LM; ablate width, depth, and learning rate.",
+      "topics": [
+        {
+          "id": "sc-nn-blocks",
+          "title": "Building Blocks",
+          "subtopics": [
+            {
+              "id": "sc-nn-blocks-s1",
+              "title": "Layers, activations, losses"
+            },
+            {
+              "id": "sc-nn-blocks-s2",
+              "title": "Backprop intuition"
+            },
+            {
+              "id": "sc-nn-blocks-s3",
+              "title": "Residuals and norms"
+            },
+            {
+              "id": "sc-nn-blocks-s4",
+              "title": "Dropout / weight decay"
+            },
+            {
+              "id": "sc-nn-blocks-s5",
+              "title": "Parameter counting"
+            }
+          ],
+          "explainer": "A neural network stacks simple layers: a linear map, a nonlinearity such as GELU or SiLU, and a loss at the end. Backprop sends error signals backward through every layer. Residual connections add the input of a block to its output, so gradients have a short path back and very deep networks stay trainable. Normalization (LayerNorm, RMSNorm) keeps activations in a sane range. Dropout and weight decay are regularizers that discourage memorization. Parameter counting is a practical skill: a transformer block has roughly 12·d² parameters (4·d² attention, 8·d² MLP), so you can sanity-check model sizes and memory before downloading anything."
+        },
+        {
+          "id": "sc-nn-rep",
+          "title": "Representations & Scale",
+          "subtopics": [
+            {
+              "id": "sc-nn-rep-s1",
+              "title": "Embeddings and latent spaces"
+            },
+            {
+              "id": "sc-nn-rep-s2",
+              "title": "Transfer learning"
+            },
+            {
+              "id": "sc-nn-rep-s3",
+              "title": "Scaling laws intuition"
+            },
+            {
+              "id": "sc-nn-rep-s4",
+              "title": "Under/over-parameterization"
+            },
+            {
+              "id": "sc-nn-rep-s5",
+              "title": "Inductive bias"
+            }
+          ],
+          "explainer": "Networks learn representations: internal coordinates where similar things sit close together. That is why pretrained models transfer, since the features learned on a huge corpus are reusable for your task with little extra data. Scaling laws describe how loss falls smoothly as you add parameters, data and compute, and Chinchilla showed that many early models were undertrained for their size (roughly 20 tokens per parameter is compute-optimal). Inductive bias is what an architecture assumes before seeing data: convolutions assume locality, attention assumes little. Large over-parameterized models can still generalize well, which overturned the classic \"more parameters means more overfitting\" intuition."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Chinchilla-style scaling emphasizes…",
+          "choices": [
+            "Matching data size to model size for a compute budget",
+            "Always preferring the largest model",
+            "Ignoring tokens seen",
+            "Training only on code"
+          ],
+          "answer": 0,
+          "why": "Compute-optimal training balances parameters and tokens."
+        },
+        {
+          "q": "A transformer block has roughly how many parameters per layer for hidden size d?",
+          "choices": [
+            "d³",
+            "4·d",
+            "12·d²",
+            "d"
+          ],
+          "answer": 2,
+          "why": "About 4·d² for attention projections and 8·d² for the MLP with 4x expansion."
+        },
+        {
+          "q": "Residual connections mainly help by…",
+          "choices": [
+            "Encrypting activations",
+            "Removing the need for data",
+            "Giving gradients a short path through deep networks",
+            "Reducing vocabulary size"
+          ],
+          "answer": 2,
+          "why": "The identity path keeps gradients flowing, so very deep stacks stay trainable."
+        }
+      ],
+      "conceptIds": []
+    },
+    {
+      "id": "sc-llm",
+      "title": "LLM Mechanics",
+      "why": "Shared vocabulary: tokens in, logits out, KV in between.",
+      "explainer": "Large language models are transformers trained to predict the next token. The operational stack is: tokenizer, embedding, blocks of attention plus MLP (or MoE), unembedding, softmax. Generation samples or argmaxes, appends the token, and repeats — unless constrained decode intervenes.\n\nTokenization is not free: fertility differs by language and code, which changes cost and latency. Attention is expensive; the KV cache avoids recomputing past keys/values each step. Positional schemes (RoPE) and attention variants (MHA, GQA, MQA, MLA) trade quality for memory.\n\nCommon mistake: comparing context windows without checking tokenizer and usable context after system prompt and tools. Another: swapping chat templates across families and wondering why quality collapsed.\n\nThis subject is the lingua franca across all five tracks.",
+      "resources": [
+        {
+          "title": "Attention Is All You Need (Vaswani et al.)",
+          "url": "https://arxiv.org/abs/1706.03762"
+        },
+        {
+          "title": "nanoGPT",
+          "url": "https://github.com/karpathy/nanoGPT"
+        },
+        {
+          "title": "minbpe",
+          "url": "https://github.com/karpathy/minbpe"
+        },
+        {
+          "title": "Hugging Face LLM Course",
+          "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+        },
+        {
+          "title": "Stanford CS336",
+          "url": "https://cs336.stanford.edu/"
+        },
+        {
+          "title": "Grouped-Query Attention",
+          "url": "https://arxiv.org/abs/2305.13245"
+        },
+        {
+          "title": "RoPE / RoFormer",
+          "url": "https://arxiv.org/abs/2104.09864"
+        }
+      ],
+      "project": "Implement BPE (minbpe-style) and train a tiny GPT; inspect attention on a short prompt.",
+      "topics": [
+        {
+          "id": "sc-llm-tok",
+          "title": "Tokenization",
+          "subtopics": [
+            {
+              "id": "sc-llm-tok-s1",
+              "title": "BPE / WordPiece / Unigram"
+            },
+            {
+              "id": "sc-llm-tok-s2",
+              "title": "Special tokens and chat templates"
+            },
+            {
+              "id": "sc-llm-tok-s3",
+              "title": "Fertility and multilingual cost"
+            },
+            {
+              "id": "sc-llm-tok-s4",
+              "title": "Detokenization pitfalls"
+            },
+            {
+              "id": "sc-llm-tok-s5",
+              "title": "Domain-specific tokenizers"
+            }
+          ],
+          "explainer": "Models never see characters, only token ids. BPE and similar algorithms merge frequent byte pairs into a vocabulary of roughly 32k to 200k pieces. Fertility, the number of tokens per word, varies a lot by language and domain: code, Thai, or chemical names can cost several times more tokens than English prose, which hits both cost and context budget. Chat templates wrap messages with special tokens that mark roles; using the wrong template quietly degrades quality. Detokenization can split multi-byte characters across tokens, so streaming clients must buffer bytes. Always count tokens with the model's own tokenizer before you send."
+        },
+        {
+          "id": "sc-llm-attn",
+          "title": "Attention & Blocks",
+          "subtopics": [
+            {
+              "id": "sc-llm-attn-s1",
+              "title": "QKV self-attention"
+            },
+            {
+              "id": "sc-llm-attn-s2",
+              "title": "MHA / GQA / MQA / MLA"
+            },
+            {
+              "id": "sc-llm-attn-s3",
+              "title": "RoPE and positions"
+            },
+            {
+              "id": "sc-llm-attn-s4",
+              "title": "FFN and MoE layers"
+            },
+            {
+              "id": "sc-llm-attn-s5",
+              "title": "Causal mask and KV cache role"
+            }
+          ],
+          "explainer": "A transformer block is attention followed by a feed-forward network, each wrapped in a residual connection and normalization. Attention lets every token gather information from earlier tokens, weighted by query-key similarity. Multi-head attention runs several of these in parallel. GQA and MQA share key/value heads across query heads to shrink the KV cache; MLA compresses keys and values into a smaller latent. RoPE encodes position by rotating query and key vectors so relative distance shows up in their dot product. The causal mask stops tokens from peeking at the future, which is exactly what makes caching earlier keys and values valid during generation."
+        },
+        {
+          "id": "sc-llm-gen",
+          "title": "Generation",
+          "subtopics": [
+            {
+              "id": "sc-llm-gen-s1",
+              "title": "Greedy / temperature / top-k / top-p"
+            },
+            {
+              "id": "sc-llm-gen-s2",
+              "title": "Stop sequences"
+            },
+            {
+              "id": "sc-llm-gen-s3",
+              "title": "Structured / constrained decode"
+            },
+            {
+              "id": "sc-llm-gen-s4",
+              "title": "Logprobs and entropy"
+            },
+            {
+              "id": "sc-llm-gen-s5",
+              "title": "Streaming tokens"
+            }
+          ],
+          "explainer": "Generation is a loop: run the model, get logits for the next token, pick one, append it, repeat. Greedy picks the top token; temperature reshapes the distribution (lower is sharper); top-k and top-p cut off the unlikely tail before sampling. Stop sequences end the loop. Constrained decoding masks tokens that would break a grammar or JSON schema, so output is valid by construction. Logprobs expose the model's confidence per token and are handy for classification and routing. Streaming sends tokens as they appear, which improves perceived latency but means your client must handle partial output and cancellation."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "KV cache primarily avoids…",
+          "choices": [
+            "Recomputing attention over past tokens each decode step",
+            "Downloading weights again",
+            "Tokenizer training",
+            "Gradient updates"
+          ],
+          "answer": 0,
+          "why": "Cached K/V skip full prefill every decode step."
+        },
+        {
+          "q": "Lower temperature makes sampling…",
+          "choices": [
+            "More deterministic",
+            "Faster on GPU",
+            "Longer",
+            "More random"
+          ],
+          "answer": 0,
+          "why": "Dividing logits by a smaller temperature sharpens the distribution toward the top token."
+        },
+        {
+          "q": "Why can text cost more tokens in Thai or code than in English prose?",
+          "choices": [
+            "Larger KV heads",
+            "Higher tokenizer fertility",
+            "Slower GPUs",
+            "Longer system prompts"
+          ],
+          "answer": 1,
+          "why": "Vocabularies trained mostly on English split other text into more pieces per word."
+        }
+      ],
+      "conceptIds": [
+        "attention",
+        "kv-cache",
+        "rope-long-context"
+      ]
+    },
+    {
+      "id": "sc-long",
+      "title": "Long Context, Multimodal & MoE Basics",
+      "why": "Modern models are not just short-text left-to-right stacks.",
+      "explainer": "Three extensions show up in every 2026 stack. Long context (100K to 1M+ tokens) changes retrieval versus stuffing tradeoffs, but attention cost and lost-in-the-middle still bite. Multimodal VLMs add vision (and sometimes audio) encoders; failure modes include OCR errors, layout blindness, and unsafe image instructions. Mixture-of-Experts activates a subset of experts per token — great for capacity per dollar, painful for serving (expert parallelism, load imbalance).\n\nCommon mistake: treating a 1M context model as a free database. Another: sending every PDF to a VLM when a parser plus text model is cheaper and more reliable.\n\nArchitects need these options in the build/buy matrix; inference engineers feel MoE on the interconnect; app engineers feel long context on the invoice.",
+      "resources": [
+        {
+          "title": "Mixture of Experts (Shazeer et al.)",
+          "url": "https://arxiv.org/abs/1701.06538"
+        },
+        {
+          "title": "Switch Transformers",
+          "url": "https://arxiv.org/abs/2101.03961"
+        },
+        {
+          "title": "Attention Is All You Need (Vaswani et al.)",
+          "url": "https://arxiv.org/abs/1706.03762"
+        },
+        {
+          "title": "Hugging Face LLM Course",
+          "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+        }
+      ],
+      "project": "Benchmark the same QA with short RAG versus long-context stuffing; compare cost, latency, accuracy.",
+      "topics": [
+        {
+          "id": "sc-long-ctx",
+          "title": "Long Context",
+          "subtopics": [
+            {
+              "id": "sc-long-ctx-s1",
+              "title": "Context window vs usable context"
+            },
+            {
+              "id": "sc-long-ctx-s2",
+              "title": "Lost-in-the-middle"
+            },
+            {
+              "id": "sc-long-ctx-s3",
+              "title": "Sparse / dilated attention ideas"
+            },
+            {
+              "id": "sc-long-ctx-s4",
+              "title": "Memory and KV growth"
+            },
+            {
+              "id": "sc-long-ctx-s5",
+              "title": "When RAG still wins"
+            }
+          ],
+          "explainer": "A model may accept 1M tokens, but usable context is smaller: recall of facts buried in the middle often drops (\"lost in the middle\"), and cost and latency grow with length. KV cache memory grows linearly with tokens, and attention compute grows quadratically during prefill, so long prompts are expensive to serve. Sparse, sliding-window and chunked attention variants trade some quality for efficiency. RoPE scaling methods stretch positional encodings beyond training length. RAG still wins when the corpus is bigger than any window, changes often, or needs access control per document. Measure with needle-in-a-haystack and, better, task-level evals on your own long documents."
+        },
+        {
+          "id": "sc-mm",
+          "title": "Multimodal & Speech",
+          "subtopics": [
+            {
+              "id": "sc-mm-s1",
+              "title": "VLM encoder plus LLM patterns"
+            },
+            {
+              "id": "sc-mm-s2",
+              "title": "Image patches / tokens"
+            },
+            {
+              "id": "sc-mm-s3",
+              "title": "OCR and document AI"
+            },
+            {
+              "id": "sc-mm-s4",
+              "title": "STT/TTS in agent loops"
+            },
+            {
+              "id": "sc-mm-s5",
+              "title": "Cross-modal safety"
+            }
+          ],
+          "explainer": "Vision-language models usually bolt a vision encoder onto an LLM: the image is cut into patches, encoded, projected into the token embedding space, and treated like extra tokens. A single high-resolution image can cost hundreds to thousands of tokens. For documents, classic OCR or PDF text extraction is often cheaper and more accurate than sending page images, with the VLM as a fallback for charts and layout. Speech systems pair speech-to-text and text-to-speech with an LLM, or use native audio models for lower latency. New modalities bring new attack surfaces, such as instructions hidden in images or audio."
+        },
+        {
+          "id": "sc-moe",
+          "title": "Mixture of Experts",
+          "subtopics": [
+            {
+              "id": "sc-moe-s1",
+              "title": "Sparse activation"
+            },
+            {
+              "id": "sc-moe-s2",
+              "title": "Gating and load balancing"
+            },
+            {
+              "id": "sc-moe-s3",
+              "title": "Expert parallelism"
+            },
+            {
+              "id": "sc-moe-s4",
+              "title": "Serving MoE pain"
+            },
+            {
+              "id": "sc-moe-s5",
+              "title": "Quality vs dense"
+            }
+          ],
+          "explainer": "Mixture-of-experts replaces the single feed-forward block with many experts and a small router that sends each token to the top-k of them (often 2 of 8, or 8 of 256). Only a fraction of the parameters run per token, so you get the quality of a big model at the compute of a smaller one. The catch is memory: all experts must be resident, so a 600B-parameter MoE still needs the HBM of a 600B model. Training adds load-balancing losses so experts are used evenly. Serving uses expert parallelism, which turns routing into all-to-all network traffic and makes batch composition matter."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "MoE models typically…",
+          "choices": [
+            "Activate a subset of experts per token",
+            "Use all parameters every token",
+            "Remove the need for GPUs",
+            "Make RAG obsolete"
+          ],
+          "answer": 0,
+          "why": "Sparsity is the point of MoE."
+        },
+        {
+          "q": "A 600B-parameter MoE that activates 37B per token still needs memory for…",
+          "choices": [
+            "Only the router",
+            "37B parameters",
+            "All 600B parameters",
+            "Only the KV cache"
+          ],
+          "answer": 2,
+          "why": "All experts must be resident because any token may route to any expert."
+        },
+        {
+          "q": "RAG still beats a huge context window when…",
+          "choices": [
+            "The model has no tokenizer",
+            "The corpus is small and static",
+            "You want lower recall",
+            "The corpus is larger than the window or needs per-document access control"
+          ],
+          "answer": 3,
+          "why": "Windows have limits, cost scales with length, and ACLs are easier at retrieval time."
+        }
+      ],
+      "conceptIds": [
+        "moe-routing",
+        "rope-long-context"
+      ]
+    },
+    {
+      "id": "sc-eval",
+      "title": "Evaluation Literacy",
+      "why": "If you cannot measure it, you cannot improve or sell it.",
+      "explainer": "Evals turn probabilistic systems into engineering. Separate capability, safety, and cost. Offline golden sets catch regressions; online metrics catch drift. LLM-as-judge is useful and biased — calibrate it. Contamination silently inflates leaderboards.\n\nProcess metrics (right tool called?) matter as much as outcomes for agents. For RAG, measure retrieval and generation separately or you will fine-tune the wrong stage.\n\nCommon mistake: weeks of demos before twenty labeled cases. Another: tuning a judge until it agrees with you.\n\nShip a thin eval harness on day one; thicken it as the product hardens.",
+      "resources": [
+        {
+          "title": "Stanford HELM",
+          "url": "https://crfm.stanford.edu/helm/"
+        },
+        {
+          "title": "lm-evaluation-harness",
+          "url": "https://github.com/EleutherAI/lm-evaluation-harness"
+        },
+        {
+          "title": "OpenAI Evals",
+          "url": "https://github.com/openai/evals"
+        },
+        {
+          "title": "Ragas",
+          "url": "https://docs.ragas.io/en/stable/"
+        },
+        {
+          "title": "Judging LLM-as-a-Judge",
+          "url": "https://arxiv.org/abs/2306.05685"
+        }
+      ],
+      "project": "Build a 50-item golden set; score exact match plus LLM-judge; measure judge agreement.",
+      "topics": [
+        {
+          "id": "sc-eval-what",
+          "title": "What to Measure",
+          "subtopics": [
+            {
+              "id": "sc-eval-what-s1",
+              "title": "Capability vs safety vs cost"
+            },
+            {
+              "id": "sc-eval-what-s2",
+              "title": "Process vs outcome"
+            },
+            {
+              "id": "sc-eval-what-s3",
+              "title": "Online vs offline"
+            },
+            {
+              "id": "sc-eval-what-s4",
+              "title": "Contamination / leakage"
+            },
+            {
+              "id": "sc-eval-what-s5",
+              "title": "Calibration and abstention"
+            }
+          ],
+          "explainer": "Decide what \"good\" means before measuring. Capability (does it solve the task), safety (does it avoid harm and leaks), and cost/latency are separate axes and often trade off. For agents, outcome metrics (task done) and process metrics (steps, tool errors, policy violations) both matter. Offline evals on fixed sets catch regressions; online signals such as user edits, thumbs, and escalations catch what your set missed. Contamination happens when test items leaked into training data, inflating scores. Calibration and abstention matter in high-stakes domains: a model that says \"I don't know\" correctly is often worth more than one that is slightly more accurate."
+        },
+        {
+          "id": "sc-eval-how",
+          "title": "How to Run",
+          "subtopics": [
+            {
+              "id": "sc-eval-how-s1",
+              "title": "Golden sets and rubrics"
+            },
+            {
+              "id": "sc-eval-how-s2",
+              "title": "LLM-as-judge pitfalls"
+            },
+            {
+              "id": "sc-eval-how-s3",
+              "title": "CI regression gates"
+            },
+            {
+              "id": "sc-eval-how-s4",
+              "title": "Shadow traffic and A/B"
+            },
+            {
+              "id": "sc-eval-how-s5",
+              "title": "Error taxonomy"
+            }
+          ],
+          "explainer": "Start with a golden set: 50 to 200 real, labeled examples with clear rubrics, built before you tune anything. LLM-as-judge scales grading but has biases (position, verbosity, self-preference), so calibrate it against human labels and keep the judge model and prompt versioned. Put evals in CI so prompt or model changes fail the build when quality drops. Shadow traffic and A/B tests validate changes on real users safely. Keep an error taxonomy (retrieval miss, hallucination, format error, refusal) so failures turn into specific fixes rather than vague \"the model is worse\" complaints."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Best time to create a golden set is…",
+          "choices": [
+            "With the first prompt, before the demo hardens",
+            "After Series B",
+            "Only when fine-tuning",
+            "Never"
+          ],
+          "answer": 0,
+          "why": "Early evals prevent demo-driven dead ends."
+        },
+        {
+          "q": "LLM-as-judge should be…",
+          "choices": [
+            "Used only for math",
+            "Run once a year",
+            "Trusted without checks",
+            "Calibrated against human labels and versioned"
+          ],
+          "answer": 3,
+          "why": "Judges have position, verbosity and self-preference biases that drift with versions."
+        },
+        {
+          "q": "Contamination means…",
+          "choices": [
+            "The GPU is dusty",
+            "The eval set leaked into training data",
+            "Logs are too large",
+            "The judge is too strict"
+          ],
+          "answer": 1,
+          "why": "Leaked test items inflate scores without real capability."
+        }
+      ],
+      "conceptIds": [
+        "evals"
+      ]
+    },
+    {
+      "id": "sc-sec",
+      "title": "AI Security & Trust Basics",
+      "why": "Tools turn models into attack surfaces.",
+      "explainer": "Prompt injection (direct and indirect), data/model poisoning, supply-chain risk (weights, MCP servers, plugins), and secret leakage through logs are everyday threats. OWASP LLM Top 10 and MITRE ATLAS give shared language; NIST AI RMF and the EU AI Act shape enterprise buying.\n\nControls: least-privilege tools, sandboxes, egress allowlists, output validation, human approval for irreversible actions, and provenance for models and data.\n\nCommon mistake: a regex on user input while tools still hold broad SaaS tokens. Another: logging full prompts with PII into a third-party tracer.\n\nEvery track inherits this threat model.",
+      "resources": [
+        {
+          "title": "OWASP Top 10 for LLM Apps",
+          "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+        },
+        {
+          "title": "NIST AI RMF",
+          "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+        },
+        {
+          "title": "MITRE ATLAS",
+          "url": "https://atlas.mitre.org/"
+        },
+        {
+          "title": "Google SAIF",
+          "url": "https://safety.google/cybersecurity-advancements/saif/"
+        },
+        {
+          "title": "EU AI Act",
+          "url": "https://artificialintelligenceact.eu/"
+        }
+      ],
+      "project": "Red-team a toy RAG+tools bot for indirect injection; document findings and mitigations.",
+      "topics": [
+        {
+          "id": "sc-sec-threats",
+          "title": "Threats",
+          "subtopics": [
+            {
+              "id": "sc-sec-threats-s1",
+              "title": "Direct / indirect prompt injection"
+            },
+            {
+              "id": "sc-sec-threats-s2",
+              "title": "Poisoning and backdoors"
+            },
+            {
+              "id": "sc-sec-threats-s3",
+              "title": "Supply chain (models, plugins, MCP)"
+            },
+            {
+              "id": "sc-sec-threats-s4",
+              "title": "Secrets in context/logs"
+            },
+            {
+              "id": "sc-sec-threats-s5",
+              "title": "Model extraction / membership"
+            }
+          ],
+          "explainer": "LLM systems mix instructions and data in one channel, so prompt injection is the signature threat: direct when a user types it, indirect when it hides in a web page, email, PDF or tool result the model reads. Poisoning plants bad behavior in training or retrieval data. The supply chain now includes model weights, tokenizers, plugins and MCP servers, any of which can be malicious. Secrets pasted into prompts end up in logs and traces. Attackers can also query a model to extract its behavior or test whether a record was in its training data. Treat every model output as untrusted input to the next system."
+        },
+        {
+          "id": "sc-sec-ctrl",
+          "title": "Controls",
+          "subtopics": [
+            {
+              "id": "sc-sec-ctrl-s1",
+              "title": "Least-privilege tools"
+            },
+            {
+              "id": "sc-sec-ctrl-s2",
+              "title": "Sandboxing and egress"
+            },
+            {
+              "id": "sc-sec-ctrl-s3",
+              "title": "Output validation"
+            },
+            {
+              "id": "sc-sec-ctrl-s4",
+              "title": "Human approval gates"
+            },
+            {
+              "id": "sc-sec-ctrl-s5",
+              "title": "Audit and provenance"
+            }
+          ],
+          "explainer": "You cannot reliably filter prompt injection, so design so it cannot do much damage. Give tools least privilege: narrow scopes, read before write, per-user credentials rather than a shared admin key. Run code and browsers in sandboxes with egress allowlists. Validate model output against schemas and business rules before acting on it. Put human approval in front of irreversible actions like sending money or email. Keep tamper-evident audit logs of prompts, tool calls and approvals so you can reconstruct incidents. Record provenance for models and data so you know exactly what was running when something went wrong."
+        }
+      ],
+      "quiz": [
+        {
+          "q": "Indirect prompt injection often arrives via…",
+          "choices": [
+            "Retrieved documents or tool outputs",
+            "Only the system prompt file",
+            "GPU firmware",
+            "Learning rate"
+          ],
+          "answer": 0,
+          "why": "Untrusted retrieved content is a classic channel."
+        },
+        {
+          "q": "The most reliable defense against prompt injection consequences is…",
+          "choices": [
+            "A longer system prompt",
+            "Using temperature 0",
+            "Limiting what the model's tools can do",
+            "Asking the model to be careful"
+          ],
+          "answer": 2,
+          "why": "You cannot filter injection perfectly, so least privilege limits the damage."
+        },
+        {
+          "q": "Pickle-based model files are risky because…",
+          "choices": [
+            "Loading them can execute arbitrary code",
+            "They are slow on GPUs",
+            "They are large",
+            "They lack metadata"
+          ],
+          "answer": 0,
+          "why": "Pickle deserialization runs code; prefer safetensors."
+        }
+      ],
+      "conceptIds": [
+        "threat-model",
+        "prompt-injection-defense"
+      ]
+    }
+  ]
+}
