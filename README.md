@@ -6,34 +6,42 @@
 
 **Tracks:** AI Architect · AI Engineer · AI Inference Engineer · AI Infrastructure · Agentic AI · **AI-Ready Data Engineering** (new) · **AgentOps, Evals, Security & Governance** (new).
 
-Everything is centered on agentic AI and on the data engineering agents depend on. It's an atlas, not a link dump. Every subject and every topic has an original explainer. There are 51 concept cards with diagrams and worked examples (the math is checked), plus quizzes, hands-on labs, capstones, learning paths (including a **Universal Agentic Path** that covers all 13 roles in order) and a glossary. Current as of October 2026.
+Everything is centered on agentic AI and on the data engineering agents depend on. It's an atlas, not a link dump. Every subject and every topic has an original explainer. There are 57 concept cards with diagrams and worked examples (the math is checked), plus quizzes, hands-on labs, capstones, learning paths (including a **Universal Agentic Path** that covers all 13 roles in order) and a glossary. Current as of October 2026.
 
 ![Roles view](docs/screenshots/09-desktop-roles.png)
 
 ## At a glance
 
-| | v3 | v5 |
+| | v3 | v7 |
 |---|---|---|
 | Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** |
 | Tracks (+ Shared Core) | 5 | **7** |
-| Subjects | 91 | **121** |
-| Topics (each with its own explainer) | 198 | **288** |
-| Subtopics | 990 | **1,440** |
-| Quiz questions (≥3 per subject, with explanations) | 283 | **373** |
-| Unique resource URLs (link-checked) | 130 | **228** |
-| Concept cards (diagram + worked example) | 41 | **54** |
+| Subjects | 91 | **129** |
+| Topics (each with its own explainer) | 198 | **328** |
+| Subtopics | 990 | **1,644** |
+| Quiz questions (≥3 per subject, with explanations) | 283 | **412** |
+| Unique resource URLs (link-checked) | 130 | **275** |
+| Concept cards (diagram + worked example) | 41 | **57** |
 | Capstone projects | 6 | **8** |
-| Project ladder builds (4 tiers) | – | **21** |
-| Learning paths | 5 | **6** |
-| Glossary terms | 104 | **136** |
+| Project ladder builds (4 tiers) | – | **28** |
+| Learning paths | 5 | **7** |
+| Glossary terms | 104 | **143** |
 
-### New in v6: coverage audit
+### New in v7: Suraj Sharma's 12 stages
+This version goes deeper on the stages of Suraj Sharma's "6 months to become an AI Engineer in the Agentic Era" that the atlas covered only thinly:
+- **8 new topics:** context engineering and token budgets, agentic RAG with self-correction, raw MCP over JSON-RPC, streaming UX, graceful-degradation fallback chains, the DPO feedback flywheel, ADRs and teardowns, and three-tier memory.
+- **3 concept cards, with diagrams and worked math:** Context Token Budget Allocator, Agentic RAG Self-Correction Loop, and Fallback and Degradation Chain.
+- **7 Project Ladder builds:** p-context, p-mcp-raw, p-agentic-rag, p-memory, p-streaming, p-flywheel and p-teardown.
+- **An untimed path**, "Agentic AI Engineer (Suraj Sharma's 12 stages)", that maps each stage to a subject and a ladder project.
+- **18 audit topics** attributed to the post, all now covered (185 of 185 audit items).
+
+## New in v6: coverage audit
 We checked the atlas against 167 topics taken from about 45 job postings from 2026, course syllabi (DeepLearning.AI, CS336, CS224N, FSDL, Hugging Face), vendor docs (OpenAI, Anthropic, Google, Bedrock, Azure Foundry, Databricks, LangChain, LlamaIndex) and roadmap repos. Before: 114 covered, 31 thin, 22 missing. After: 167 covered. See `docs/coverage_audit.csv` (after) and `docs/coverage_audit_before.csv`. To re-run it: `python3 scripts/audit/audit.py`.
 The audit added 8 subjects: NLP Foundations, Agentic Design Patterns, Agent Frameworks & Platforms, Reasoning Models & API Platform, RL Environments, Generative Media, Agent Attacks and Responsible AI. It also added 8 topics to existing subjects.
 
 ## New in v5
 
-- **Project Ladder view: one AI skill = one project.** There are 21 hands-on builds in 4 tiers (Starter → Expert). Each has a goal, stack options, steps, stretch goals, checkable "done when" criteria, mapped roles and linked subjects. They cover semantic search over notes, your own MCP server to a database, function calling that books real calendar meetings, evals that catch prompt regressions, multimodal PDF RAG, a receipt reader, model routing, an observability dashboard, guardrails, a research/cold-email agent, a LoRA fine-tune in your voice, and a phone voice agent. The agentic, data and ops builds are CDC data product, durable workflows, kill switches, policy as code, audit trail, secure landing zone, trajectory evals, self-hosted inference and an end-to-end FDE engagement.
+- **Project Ladder view: one AI skill = one project.** There are 21 hands-on builds (28 as of v7) in 4 tiers (Starter → Expert). Each has a goal, stack options, steps, stretch goals, checkable "done when" criteria, mapped roles and linked subjects. They cover semantic search over notes, your own MCP server to a database, function calling that books real calendar meetings, evals that catch prompt regressions, multimodal PDF RAG, a receipt reader, model routing, an observability dashboard, guardrails, a research/cold-email agent, a LoRA fine-tune in your voice, and a phone voice agent. The agentic, data and ops builds are CDC data product, durable workflows, kill switches, policy as code, audit trail, secure landing zone, trajectory evals, self-hosted inference and an end-to-end FDE engagement.
 - **3 new subjects:** Multimodal and Document RAG (layout parsing, tables/charts, ColPali visual retrieval, multimodal embeddings), Vision and Document AI (OCR vs VLM extraction, validated JSON from receipts and invoices), and Real-Time Voice Agents (STT/TTS, speech-to-speech, VAD and turn-taking, barge-in, latency budget, SIP/Twilio).
 - **3 new concept cards:** voice agent latency pipeline · document/multimodal RAG pipeline · model router (cheap vs smart).
 
@@ -77,7 +85,7 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 
 ## Link check
 
-All 259 resource URLs were checked on 2026-10-11, and 254 passed the automated check. The 5 exceptions are known false negatives. ISO/IEC 42001 (iso.org) returns 403 to scripted clients. Three docs.vllm.ai pages returned 429 (rate limiting) but are live. The Stanford CS336 site timed out at 20 s but answers with a 301 when given a longer timeout. EUR-Lex returns a 202 bot challenge to scripts. See `docs/resources_linkcheck.csv`.
+All 275 resource URLs were checked on 2026-10-12, and 271 passed the automated check. The 4 exceptions are known false negatives. ISO/IEC 42001 (iso.org) returns 403 to scripted clients. Two genai.owasp.org pages return 403 to scripted clients. The Stanford CS336 site timed out at 20 s but answers with a 301 when given a longer timeout. EUR-Lex returns a 202 bot challenge to scripts. See `docs/resources_linkcheck.csv`.
 
 ## GitHub Pages
 

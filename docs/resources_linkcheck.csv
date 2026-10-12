@@ -4,6 +4,7 @@ https://3blue1brown.com/topics/linear-algebra,200,https://www.3blue1brown.com/?t
 https://a16z.com/services-led-growth/,200,https://a16z.com/services-led-growth/,a16z: Trading margin for moat — the FDE model
 https://a2a-protocol.org/latest/,200,https://a2a-protocol.org/latest/,Google A2A protocol
 https://a2aproject.github.io/A2A/,200,https://a2a-protocol.org/,A2A protocol
+https://adr.github.io/,200,https://adr.github.io/,ADR GitHub organization
 https://aigateway.envoyproxy.io/,200,https://theagentrouter.ai/,Envoy AI Gateway
 https://arize.com/docs/phoenix,200,https://arize.com/docs/phoenix,Arize Phoenix docs
 https://artificialintelligenceact.eu/,200,https://artificialintelligenceact.eu/,EU AI Act
@@ -26,6 +27,7 @@ https://arxiv.org/abs/2210.03629,200,https://arxiv.org/abs/2210.03629,ReAct pape
 https://arxiv.org/abs/2210.17323,200,https://arxiv.org/abs/2210.17323,GPTQ
 https://arxiv.org/abs/2211.17192,200,https://arxiv.org/abs/2211.17192,Speculative Decoding (Leviathan et al.)
 https://arxiv.org/abs/2212.09748,200,https://arxiv.org/abs/2212.09748,"Scalable Diffusion Models with Transformers (DiT, arXiv)"
+https://arxiv.org/abs/2304.03442,200,https://arxiv.org/abs/2304.03442,Generative Agents paper (arXiv)
 https://arxiv.org/abs/2305.13245,200,https://arxiv.org/abs/2305.13245,Grouped-Query Attention
 https://arxiv.org/abs/2305.14314,200,https://arxiv.org/abs/2305.14314,QLoRA
 https://arxiv.org/abs/2305.18290,200,https://arxiv.org/abs/2305.18290,Direct Preference Optimization
@@ -35,7 +37,9 @@ https://arxiv.org/abs/2307.08691,200,https://arxiv.org/abs/2307.08691,FlashAtten
 https://arxiv.org/abs/2309.06180,200,https://arxiv.org/abs/2309.06180,PagedAttention / Efficient LLM Serving
 https://arxiv.org/abs/2310.06770,200,https://arxiv.org/abs/2310.06770,SWE-bench
 https://arxiv.org/abs/2310.08560,200,https://arxiv.org/abs/2310.08560,MemGPT
+https://arxiv.org/abs/2310.11511,200,https://arxiv.org/abs/2310.11511,Self-RAG paper (arXiv)
 https://arxiv.org/abs/2401.09670,200,https://arxiv.org/abs/2401.09670,DistServe Prefill/Decode Disaggregation
+https://arxiv.org/abs/2401.15884,200,https://arxiv.org/abs/2401.15884,Corrective RAG (CRAG) paper (arXiv)
 https://arxiv.org/abs/2402.03300,200,https://arxiv.org/abs/2402.03300,DeepSeekMath / GRPO
 https://arxiv.org/abs/2407.01449,200,https://arxiv.org/abs/2407.01449,ColPali paper (arXiv)
 https://arxiv.org/abs/2507.19457,200,https://arxiv.org/abs/2507.19457,GEPA: Reflective prompt evolution (arXiv)
@@ -54,6 +58,7 @@ https://cloud.google.com/iam/docs/workload-identity-federation,200,https://docs.
 https://cloud.google.com/resources/mlops-whitepaper,200,https://cloud.google.com/resources/mlops-whitepaper,Google: Practitioners guide to MLOps
 https://cloud.google.com/vertex-ai/docs,200,https://docs.cloud.google.com/gemini-enterprise-agent-platform,Vertex AI
 https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro,200,https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro,CSA: Agentic AI threat modeling (MAESTRO)
+https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions,200,https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions,Michael Nygard: Documenting architecture decisions
 https://crfm.stanford.edu/helm/,200,https://crfm.stanford.edu/helm/,Stanford HELM
 https://cs229.stanford.edu/,200,https://cs229.stanford.edu/,Stanford CS229
 https://cs336.stanford.edu/,200,https://cs336.stanford.edu/,Stanford CS336
@@ -61,8 +66,11 @@ https://csrc.nist.gov/pubs/sp/800/92/final,200,https://csrc.nist.gov/pubs/sp/800
 https://cube.dev/docs/product/introduction,200,https://docs.cube.dev/docs/introduction,Cube semantic layer docs
 https://d2l.ai/,200,https://d2l.ai/,Dive into Deep Learning
 https://debezium.io/documentation/reference/stable/index.html,200,https://debezium.io/documentation/reference/stable/index.html,Debezium documentation
+https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events,200,https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events,MDN: Using server-sent events
+https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API,200,https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API,MDN: WebSockets API
 https://developers.llamaindex.ai/python/framework/,200,https://developers.llamaindex.ai/python/framework/,LlamaIndex
 https://developers.openai.com/api/docs/guides/prompt-engineering,200,https://developers.openai.com/api/docs/guides/prompt-engineering,OpenAI prompt engineering
+https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching,200,https://platform.claude.com/docs/en/build-with-claude/prompt-caching,Anthropic prompt caching docs
 https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview,200,https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview,Anthropic prompt engineering
 https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html,200,https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html,AWS S3 Object Lock
 https://docs.aws.amazon.com/bedrock/,200,https://docs.aws.amazon.com/bedrock/,AWS Bedrock
@@ -72,6 +80,7 @@ https://docs.aws.amazon.com/prescriptive-guidance/latest/security-reference-arch
 https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html,200,https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html,AWS Step Functions developer guide
 https://docs.aws.amazon.com/textract/latest/dg/analyzing-document-expense.html,200,https://docs.aws.amazon.com/textract/latest/dg/analyzing-document-expense.html,AWS Textract AnalyzeExpense
 https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html,200,https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html,AWS Well-Architected Generative AI Lens
+https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html,200,https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html,AWS Well-Architected: graceful degradation
 https://docs.cedarpolicy.com/,200,https://docs.cedarpolicy.com/,Cedar policy language
 https://docs.claude.com/en/api/agent-sdk/overview,200,https://code.claude.com/docs/en/agent-sdk/overview,Claude Agent SDK overview
 https://docs.claude.com/en/docs/build-with-claude/extended-thinking,200,https://platform.claude.com/docs/en/build-with-claude/extended-thinking,Anthropic extended thinking
@@ -85,6 +94,7 @@ https://docs.langchain.com/oss/python/langchain/overview,200,https://docs.langch
 https://docs.letta.com/,200,https://docs.letta.com/,Letta (MemGPT) docs
 https://docs.litellm.ai/,200,https://docs.litellm.ai/,LiteLLM
 https://docs.litellm.ai/docs/,200,https://docs.litellm.ai/docs/,LiteLLM docs
+https://docs.litellm.ai/docs/proxy/reliability,200,https://docs.litellm.ai/docs/proxy/reliability,LiteLLM: fallbacks and reliability
 https://docs.litellm.ai/docs/proxy/users,200,https://docs.litellm.ai/docs/proxy/users,LiteLLM budgets and rate limits
 https://docs.litellm.ai/docs/simple_proxy,200,https://docs.litellm.ai/docs/simple_proxy,LiteLLM proxy docs
 https://docs.livekit.io/agents/,200,https://docs.livekit.io/agents/,LiveKit Agents docs
@@ -109,9 +119,9 @@ https://docs.soda.io/,200,https://docs.soda.io/,Soda documentation
 https://docs.temporal.io/,200,https://docs.temporal.io/,Temporal documentation
 https://docs.unitycatalog.io/,200,https://docs.unitycatalog.io/,Unity Catalog (open source)
 https://docs.unstructured.io/open-source/introduction/overview,200,https://docs.unstructured.io/open-source/introduction/overview,Unstructured open-source docs
-https://docs.vllm.ai/en/latest/,429,https://docs.vllm.ai/en/latest/,vLLM documentation
-https://docs.vllm.ai/en/latest/contributing/benchmarks.html,429,https://docs.vllm.ai/en/latest/contributing/benchmarks.html,vLLM benchmarking docs
-https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,429,https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,vLLM Run:ai Model Streamer
+https://docs.vllm.ai/en/latest/,200,https://docs.vllm.ai/en/latest/,vLLM documentation
+https://docs.vllm.ai/en/latest/contributing/benchmarks.html,200,https://docs.vllm.ai/en/latest/contributing/,vLLM benchmarking docs
+https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html,200,https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer/,vLLM Run:ai Model Streamer
 https://dspy.ai/,200,https://dspy.ai/,DSPy
 https://e2b.dev/docs,200,https://docs.e2b.dev/,E2B
 https://eugeneyan.com/writing/llm-evaluators/,200,https://eugeneyan.com/writing/llm-evaluators/,Eugene Yan: Evaluating LLM-evaluators
@@ -120,8 +130,8 @@ https://fairlearn.org/,200,https://fairlearn.org/,Fairlearn
 https://firecracker-microvm.github.io/,200,https://firecracker-microvm.github.io/,Firecracker
 https://fullstackdeeplearning.com/,200,https://fullstackdeeplearning.com/,Full Stack Deep Learning
 https://gateway-api-inference-extension.sigs.k8s.io/,200,https://gateway-api-inference-extension.sigs.k8s.io/,Gateway API Inference Extension
-https://genai.owasp.org/initiatives/agentic-security-initiative/,200,https://genai.owasp.org/initiatives/agentic-security-initiative/,OWASP GenAI Security Project: Agentic threats
-https://genai.owasp.org/llm-top-10/,200,https://genai.owasp.org/llm-top-10/,OWASP Top 10 for LLM Applications
+https://genai.owasp.org/initiatives/agentic-security-initiative/,403,https://genai.owasp.org/initiatives/agentic-security-initiative/,OWASP GenAI Security Project: Agentic threats
+https://genai.owasp.org/llm-top-10/,403,https://genai.owasp.org/llm-top-10/,OWASP Top 10 for LLM Applications
 https://github.com/AnswerDotAI/byaldi,200,https://github.com/AnswerDotAI/byaldi,Byaldi (ColPali made easy)
 https://github.com/Azure/PyRIT,200,https://github.com/Azure/PyRIT,Microsoft PyRIT
 https://github.com/Dao-AILab/flash-attention,200,https://github.com/Dao-AILab/flash-attention,FlashAttention GitHub
@@ -154,6 +164,7 @@ https://huggingface.co/docs/diffusers/index,200,https://huggingface.co/docs/diff
 https://huggingface.co/docs/peft/index,200,https://huggingface.co/docs/peft/index,Hugging Face PEFT docs
 https://huggingface.co/docs/safetensors/index,200,https://huggingface.co/docs/safetensors/index,safetensors docs
 https://huggingface.co/docs/smolagents/index,200,https://huggingface.co/docs/smolagents/index,Hugging Face smolagents
+https://huggingface.co/docs/trl/dpo_trainer,200,https://huggingface.co/docs/trl/dpo_trainer,Hugging Face TRL DPO Trainer
 https://huggingface.co/docs/trl/index,200,https://huggingface.co/docs/trl/index,Hugging Face TRL docs
 https://huggingface.co/learn/llm-course/chapter1/1,200,https://huggingface.co/learn/llm-course/chapter1/1,Hugging Face LLM Course
 https://iceberg.apache.org/docs/latest/,200,https://iceberg.apache.org/docs/latest/,Apache Iceberg docs
@@ -172,10 +183,11 @@ https://kueue.sigs.k8s.io/docs/overview/,200,https://kueue.sigs.k8s.io/docs/over
 https://langchain-ai.github.io/langgraph/,200,https://langchain-ai.github.io/langgraph/,LangGraph docs
 https://langchain-ai.github.io/langgraph/concepts/memory/,200,https://langchain-ai.github.io/langgraph/concepts/memory/,LangGraph memory concepts
 https://langchain-ai.github.io/langgraph/concepts/persistence/,200,https://langchain-ai.github.io/langgraph/concepts/persistence/,LangGraph persistence
+https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/,200,https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/,LangGraph agentic RAG tutorial
 https://langfuse.com/docs,200,https://langfuse.com/docs,Langfuse docs
 https://learn.microsoft.com/en-us/azure/ai-foundry/,200,https://learn.microsoft.com/en-us/azure/foundry/,Azure AI Foundry
 https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview,Azure AI Content Safety
-https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview,Azure AI Document Intelligence
+https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview,200,https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview?view=doc-intel-4.0.0,Azure AI Document Intelligence
 https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,200,https://learn.microsoft.com/en-us/azure/architecture/ai-ml/,Azure AI architecture
 https://learn.microsoft.com/en-us/entra/agent-id/,200,https://learn.microsoft.com/en-us/entra/agent-id/,Microsoft Entra Agent ID
 https://learn.microsoft.com/en-us/graph/permissions-overview,200,https://learn.microsoft.com/en-us/graph/permissions-overview,Microsoft Graph permissions overview
@@ -206,6 +218,7 @@ https://platform.openai.com/docs/guides/evals,200,https://developers.openai.com/
 https://platform.openai.com/docs/guides/realtime,200,https://developers.openai.com/api/docs/guides/realtime,OpenAI Realtime API guide
 https://platform.openai.com/docs/guides/reasoning,200,https://developers.openai.com/api/docs/guides/reasoning,OpenAI reasoning models guide
 https://platform.openai.com/docs/guides/reinforcement-fine-tuning,200,https://developers.openai.com/api/docs/guides/reinforcement-fine-tuning,OpenAI reinforcement fine-tuning
+https://platform.openai.com/docs/guides/streaming-responses,200,https://developers.openai.com/api/docs/guides/streaming-responses,OpenAI streaming responses guide
 https://platform.openai.com/docs/guides/structured-outputs,200,https://developers.openai.com/api/docs/guides/structured-outputs,OpenAI structured outputs
 https://prometheus.io/docs/introduction/overview/,200,https://prometheus.io/docs/introduction/overview/,Prometheus
 https://pytorch.org/docs/stable/distributed.elastic.html,200,https://docs.pytorch.org/docs/stable/distributed.elastic.html,PyTorch distributed elastic
@@ -228,8 +241,10 @@ https://volcano.sh/en/docs/,200,https://volcano.sh/docs/home/introduction/,Volca
 https://web.stanford.edu/class/cs224n/,200,https://web.stanford.edu/class/cs224n/,Stanford CS224N
 https://www.anthropic.com/engineering/building-effective-agents,200,https://www.anthropic.com/engineering/building-effective-agents,Anthropic Building Effective Agents
 https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents,200,https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents,Anthropic: Demystifying evals for AI agents
+https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents,200,https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents,Anthropic: Effective context engineering for AI agents
 https://www.anthropic.com/engineering/multi-agent-research-system,200,https://www.anthropic.com/engineering/multi-agent-research-system,Anthropic: How we built our multi-agent research system
 https://www.anthropic.com/engineering/writing-tools-for-agents,200,https://www.anthropic.com/engineering/writing-tools-for-agents,Anthropic: Writing effective tools for agents
+https://www.anthropic.com/news/contextual-retrieval,200,https://www.anthropic.com/engineering/contextual-retrieval,Anthropic: Introducing contextual retrieval
 https://www.cisecurity.org/cis-benchmarks,200,https://www.cisecurity.org/cis-benchmarks,CIS Benchmarks
 https://www.conftest.dev/,200,https://www.conftest.dev/,Conftest
 https://www.databricks.com/glossary/data-lakehouse,200,https://www.databricks.com/blog/what-is-data-lakehouse,Databricks: What is a lakehouse
@@ -240,6 +255,7 @@ https://www.finops.org/,200,https://www.finops.org/,FinOps Foundation
 https://www.finops.org/wg/finops-for-ai-overview/,200,https://www.finops.org/wg/finops-for-ai-overview/,FinOps for AI (FinOps Foundation)
 https://www.infoq.com/articles/securing-mcp-production-gateway/,200,https://www.infoq.com/articles/securing-mcp-production-gateway/,Securing MCP (InfoQ)
 https://www.iso.org/standard/81230.html,403,https://www.iso.org/standard/81230.html,ISO/IEC 42001
+https://www.jsonrpc.org/specification,200,https://www.jsonrpc.org/specification,JSON-RPC 2.0 specification
 https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/,200,https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/,Kimball dimensional modeling techniques
 https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete,200,https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete,Lenny's Newsletter: AI product evals
 https://www.microsoft.com/en-us/ai/principles-and-approach,200,https://www.microsoft.com/en-us/ai/principles-and-approach,Microsoft Responsible AI Standard

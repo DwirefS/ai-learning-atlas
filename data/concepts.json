@@ -646,5 +646,42 @@
     "body": "Most traffic is easy, so routing can cut cost substantially without hurting quality. Routing strategies:\n\nRules: route by task type, input length, tenant tier or tool needs (for example, all classification goes to a small model).\nClassifier routers: a small model or embedding classifier predicts difficulty or which model will succeed, trained on eval data where both models were scored.\nCascades: try the cheap model first, check its output with a verifier (schema validity, confidence, a judge, or tests), and escalate to the strong model only on failure.\n\nMeasure on a golden set: quality of the routed system versus always-strong, cost per request, latency, and the escalation rate. Watch for drift; the share of hard requests changes over time.\n\nImplement in the LLM gateway so every app benefits, with logging of which route each request took and why.",
     "mermaid": "flowchart LR\n  R[Request] --> RT{Router: rules or classifier}\n  RT -->|easy| S[Small model]\n  RT -->|hard| L[Large model]\n  S --> V{Verifier: schema, judge, tests}\n  V -->|pass| OUT[Response]\n  V -->|fail| L\n  L --> OUT\n  OUT --> LOG[(Route, cost, quality logs)]",
     "example": "1M requests per month at 1,500 tokens each. Always-large at $5 per 1M tokens: 1.5B tokens × $5/M = $7,500. Cascade: everything hits small ($0.30/M) = $450, and 20% escalate to large = 300M tokens × $5/M = $1,500, total $1,950, a 74% saving. It's only worth it if routed quality on the golden set stays within your threshold."
+  },
+  {
+    "id": "context-budget",
+    "title": "Context Token Budget Allocator",
+    "trackHints": [
+      "engineer",
+      "agentic"
+    ],
+    "summary": "Split the context window by priority so that the important content always fits and the bill stays predictable.",
+    "body": "A context window is a budget. Spend it in this order. First reserve output tokens so the answer is never truncated. Next come fixed costs: the system prompt and tool schemas, which are stable and placed first so prompt caching applies. The rest is shared by priority among retrieved evidence, recent conversation, and long-term memory.\n\nWhen a bucket overflows, compress it instead of truncating blindly. Summarize old turns, drop stale tool outputs, rerank and cut retrieved chunks, but keep IDs and numbers verbatim.\n\nCommon mistakes: no output reserve, putting variable content before stable content (which breaks caching), and filling the window just because it is there. Long contexts degrade recall, so smaller and relevant usually beats bigger.\n\nMental model: a budget allocator that runs before every call and logs what it dropped.",
+    "mermaid": "flowchart TD\n  W[Window 32k] --> O[Reserve output 4k]\n  W --> F[Fixed: system + tools 5k]\n  W --> V[Variable 23k]\n  V --> RET[Retrieval 60%: 13.8k]\n  V --> HIS[History 30%: 6.9k]\n  V --> MEM[Memory 10%: 2.3k]\n  HIS -->|overflow| SUM[Summarize old turns]\n  RET -->|overflow| RR[Rerank and cut]",
+    "example": "Window 32,000. Output reserve 4,000. System prompt and tools 5,000. Variable 32,000 − 9,000 = 23,000. Retrieval 60% = 13,800, history 30% = 6,900, memory 10% = 2,300; 13,800 + 6,900 + 2,300 = 23,000. Input is at most 28,000 tokens; at $3 per 1M input tokens that is $0.084 per call. If 5,000 cached prefix tokens bill at 10%, input cost becomes (23,000 × $3 + 5,000 × $0.30)/1M = $0.069 + $0.0015 = $0.0705."
+  },
+  {
+    "id": "agentic-rag-loop",
+    "title": "Agentic RAG Self-Correction Loop",
+    "trackHints": [
+      "engineer",
+      "agentic"
+    ],
+    "summary": "Rewrite, retrieve, grade, retry or abstain: a bounded loop that turns retrieval failures into recoveries or honest 'I don't know' answers.",
+    "body": "Plain RAG retrieves once and hopes. Agentic RAG adds control. Rewrite or decompose the query, run hybrid retrieval over contextually enriched chunks, then grade the results for relevance. If the grades pass, generate an answer with citations and optionally check that every claim is supported. If they fail, rewrite and retry, or route to another source such as web search (the CRAG pattern). After a fixed retry cap, abstain.\n\nCommon mistakes: unbounded loops, graders that are never themselves evaluated, and retrying with the same query. Track per-stage metrics: first-pass hit rate, recovery rate, abstention rate, and accuracy on answered questions.\n\nMental model: a thermostat for evidence quality, with a hard stop.",
+    "mermaid": "flowchart LR\n  Q[Question] --> RW[Rewrite / decompose]\n  RW --> RT[Hybrid retrieve]\n  RT --> G{Grade relevance}\n  G -->|pass| GEN[Generate with citations]\n  GEN --> SUP{Claims supported?}\n  SUP -->|yes| A[Answer]\n  SUP -->|no| RW\n  G -->|fail, retries left| RW\n  G -->|fail, cap reached| AB[Abstain: say what is missing]",
+    "example": "Suppose first-pass retrieval is good 70% of the time and each rewrite recovers half of the remaining failures. After one retry: 0.70 + 0.30 × 0.5 = 0.85. After two: 0.85 + 0.15 × 0.5 = 0.925. Abstention is 7.5%. Cost: if each attempt is 1 retrieval plus a 2k-token grading call, expected grading calls = 1 + 0.30 + 0.15 = 1.45 per question, so grading adds 2,900 tokens on average."
+  },
+  {
+    "id": "fallback-chain",
+    "title": "Fallback and Degradation Chain",
+    "trackHints": [
+      "engineer",
+      "infra",
+      "architect"
+    ],
+    "summary": "Frontier, then mid, then local, then cache: keep serving through outages and budget limits, at a known quality and cost.",
+    "body": "A degradation chain defines what happens when the preferred model is unavailable, too slow, or too expensive. Each tier has a trigger: errors, timeouts, rate limits, or a budget threshold from a cost kill switch. Lower tiers are cheaper and usually worse, so each tier has its own eval score, and you choose which features may degrade. For example, summaries can drop to a local model, but legal answers should abstain instead.\n\nCommon mistakes: fallbacks that are never tested, correlated providers (two models on the same cloud region), and silent degradation. Tell users, log the tier, and run chaos drills.\n\nMental model: a circuit breaker plus a price ladder.",
+    "mermaid": "flowchart LR\n  R[Request] --> C{Semantic cache hit?}\n  C -->|yes| OUT[Response]\n  C -->|no| F[Frontier]\n  F -->|ok| OUT\n  F -->|error / timeout / budget| M[Mid-tier]\n  M -->|ok| OUT\n  M -->|fail| L[Local model]\n  L -->|ok| OUT\n  L -->|fail| D[Canned answer + degraded notice]\n  OUT --> LOG[(Tier, cost, quality logs)]",
+    "example": "1M requests per month × 1,000 tokens = 1B tokens. All frontier at $10/M = $10,000. In degraded mode after the 80% budget kill switch: 30% cache hits ($0), 50% mid-tier at $1/M (0.5B tokens = $500), 20% frontier for critical features (0.2B = $2,000), total $2,500, 75% cheaper. Availability with independent failures, frontier 2% and mid 1%: both down 0.02 × 0.01 = 0.02% of the time, and the local tier covers that."
   }
 ]
