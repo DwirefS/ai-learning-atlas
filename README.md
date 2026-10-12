@@ -1,6 +1,6 @@
-# Sapient Edge — AI Learning Atlas (v8)
+# Sapient Edge — AI Learning Atlas (v9)
 
-**A free, offline "Khan Academy for AI engineering", centered on agentic AI.** 129 full lessons, each with an intuition, a step-by-step walkthrough, a diagram, a worked example, common mistakes, an enterprise case, key takeaways, a quiz with explanations, and annotated resources. There are 11 interactive explainers. Mastery levels go Familiar → Proficient → Mastered.
+**A free, offline "Khan Academy for AI engineering", centered on agentic AI.** 129 full lessons, each with an intuition, a step-by-step walkthrough, a diagram, a worked example, runnable code (or a note that it is conceptual), common mistakes, a real sourced case study where one exists (otherwise a labelled illustrative scenario), key takeaways, a quiz with explanations, and annotated resources. There are 11 interactive explainers. Mastery levels go Familiar → Proficient → Mastered.
 
 **0→100 expert learning paths for 13 enterprise agentic-AI roles**, organized as 7 tracks plus a Shared Core.
 
@@ -16,26 +16,48 @@ Everything is centered on agentic AI and on the data engineering agents depend o
 
 ## At a glance
 
-| | v3 | v7 | v8 |
-|---|---|---|---|
-| Full lessons (intuition, how, diagram, example, mistakes, enterprise, takeaways, quiz, annotated resources) | – | – | **129** |
-| Per-lesson diagrams (with alt text) | – | 0 | **129** |
-| Interactive explainers (dependency-free JS/SVG) | – | – | **11** |
-| Subtopic explanations | – | 0 | **782** |
-| Annotated resources (why + level) | – | 0 | **275** |
-| Words of teaching content (curriculum JSON) | – | 82,537 | **151,084** |
-| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** | 13 |
-| Tracks (+ Shared Core) | 5 | **7** | 7 |
-| Subjects | 91 | **129** | 129 |
-| Topics (each with its own explainer) | 198 | **328** | 328 |
-| Subtopics | 990 | **1,644** | 1,644 |
-| Quiz questions (≥3 per subject, with explanations) | 283 | **412** | 412 |
-| Unique resource URLs (link-checked) | 130 | **275** | 275 |
-| Concept cards (diagram + worked example) | 41 | **57** | 57 |
-| Capstone projects | 6 | **8** | 8 |
-| Project ladder builds (4 tiers) | – | **28** | 28 |
-| Learning paths | 5 | **7** | 7 |
-| Glossary terms | 104 | **143** | 143 |
+| | v3 | v7 | v8 | v9 |
+|---|---|---|---|---|
+| Full lessons (intuition, how, diagram, example, mistakes, enterprise, takeaways, quiz, annotated resources) | – | – | **129** | 129 |
+| Per-lesson diagrams (with alt text) | – | 0 | **129** | 129 |
+| Interactive explainers (dependency-free JS/SVG) | – | – | **11** | 11 |
+| Subtopic explanations | – | 0 | **782** | 782 |
+| Annotated resources (why + level) | – | 0 | **275** | 275 (page-specific) |
+| Words of teaching content (curriculum JSON) | – | 82,537 | **151,084** | **166,637** |
+| Real case studies with verified source URL | – | – | – | **44** (31 sources) |
+| Lessons with code (Python 96, YAML 13, bash 5, SQL 2, Rego 1) | – | – | 2 | **117** |
+| Lessons marked conceptual (no code by design) | – | – | – | **12** |
+| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** | 13 | 13 |
+| Tracks (+ Shared Core) | 5 | **7** | 7 | 7 |
+| Subjects | 91 | **129** | 129 | 129 |
+| Topics (each with its own explainer) | 198 | **328** | 328 | 328 |
+| Subtopics | 990 | **1,644** | 1,644 | 1,644 |
+| Quiz questions (≥3 per subject, with explanations) | 283 | **412** | 412 | 412 |
+| Unique resource URLs (link-checked) | 130 | **275** | 275 | 275 |
+| Concept cards (diagram + worked example) | 41 | **57** | 57 | 57 |
+| Capstone projects | 6 | **8** | 8 | 8 |
+| Project ladder builds (4 tiers) | – | **28** | 28 | 28 |
+| Learning paths | 5 | **7** | 7 | 7 |
+| Glossary terms | 104 | **143** | 143 | 143 |
+
+## What's new in v9: real cases, real code, real annotations
+
+- **44 lessons now cite a real, publicly documented case study** from 31 sources, including Klarna, Uber, Shopify, LinkedIn, DoorDash, Meta (Llama 3, GenAI clusters, RoCE, TestGen-LLM), OpenAI (Kubernetes at 7,500 nodes), Anthropic, Apple, Moonshot AI (Mooncake), DeepSeek, Google (Zanzibar, code migrations), GitHub Copilot, JPMorgan Chase, Grab, Honeycomb, Air Canada, Replit, PromptArmor (Slack AI) and Invariant Labs (GitHub MCP).
+  - Each case has a source link, a 2–4 sentence summary and the lesson to draw from it. Every fact was checked against the source page.
+  - The other 85 lessons keep their enterprise example, now clearly labelled **Illustrative scenario**. We never invent company facts.
+  - Cases live in `scripts/v9/cases.py`.
+- **Code in 117 of 129 lessons**, shown with a language label and a copy button. 12 lessons are marked **Conceptual** on purpose (org design, reference architectures, regulation and similar).
+  - `python3 scripts/v9/test_snippets.py` checks every snippet:
+    - all 96 Python snippets pass `ast.parse`, and the 93 that need no network, GPU or third-party SDK run cleanly;
+    - the 13 YAML snippets parse;
+    - the 5 bash snippets pass `bash -n`.
+  - The 3 SDK snippets (MCP server, OpenAI Agents SDK, Playwright) are syntax-checked only.
+- **Page-specific notes for all 275 resources.** Each "why read this" note was written from the fetched page. A few pages blocked our fetcher (O'Reilly, ISO, docs.vllm.ai); those notes are based on the known content and say so. Notes are in `scripts/v9/resnotes9.py`.
+- **QA:** `scripts/qa/qa9.py --full` loads all 129 lessons on desktop and mobile. Every lesson has code or a conceptual note plus a labelled scenario, all 44 case blocks render, and there are 0 console errors and no horizontal overflow.
+
+![Code and case study in a lesson](docs/screenshots/22-desktop-lesson-code-and-case.png)
+
+![A real case study on mobile](docs/screenshots/23-mobile-lesson-case-study.png)
 
 ## What's new in v8: learn on-site
 
@@ -103,7 +125,10 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 | `index.html` | App shell (curriculum + concepts embedded) |
 | `assets/js/app.js` | UI logic (routes, lessons, mastery, XP/badges) |
 | `assets/js/widgets.js` | 11 interactive explainers (no dependencies) |
-| `scripts/build_v8.py` | Current build: runs the v7→v3 chain, merges `scripts/v8/lessons/*` and resource notes, validates the lesson bar, re-embeds `index.html` |
+| `scripts/build_v9.py` | Current build: runs build_v8, then adds case studies, code or conceptual flags and page-specific resource notes, validates them, re-embeds `index.html` |
+| `scripts/v9/test_snippets.py` | Syntax-checks and runs the lesson code snippets |
+| `scripts/qa/qa9.py` | Headless-Chrome QA of all lessons (desktop + mobile) |
+| `scripts/build_v8.py` | v8 build: runs the v7→v3 chain, merges `scripts/v8/lessons/*` and resource notes, validates the lesson bar, re-embeds `index.html` |
 | `docs/pedagogy.md` | Lesson design and rationale |
 | `assets/img/` | SVG illustrations (track heroes, level art) |
 | `assets/vendor/mermaid.min.js` | Bundled Mermaid (offline diagrams) |
@@ -114,11 +139,18 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 
 ## Link check
 
-All 275 resource URLs were re-checked on 2026-10-12 for v8, and 272 passed the automated check. None of the 3 exceptions is a dead link:
+All 275 resource URLs were re-checked on 2026-10-12 for v9, and 270 passed the automated check. None of the 5 exceptions is a dead link:
 
 - ISO/IEC 42001 (iso.org) returns 403 to scripted clients.
-- docs.vllm.ai returned 429 (rate-limited after many requests to the same host).
-- The Stanford CS336 site timed out at 20 s, but answers with a 301 when given a longer timeout. See `docs/resources_linkcheck.csv`.
+- Three docs.vllm.ai pages returned 429 (rate-limited).
+- The Stanford CS336 Spring 2025 site timed out once, then answered 301 on retry.
+
+The 31 case-study source URLs were also checked:
+
+- 28 returned 200 to curl.
+- Uber, OpenAI and DoorDash block curl (403/406). Their content was verified with a browser-style fetch.
+
+See `docs/resources_linkcheck.csv`.
 
 ## GitHub Pages
 

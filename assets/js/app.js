@@ -93,7 +93,7 @@
   function renderHome(){
     const all=ORDER.length,ms=ORDER.map(o=>mastery(o.s)),cnt=l=>ms.filter(x=>x===l).length;const last=state.progress.lastLesson&&ORDER.find(o=>o.s.id===state.progress.lastLesson);
     const nxt=last?ORDER[Math.min(ORDER.length-1,ORDER.indexOf(last)+(mastery(last.s)>=2?1:0))]:ORDER[0];
-    let h=`<section class="hero home-hero"><h2>Learn AI engineering, one lesson at a time</h2><p class="role">${all} full lessons across ${DATA.tracks.length+1} tracks, centered on agentic AI. Every lesson has an intuition, a step-by-step walkthrough, a diagram, a worked example, common mistakes, an enterprise case, key takeaways, a quiz and annotated resources. Pass quizzes to move from Familiar → Proficient → Mastered.</p>
+    let h=`<section class="hero home-hero"><h2>Learn AI engineering, one lesson at a time</h2><p class="role">${all} full lessons across ${DATA.tracks.length+1} tracks, centered on agentic AI. Every lesson has an intuition, a step-by-step walkthrough, a diagram, a worked example, runnable code (or a conceptual note), common mistakes, a real sourced case study where one exists (otherwise a labelled illustrative scenario), key takeaways, a quiz and annotated resources. Pass quizzes to move from Familiar → Proficient → Mastered.</p>
       <div class="mstats"><span class="mchip m-familiar">◔ ${cnt(1)} familiar</span><span class="mchip m-proficient">◑ ${cnt(2)} proficient</span><span class="mchip m-mastered">● ${cnt(3)} mastered</span><span class="mchip">${Object.keys(window.AtlasWidgets?AtlasWidgets.list:{}).length} interactive explainers</span></div>
       <p><a class="cta" href="#/lesson/${nxt.s.id}">${last?'Continue':'Start'}: ${esc(nxt.s.title)} →</a> <a class="cta ghost" href="#/playground">Try the interactive explainers</a></p></section>
       <h3 class="map-h">Course map</h3><div class="cmap">`;
@@ -108,18 +108,19 @@
     const list=(a,tag)=>`<${tag||'ul'}>${(a||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</${tag||'ul'}>`;
     let h=`<nav class="crumbs" aria-label="Breadcrumb"><a href="#/">Home</a> › <a href="#/track/${o.track}">${esc(TRACKNAME(o.track))}</a> › <span>${esc(o.level)}</span></nav>
     <article class="lesson" aria-labelledby="lt"><header class="l-head"><h2 id="lt">${esc(s.title)}</h2><p class="l-meta">⏱ ${readMin(s)} min read · ${s.topics.length} topics · ${q.n} quiz questions · ${mchip(s)}</p><p class="why"><strong>Why it matters:</strong> ${esc(s.why)}</p>
-    <nav class="toc" aria-label="On this page">${[['intuition','Intuition'],['how','How it works'],['diagram','Diagram'],['example','Worked example'],['topics','Topics'],['mistakes','Common mistakes'],['enterprise','In the enterprise'],['takeaways','Key takeaways'],['quiz','Quiz'],['resources','Resources']].map(([a,b])=>`<a href="#/lesson/${s.id}" data-sec="${a}">${b}</a>`).join('')}</nav></header>
+    <nav class="toc" aria-label="On this page">${[['intuition','Intuition'],['how','How it works'],['diagram','Diagram'],['example','Worked example'],['code','Code'],['topics','Topics'],['mistakes','Common mistakes'],['enterprise','In the enterprise'],['takeaways','Key takeaways'],['quiz','Quiz'],['resources','Resources']].map(([a,b])=>`<a href="#/lesson/${s.id}" data-sec="${a}">${b}</a>`).join('')}</nav></header>
     <section id="sec-intuition"><h3>💡 Intuition</h3><p class="lead">${esc(L.intuition||'')}</p></section>
     <section id="sec-how"><h3>⚙️ How it works</h3>${s.explainer?`<p>${esc(s.explainer)}</p>`:''}${list(L.how,'ol')}</section>
     <section id="sec-diagram"><h3>🗺️ Diagram</h3><figure class="ldiagram" role="group" aria-label="${esc(L.diagramAlt||'')}"><div class="mermaid-wrap light" role="img" aria-label="${esc(L.diagramAlt||'')}"><pre class="mermaid">${esc(L.diagram||'')}</pre><pre class="mermaid-fallback">${esc(L.diagram||'')}</pre></div><figcaption>${esc(L.diagramAlt||'')}</figcaption></figure></section>`;
     if(L.widget) h+=`<section id="sec-widget"><div class="widget-mount" data-widget="${L.widget}"></div></section>`;
-    h+=`<section id="sec-example"><h3>🧮 Worked example</h3><div class="example">${esc(L.example||'')}</div>${L.code?`<pre class="code"><code>${esc(L.code)}</code></pre>`:''}</section>
+    h+=`<section id="sec-example"><h3>🧮 Worked example</h3><div class="example">${esc(L.example||'')}</div></section>
+    <section id="sec-code"><h3>💻 Code</h3>${L.code?`<div class="codehead"><span class="langtag">${esc(L.lang||'code')}</span><button class="btn copy-code" type="button">Copy</button></div><pre class="code"><code>${esc(L.code)}</code></pre>`:`<p class="conceptual">🧠 <strong>Conceptual lesson.</strong> This topic is about judgment, design and organization rather than code. Practice it with the worked example and the hands-on lab.</p>`}</section>
     <section id="sec-topics"><h3>📚 Topics</h3>`;
     for(const t of s.topics){h+=`<div class="ltopic"><h4>${esc(t.title)}</h4><p>${esc(t.explainer||'')}</p><ul class="subs">`;
       for(const st of t.subtopics){const d=isDone(st.id);h+=`<li class="sub ${d?'done':''}"><input type="checkbox" id="${esc(st.id)}" data-sub="${esc(st.id)}" ${d?'checked':''}/><label for="${esc(st.id)}"><strong>${esc(st.title)}</strong>${st.text?` — <span class="stext">${esc(st.text)}</span>`:''}</label></li>`;}
       h+=`</ul></div>`;}
     h+=`</section><section id="sec-mistakes" class="box warnbox"><h3>⚠️ Common mistakes</h3>${list(L.mistakes)}</section>
-    <section id="sec-enterprise" class="box"><h3>🏢 In the enterprise</h3><p>${esc(L.enterprise||'')}</p></section>
+    <section id="sec-enterprise" class="box"><h3>🏢 In the enterprise</h3>${L.case?`<div class="case"><span class="badge real">Real case study</span><h4>${esc(L.case.org)}: <a href="${esc(L.case.url)}" target="_blank" rel="noopener noreferrer">${esc(L.case.title)}</a></h4><p>${esc(L.case.summary)}</p><p class="caselesson"><strong>Lesson:</strong> ${esc(L.case.lesson)}</p></div>`:''}<div class="scenario"><span class="badge illus">${esc(L.enterpriseLabel||'Illustrative scenario')}</span><p>${esc(L.enterprise||'')}</p></div></section>
     <section id="sec-takeaways" class="box goodbox"><h3>✅ Key takeaways</h3>${list(L.takeaways)}</section>
     <section id="sec-quiz"><h3>📝 Quiz <small>(${q.ok}/${q.n} correct · 80% = Proficient, 100% + all topics ticked = Mastered)</small></h3>${quizHtml(s)}</section>
     <section id="sec-resources"><h3>🔗 Annotated resources</h3><ul class="res">${(s.resources||[]).map(r=>`<li><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.title)}</a> <span class="lvl lvl-${esc(r.level||'')}">${esc(LV[r.level]||r.level||'')}</span><p>${esc(r.why||'')}</p></li>`).join('')}</ul>
@@ -361,3 +362,4 @@
   window.addEventListener('hashchange',route);
   route();
 })();
+document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.copy-code');if(!b)return;const c=b.closest('section').querySelector('pre.code code');if(!c)return;const done=()=>{b.textContent='Copied';setTimeout(()=>{b.textContent='Copy';},1500);};try{navigator.clipboard.writeText(c.textContent).then(done,()=>{b.textContent='Select & copy';});}catch(_){b.textContent='Select & copy';}});
