@@ -7,7 +7,7 @@
   const RANKS=[[0,'Curious Novice 🌱'],[200,'Apprentice ⚙️'],[600,'Practitioner 🧩'],[1500,'Engineer 🚀'],[3000,'Architect 🏔️'],[6000,'Atlas Master 🌌']];
   function rank(xp){let r=RANKS[0][1];for(const [m,n] of RANKS) if(xp>=m) r=n; return r;}
   const HERO = new Proxy({}, {get:(_,k)=>`<img class="svg-hero" src="assets/img/hero-${k}.svg" alt="${k} illustration" loading="lazy"/>`});
-  const ICONS={shared:'◎',architect:'✦',engineer:'⚒',inference:'⚡',infra:'▣',agentic:'✶'};
+  const ICONS={shared:'◎',architect:'✦',engineer:'⚒',inference:'⚡',infra:'▣',agentic:'✶',data:'⛁',trust:'⛨'};
 
   function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"done":{},"xp":0,"streak":0,"last":null}');}catch(e){return {done:{},xp:0,streak:0,last:null};}}
   function save(){localStorage.setItem(LS,JSON.stringify(state.progress));}
@@ -78,7 +78,7 @@
       h+=`<button type="button" class="nav-btn ${state.track===it.id&&state.mode==='track'?'active':''}" data-track="${it.id}"><span class="mascot">${ICONS[it.id]||'•'}</span><span style="flex:1;min-width:0"><div>${esc(it.name)}</div><div class="mini"><i style="width:${st.pct}%"></i></div></span><span class="meta">${st.pct}%</span></button>`;
     }
     h+=`<div class="nav-label">Explore</div>`;
-    for(const [m,ic,label] of [['paths','🧭','Learning paths'],['capstones','🏆','Capstone projects'],['concepts','💡','Concept cards ('+CONCEPTS.length+')'],['glossary','📖','Glossary ('+DATA.glossary.length+')']]){
+    for(const [m,ic,label] of [['roles','🧑‍🚀','Roles ('+(DATA.roles||[]).length+')'],['paths','🧭','Learning paths'],['capstones','🏆','Capstone projects'],['concepts','💡','Concept cards ('+CONCEPTS.length+')'],['glossary','📖','Glossary ('+DATA.glossary.length+')']]){
       h+=`<button type="button" class="nav-btn ${state.mode===m?'active':''}" data-mode="${m}"><span class="mascot">${ic}</span><span style="flex:1">${label}</span></button>`;
     }
     h+=`<div class="side-actions"><button type="button" id="btnConcepts">Concept cards (${CONCEPTS.length})</button><button type="button" id="exportProg">Export progress</button><button type="button" id="importProg">Import progress</button></div>`;
@@ -172,6 +172,24 @@
     }
     return h;
   }
+
+  function roleStats(r){let done=0,total=0;for(const id of r.subjects){const f=findSubject(id);if(!f)continue;const st=subStats(f.s);done+=st.done;total+=st.total;}return {done,total,pct:total?Math.round(100*done/total):0};}
+  function renderRoles(){
+    const R=DATA.roles||[]; const q=state.query.trim().toLowerCase();
+    const use={}; for(const r of R) for(const id of r.subjects) use[id]=(use[id]||0)+1;
+    const list=R.filter(r=>!q||JSON.stringify(r).toLowerCase().includes(q));
+    let h=`<section class="hero"><div class="hero-grid"><div><h2>Roles <span class="badge">${R.length}</span></h2><p class="role">Every enterprise agentic-AI role, mapped onto the Atlas. The 8 core roles (★) plus 5 roles most lists miss. Each card shows what the job is, what you do day to day, skills, tools, interview signals, a portfolio capstone and a mapped curriculum. Shared subjects are linked, not duplicated: the 🔗 count shows how many roles reuse a subject. Follow the <a href="#" data-mode-link="paths">Universal Agentic Path</a> to cover all of them.</p><div class="role-chips">${R.map(r=>`<a href="#" class="chip" data-role-jump="${r.id}">${r.emoji} ${esc(r.name)}</a>`).join('')}</div></div><div>${HERO.roles}</div></div></section><div class="roles">`;
+    for(const r of list){
+      const st=roleStats(r);
+      const cur=r.subjects.map(id=>{const f=findSubject(id); if(!f) return ''; const s2=subStats(f.s); const tn=f.track==='shared'?'Shared Core':DATA.tracks.find(t=>t.id===f.track).name; return `<li class="${s2.pct===100?'ok':''}"><a href="#" data-jump-subject="${id}">${esc(f.s.title)}</a> <small>${esc(tn)}${use[id]>1?` · 🔗 ${use[id]} roles`:''}</small><span class="pp">${s2.pct}%</span></li>`;}).join('');
+      const ul=a=>`<ul>${a.map(x=>`<li>${highlight(x)}</li>`).join('')}</ul>`;
+      h+=`<section class="role-card" id="role-${r.id}"><div class="role-head"><span class="role-emoji">${r.emoji}</span><div style="flex:1"><div class="cap-kicker">${r.core?'★ Core role':'＋ Role the list misses'}</div><h3>${highlight(r.name)}</h3><p>${highlight(r.mission)}</p><div class="bar"><i style="width:${st.pct}%"></i></div></div><span class="pp">${st.pct}%</span></div>
+      <div class="role-grid"><div class="cap-cell"><h4>📅 Day to day</h4>${ul(r.day)}</div><div class="cap-cell"><h4>🧠 Skills</h4>${ul(r.skills)}</div><div class="cap-cell"><h4>🧰 Tools</h4>${ul(r.tools)}</div><div class="cap-cell"><h4>🎤 Interview signals</h4>${ul(r.interview)}</div><div class="cap-cell"><h4>🏆 Portfolio capstone</h4><p>${highlight(r.capstone)}</p></div></div>
+      <details class="role-cur" open><summary>📚 Mapped curriculum (${r.subjects.length} subjects)</summary><ol>${cur}</ol></details></section>`;
+    }
+    if(!list.length) h+=`<p class="why">No roles match “${esc(state.query)}”.</p>`;
+    return h+`</div>`;
+  }
   function renderCapstones(){
     let h=`<section class="hero"><div class="hero-grid"><div><h2>Capstone projects <span class="badge">${Object.keys(DATA.capstones).length}</span></h2><p class="role">One portfolio-grade project per track. Each covers architecture, infrastructure, deployment, security, observability, scaling and cost, because that is what real AI systems are judged on.</p></div><div>${HERO.capstone}</div></div></section>`;
     for(const id of ['shared',...DATA.tracks.map(t=>t.id)]) h+=capstoneCard(id);
@@ -212,6 +230,8 @@
     content.querySelectorAll('[data-jump-concept]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode='concepts';state.query='';document.getElementById('search').value='';render(); setTimeout(()=>{const el=document.getElementById('concept-'+a.dataset.jumpConcept); if(el) el.scrollIntoView({behavior:'smooth'});},50);});
     content.querySelectorAll('[data-jump-subject]').forEach(a=>a.onclick=e=>{e.preventDefault();const f=findSubject(a.dataset.jumpSubject);if(!f)return;state.mode='track';state.track=f.track;state.openSubject=f.s.id;state.query='';document.getElementById('search').value='';render();setTimeout(()=>{const el=document.getElementById('subj-'+f.s.id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},60);});
     content.querySelectorAll('[data-jump-cap]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode='capstones';render();setTimeout(()=>{const el=document.getElementById('cap-'+a.dataset.jumpCap);if(el)el.scrollIntoView({behavior:'smooth'});},60);});
+    content.querySelectorAll('[data-role-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('role-'+a.dataset.roleJump);if(el)el.scrollIntoView({behavior:'smooth'});});
+    content.querySelectorAll('[data-mode-link]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode=a.dataset.modeLink;render();window.scrollTo(0,0);});
     content.querySelectorAll('[data-az]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('gl-'+a.dataset.az);if(el)el.scrollIntoView({behavior:'smooth'});});
     runMermaid();
   }
@@ -233,7 +253,7 @@
 
   function render(){
     renderSidebar();
-    content.innerHTML = ({concepts:renderConcepts,paths:renderPaths,capstones:renderCapstones,glossary:renderGlossary}[state.mode]||renderTrack)();
+    content.innerHTML = ({roles:renderRoles,concepts:renderConcepts,paths:renderPaths,capstones:renderCapstones,glossary:renderGlossary}[state.mode]||renderTrack)();
     bind();
   }
 
@@ -241,6 +261,7 @@
   document.getElementById('expandAll').onclick=()=>content.querySelectorAll('.level,.subject,.topic,.concept').forEach(el=>el.classList.add('open'));
   document.getElementById('collapseAll').onclick=()=>content.querySelectorAll('.level,.subject,.topic,.concept').forEach(el=>el.classList.remove('open'));
   document.getElementById('tabConcepts').onclick=()=>{state.mode='concepts';render();};
+  document.getElementById('tabRoles').onclick=()=>{state.mode='roles';render();window.scrollTo(0,0);};
   document.getElementById('tabPaths').onclick=()=>{state.mode='paths';render();};
   document.getElementById('tabGloss').onclick=()=>{state.mode='glossary';render();};
   document.getElementById('resetProgress').onclick=()=>{if(confirm('Reset XP and checkboxes?')){state.progress={done:{},xp:0,streak:0,last:null};save();render();}};
