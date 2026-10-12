@@ -1,27 +1,38 @@
-# Sapient Edge — AI Deep Learning Atlas (v3)
+# Sapient Edge — AI Deep Learning Atlas (v4)
 
-**0→100 expert learning paths** for five AI roles, plus a Shared Core:
+**0→100 expert learning paths for 13 enterprise agentic-AI roles**, organized as 7 tracks plus a Shared Core.
 
-1. **AI Architect** · 2. **AI Engineer** · 3. **AI Inference Engineer** · 4. **AI Infrastructure** · 5. **Agentic AI**
+**Roles (new in v4).** The 8 core roles are AI Engineer · Forward Deployed Engineer · Agent Ops Engineer · AI Security Engineer · AI Infrastructure Engineer · Cloud Security Engineer (AI) · AI Governance Engineer · AI Evals Engineer. The other 5 are roles most lists miss: **AI-Ready Data Engineer** · ML / Post-training Engineer · AI Platform / LLMOps Engineer · AI Solutions Architect · AI Product Engineer / Manager.
 
-It's an atlas, not a link dump. It has original explainers for every subject *and* every topic, 41 deep concept cards with diagrams and worked examples (the math is checked), quizzes, hands-on labs, capstone projects, career learning paths and a searchable glossary. It's built for working engineers moving into deep AI systems work. Current as of October 2026.
+**Tracks:** AI Architect · AI Engineer · AI Inference Engineer · AI Infrastructure · Agentic AI · **AI-Ready Data Engineering** (new) · **AgentOps, Evals, Security & Governance** (new).
 
-![Infra track](docs/screenshots/01-desktop-infra-track.png)
+Everything is centered on agentic AI and on the data engineering agents depend on. It's an atlas, not a link dump. Every subject and every topic has an original explainer. There are 51 concept cards with diagrams and worked examples (the math is checked), plus quizzes, hands-on labs, capstones, learning paths (including a **Universal Agentic Path** that covers all 13 roles in order) and a glossary. Current as of October 2026.
 
-## At a glance (v3)
+![Roles view](docs/screenshots/09-desktop-roles.png)
 
-| | v2 | v3 |
+## At a glance
+
+| | v3 | v4 |
 |---|---|---|
-| Subjects | 83 | **91** |
-| Topics (each with its own explainer) | 171 (none) | **198 (all)** |
-| Subtopics | 855 | **990** |
-| Quiz questions (≥3 per subject, with explanations) | 84 | **283** |
-| Unique resource URLs (link-checked) | 99 | **130** |
-| Concept cards (diagram + worked example) | 27 | **41** |
-| Capstone projects | – | **6** |
-| Learning paths | – | **5** |
-| Glossary terms | – | **104** |
-| SVG illustrations | 6 | **39** |
+| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** |
+| Tracks (+ Shared Core) | 5 | **7** |
+| Subjects | 91 | **118** |
+| Topics (each with its own explainer) | 198 | **279** |
+| Subtopics | 990 | **1,395** |
+| Quiz questions (≥3 per subject, with explanations) | 283 | **364** |
+| Unique resource URLs (link-checked) | 130 | **217** |
+| Concept cards (diagram + worked example) | 41 | **51** |
+| Capstone projects | 6 | **8** |
+| Learning paths | 5 | **6** |
+| Glossary terms | 104 | **128** |
+
+### New in v4
+
+- **Roles view.** Each of the 13 role cards maps to existing and new subjects. Shared subjects are linked, not duplicated, and a 🔗 count shows how many roles reuse each one.
+- **AI-Ready Data Engineering track (11 subjects):** lakehouse and table formats, semantic layer and text-to-SQL, CDC and streaming freshness, unstructured pipelines, data contracts and circuit breakers, catalogs and lineage, connecting agents to enterprise data (APIs, MCP, OAuth on-behalf-of), permission-aware retrieval, AI-ready data products and mesh, agent memory and write-back data, and data ops for agent fleets.
+- **AgentOps, Evals, Security & Governance track (12 subjects):** tracing and SLOs, eval engineering and golden sets, queues and durable execution, LLM-as-judge calibration and online evals, cloud security for AI (workload identity, private endpoints, KMS, CSPM/AI-SPM), threat modeling, red teaming and sandboxing, policy as code (OPA/Cedar), AI audit logging, the EU AI Act / NIST AI RMF / ISO 42001 controls crosswalk (updated for the Digital Omnibus, Reg. (EU) 2026/1744), trajectory evals and pass^k, kill switches, budgets and runbooks, and operating agent fleets 24/7.
+- **Delivery and platform subjects:** forward deployed engineering (discovery to production), AI solutions architecture and sizing, AI product management for agents, and AI platform / LLMOps.
+- **10 new concept cards:** agent–data integration reference architecture · permission-aware RAG · CDC freshness budget · unstructured pipeline · Agent Ops control loop · eval pipeline · policy-as-code gates · AI audit trail · controls crosswalk · FDE engagement lifecycle.
 
 ## Use it
 
@@ -48,14 +59,14 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 | `assets/js/app.js` | UI logic |
 | `assets/img/` | SVG illustrations (track heroes, level art) |
 | `assets/vendor/mermaid.min.js` | Bundled Mermaid (offline diagrams) |
-| `data/curriculum.json`, `data/concepts.json` | Full content (also per-track `data/_*.json`) |
-| `scripts/build_v3.py` | Merges `scripts/v3/*` content into data and re-embeds `index.html` |
+| `data/curriculum.json`, `data/concepts.json` | Full content (also per-track `data/_*.json` and `data/_roles.json`) |
+| `scripts/build_v4.py` | Runs `build_v3.py`, then merges `scripts/v4/*` (new tracks, roles, concepts, paths) and re-embeds `index.html` |
 | `scripts/linkcheck.py` | HTTP-checks every resource URL → `docs/resources_linkcheck.csv` |
 | `docs/` | Screenshots, link report, stats, launch drafts |
 
 ## Link check
 
-All 130 resource URLs were checked on 2026-10-11, and 129 passed the automated check. The one exception is ISO/IEC 42001 (iso.org), which returns 403 to scripted clients. That page was confirmed live separately. See `docs/resources_linkcheck.csv`.
+All 217 resource URLs were checked on 2026-10-11, and 213 passed the automated check. The 4 exceptions are known false negatives. ISO/IEC 42001 (iso.org) returns 403 to scripted clients. Three docs.vllm.ai pages returned 429 (rate limiting) during the run but are live. EUR-Lex returns a 202 bot challenge to scripts; the Digital Omnibus page it links to was confirmed separately. See `docs/resources_linkcheck.csv`.
 
 ## GitHub Pages
 

@@ -1,35 +1,26 @@
-# Draft: Launching the Sapient Edge AI Deep Learning Atlas (v3)
+# Draft: AI Deep Learning Atlas v4, every agentic AI role in one map
 
 *Status: draft only. Do not publish until approved.*
 
 ---
 
-Most "AI roadmaps" are a list of topic names and a 90-day promise. The jobs that matter (architecting AI platforms, serving models under SLOs, running GPU fleets, building agents you can trust with real permissions) need a deeper map.
+A post going around lists the 8 AI roles companies are hiring for right now: AI Engineer, Forward Deployed Engineer, Agent Ops, AI Security, AI Infrastructure, Cloud Security, AI Governance and AI Evals.
 
-Today we're open-sourcing the **AI Deep Learning Atlas**. It has five role tracks from foundations to frontier (Architect, Engineer, Inference, Infrastructure, Agentic), plus a Shared Core.
+That list is a good start, but it misses the roles that agents depend on most. **AI-ready data engineering** is the big one, because agents are only as good as the data they can reach. It also leaves out ML/post-training, AI platform/LLMOps, solutions architecture and AI product.
 
-### What's inside
+So v4 of the open-source **Sapient Edge AI Deep Learning Atlas** maps all **13 roles**, centered on agentic AI.
 
-- **91 subjects, 198 topics, 990 subtopics.** Every subject *and every topic* has its own original explainer, so it's not a link dump.
-- **41 concept cards** with diagrams and worked examples, with the math checked. They cover ring all-reduce, MIG vs time-slicing, cold-start math, cost per million tokens, KV-aware routing, prompt-injection defense, MoE routing, HNSW, GraphRAG, A2A, distillation, RoPE and more.
-- **The infra content most roadmaps skip**: NCCL/RDMA debugging, GPU Operator, DRA, Kueue, Xid/ECC triage, NCCL hangs, unit economics, power and cooling, weight exfiltration and MCP permissions.
-- **283 quiz questions**, a lab per subject, and **6 capstones** covering architecture, infra, deploy, security, observability, scaling and cost.
-- **5 learning paths** with no deadlines (Cloud/DevOps → AI Infra, SWE → AI Engineer, Architect for clients, and more).
-- A **104-term glossary**, XP, ranks and streaks.
-- **130 resource links**, all checked in October 2026.
-- **Works fully offline.** It's one static page with the diagrams bundled.
+### What's new
 
-### How to use it
+- **A Roles view.** Each role card covers the mission, day-to-day work, skills, tools, interview signals, a portfolio capstone and a mapped curriculum. Overlapping subjects are shared, not duplicated.
+- **Two new tracks.** *AI-Ready Data Engineering* covers the lakehouse, CDC, semantic layer, catalog and lineage, data contracts, unstructured pipelines, MCP connectors and permission-aware retrieval. *AgentOps, Evals, Security & Governance* covers tracing and SLOs, durable execution, kill switches, calibrated judges, trajectory evals, cloud IAM, red teaming, OPA/Cedar, audit logs, and EU AI Act / NIST AI RMF / ISO 42001 mapping, updated for the 2026 Digital Omnibus dates.
+- **A Universal Agentic Path** that covers every role in order, with no deadlines.
+- **10 new concept cards** with diagrams and checked worked examples. Examples: why post-filtering starves permission-aware RAG (0.98^50 ≈ 36% of queries get zero evidence), the cost of a runaway agent loop, judge-calibration math, and a CDC freshness budget.
 
-1. Pick a learning path, or start with the Shared Core.
-2. Tick subtopics as you go, and follow "what to learn next."
-3. Open a concept card whenever a term keeps coming up.
-4. Finish with your track's capstone. It doubles as a portfolio piece.
+### By the numbers
 
-### Why we built it
+118 subjects · 279 topics · 1,395 subtopics · 364 quiz questions · 51 concept cards · 8 capstones · 6 paths · 128 glossary terms · 217 link-checked resources. It's a static site that works fully offline.
 
-Sapient Edge helps enterprises ship AI systems that survive production. We wanted a teaching artifact we'd be proud to hand to a client or a new hire. A lot of compute went into building it, so it should help as many people as possible.
+Repo/site: *[URL]*
 
-Repo + live site: *[add GitHub URL after publish]*
-
-— Sapient Edge
+Code MIT · Content CC BY 4.0 · Credit: Sapient Edge
