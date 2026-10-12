@@ -4,7 +4,7 @@
     "subtitle": "0→100 expert paths for 13 agentic AI roles: explainers, diagrams, labs, capstones and learning paths",
     "audience": "Working engineers leveling into any of 13 enterprise agentic-AI roles",
     "as_of": "2026-10",
-    "version": "4.0.0",
+    "version": "6.0.0",
     "credit": "Sapient Edge",
     "license_content": "CC BY 4.0",
     "license_code": "MIT"
@@ -851,6 +851,152 @@
         "conceptIds": [
           "threat-model",
           "prompt-injection-defense"
+        ]
+      },
+      {
+        "id": "sc-found",
+        "title": "NLP Foundations: Word Vectors to Scaling Laws",
+        "why": "Knowing how we got from word2vec to frontier models makes today's design choices (context, scale, data, interpretability) make sense.",
+        "explainer": "Modern LLMs are the end of a short chain of ideas. Word embeddings (word2vec, GloVe) showed that meaning can be captured as vectors learned from co-occurrence. Recurrent networks (RNNs, LSTMs) processed sequences token by token but struggled with long-range dependencies and could not parallelize across a sequence. Attention, then the transformer, removed recurrence and let every token look at every other token in parallel, which made training on vast data practical.\n\nPretraining on next-token prediction over trillions of tokens produces general capabilities; scaling laws (Kaplan et al., then Chinchilla) describe how loss falls predictably with parameters, data and compute, and that compute-optimal training uses roughly 20 tokens per parameter. Data curation (deduplication, quality filtering, mixtures) matters as much as size. Interpretability research (probing, attention analysis, sparse autoencoders) tries to explain what the network learned.\n\nCommon mistakes: assuming bigger is always better instead of compute-optimal; ignoring data quality; treating attention maps as full explanations.\n\nMental model: every generation fixed the previous one's bottleneck: meaning, then sequence, then parallelism, then scale.",
+        "resources": [
+          {
+            "title": "Stanford CS224N",
+            "url": "https://web.stanford.edu/class/cs224n/"
+          },
+          {
+            "title": "Stanford CS336: Language Modeling from Scratch",
+            "url": "https://stanford-cs336.github.io/spring2025/"
+          },
+          {
+            "title": "Chinchilla: Training compute-optimal LLMs (arXiv)",
+            "url": "https://arxiv.org/abs/2203.15556"
+          },
+          {
+            "title": "Anthropic: Towards monosemanticity (sparse autoencoders)",
+            "url": "https://transformer-circuits.pub/2023/monosemantic-features"
+          }
+        ],
+        "project": "Train word2vec on a small corpus and test analogies; train a tiny LSTM and a tiny transformer on the same character-level data and compare loss and speed; then fit a scaling-law curve from 4 model sizes and predict the loss of a 5th.",
+        "topics": [
+          {
+            "id": "sc-found-t1",
+            "title": "Word embeddings and recurrent networks",
+            "explainer": "Word2vec learns a vector per word by predicting neighbors (skip-gram) or the center word (CBOW); similar words end up close, and some relations become vector offsets. Embeddings are static: one vector per word regardless of context. RNNs and LSTMs added context by reading tokens sequentially with a hidden state; LSTM gates reduced vanishing gradients, but sequential processing limited training speed and long-range memory. These limits motivated attention, first added to RNN encoders for translation, and then the attention-only transformer.",
+            "subtopics": [
+              {
+                "id": "sc-found-t1-s1",
+                "title": "Skip-gram and CBOW"
+              },
+              {
+                "id": "sc-found-t1-s2",
+                "title": "Static vs contextual embeddings"
+              },
+              {
+                "id": "sc-found-t1-s3",
+                "title": "RNN hidden state"
+              },
+              {
+                "id": "sc-found-t1-s4",
+                "title": "LSTM gates and vanishing gradients"
+              },
+              {
+                "id": "sc-found-t1-s5",
+                "title": "Seq2seq with attention"
+              }
+            ]
+          },
+          {
+            "id": "sc-found-t2",
+            "title": "Pretraining and scaling laws",
+            "explainer": "Pretraining minimizes next-token prediction loss on web, code, books and curated data. Scaling laws show loss decreasing as a power law in parameters N, tokens D and compute C, roughly C ≈ 6ND FLOPs. Chinchilla found earlier models were undertrained and that compute-optimal training uses about 20 tokens per parameter, though production models are often trained far beyond that to make inference cheaper. Data pipelines with deduplication, quality filters and domain mixtures often move results more than architecture tweaks.",
+            "subtopics": [
+              {
+                "id": "sc-found-t2-s1",
+                "title": "Next-token objective"
+              },
+              {
+                "id": "sc-found-t2-s2",
+                "title": "C ≈ 6ND compute rule"
+              },
+              {
+                "id": "sc-found-t2-s3",
+                "title": "Compute-optimal vs overtrained models"
+              },
+              {
+                "id": "sc-found-t2-s4",
+                "title": "Data deduplication and filtering"
+              },
+              {
+                "id": "sc-found-t2-s5",
+                "title": "Data mixtures"
+              }
+            ]
+          },
+          {
+            "id": "sc-found-t3",
+            "title": "Interpretability basics",
+            "explainer": "Interpretability asks what representations and circuits a model uses. Probing trains a small classifier on hidden states to test whether a property is encoded. Attention visualization shows where heads look but not why. Mechanistic interpretability identifies circuits, and sparse autoencoders decompose activations into many more interpretable features, some of which can be steered. For engineers, interpretability is mostly a research lens today, but it informs safety evaluations and debugging of fine-tuned behavior.",
+            "subtopics": [
+              {
+                "id": "sc-found-t3-s1",
+                "title": "Linear probes"
+              },
+              {
+                "id": "sc-found-t3-s2",
+                "title": "Attention visualization limits"
+              },
+              {
+                "id": "sc-found-t3-s3",
+                "title": "Circuits"
+              },
+              {
+                "id": "sc-found-t3-s4",
+                "title": "Sparse autoencoders and features"
+              },
+              {
+                "id": "sc-found-t3-s5",
+                "title": "Steering and safety uses"
+              }
+            ]
+          }
+        ],
+        "quiz": [
+          {
+            "q": "Why did transformers replace RNNs for large-scale training?",
+            "choices": [
+              "They use no attention",
+              "They process all tokens in parallel and handle long-range dependencies better",
+              "They need no data",
+              "Fewer parameters"
+            ],
+            "answer": 1,
+            "why": "Removing recurrence enables parallel training and direct long-range attention."
+          },
+          {
+            "q": "Chinchilla's compute-optimal rule of thumb is about…",
+            "choices": [
+              "No relation",
+              "1,000 tokens per parameter",
+              "20 tokens per parameter",
+              "1 token per parameter"
+            ],
+            "answer": 2,
+            "why": "Chinchilla suggests roughly 20 training tokens per parameter for compute-optimal training."
+          },
+          {
+            "q": "A 7B model trained on 2T tokens needs roughly how many training FLOPs (C ≈ 6ND)?",
+            "choices": [
+              "8.4 × 10^25",
+              "8.4 × 10^16",
+              "8.4 × 10^22",
+              "8.4 × 10^19"
+            ],
+            "answer": 2,
+            "why": "6 × 7e9 × 2e12 = 8.4e22 FLOPs."
+          }
+        ],
+        "conceptIds": [
+          "attention"
         ]
       }
     ]
@@ -1794,6 +1940,33 @@
                     {
                       "id": "a-fde-t3-s5",
                       "title": "Product feedback loops"
+                    }
+                  ]
+                },
+                {
+                  "id": "a-fde-x1",
+                  "title": "Workshops, exec readouts and enterprise platform integration",
+                  "explainer": "FDEs run discovery workshops: map the workflow on a whiteboard with the people who do it, list systems and data, and agree on the metric. Exec readouts are short: problem, result versus baseline, risks, cost and next step. Most enterprise value runs through SAP, Salesforce, ServiceNow, Workday and Microsoft 365, so learn their APIs, event models, permission schemes and the vendor's own agent features before building custom connectors.",
+                  "subtopics": [
+                    {
+                      "id": "a-fde-x1-s1",
+                      "title": "Discovery workshop format"
+                    },
+                    {
+                      "id": "a-fde-x1-s2",
+                      "title": "Exec readout structure"
+                    },
+                    {
+                      "id": "a-fde-x1-s3",
+                      "title": "SAP, Salesforce, ServiceNow APIs"
+                    },
+                    {
+                      "id": "a-fde-x1-s4",
+                      "title": "Vendor-native agent features"
+                    },
+                    {
+                      "id": "a-fde-x1-s5",
+                      "title": "Change management with users"
                     }
                   ]
                 }
@@ -3774,6 +3947,33 @@
                     }
                   ],
                   "explainer": "RAG fails in recognizable ways. The answer was split across two chunks and neither alone is enough. The index is stale. A document contains injected instructions that the model follows. Too many weak chunks drown the relevant one. Evals only test easy questions so problems stay hidden. Diagnose by logging retrieved chunks with every answer and labeling failures as retrieval misses versus generation errors; the fixes are completely different."
+                },
+                {
+                  "id": "e-rag-x1",
+                  "title": "Knowledge graphs for RAG",
+                  "explainer": "Knowledge graphs store entities and typed relationships, such as customer owns contract and contract references a policy, which supports multi-hop questions that chunk similarity misses. Build them by extracting entities and relations with an LLM, resolving duplicates, and storing them in a graph database. At query time, combine vector search to find entry points with graph traversal or Cypher queries to follow relations. GraphRAG adds community summaries for global questions. Graphs cost effort to maintain, so use them where relationships drive answers.",
+                  "subtopics": [
+                    {
+                      "id": "e-rag-x1-s1",
+                      "title": "Entities and relations"
+                    },
+                    {
+                      "id": "e-rag-x1-s2",
+                      "title": "LLM-based extraction and entity resolution"
+                    },
+                    {
+                      "id": "e-rag-x1-s3",
+                      "title": "Graph databases and Cypher"
+                    },
+                    {
+                      "id": "e-rag-x1-s4",
+                      "title": "Vector entry points plus traversal"
+                    },
+                    {
+                      "id": "e-rag-x1-s5",
+                      "title": "When knowledge graphs pay off"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -3928,7 +4128,9 @@
                   "why": "Their correct answers depend on user-specific state."
                 }
               ],
-              "conceptIds": []
+              "conceptIds": [
+                "model-router"
+              ]
             },
             {
               "id": "e-eval",
@@ -4178,6 +4380,156 @@
               "conceptIds": [
                 "hnsw",
                 "graphrag"
+              ]
+            },
+            {
+              "id": "e-reasoning",
+              "title": "Reasoning Models, Test-Time Compute and Model API Platform Features",
+              "why": "Reasoning models and platform features (stateful APIs, caching, batch, built-in tools) change the cost and quality math of every agent.",
+              "explainer": "Reasoning models (OpenAI o-series and GPT reasoning modes, Claude with extended thinking, Gemini thinking, DeepSeek-R1, Qwen reasoning) spend extra tokens thinking before answering. This test-time compute boosts math, coding, planning and multi-step tool use, controlled by settings such as reasoning effort or a thinking budget. The trade-off is latency and cost: thinking tokens are billed, and simple tasks gain nothing.\n\nModel APIs now bundle platform features that agents should use deliberately: the OpenAI Responses API with stored conversation state and built-in tools (web search, file search, code interpreter, computer use); prompt caching across OpenAI, Anthropic and Gemini; batch APIs at roughly half price for offline jobs; structured outputs; citations; moderation endpoints; and fine-tuning including reinforcement fine-tuning (RFT) with graders. Cloud platforms mirror these: Bedrock batch inference, model evaluation and Guardrails; Azure AI Foundry evaluations and content safety.\n\nCommon mistakes: max reasoning effort everywhere; dropping prior reasoning items between tool calls so the model re-thinks; online calls for work that could be batched; no caching on long stable system prompts.\n\nMental model: reasoning effort is a dial on cost per correct answer. Measure it.",
+              "resources": [
+                {
+                  "title": "OpenAI reasoning models guide",
+                  "url": "https://platform.openai.com/docs/guides/reasoning"
+                },
+                {
+                  "title": "Anthropic extended thinking",
+                  "url": "https://docs.claude.com/en/docs/build-with-claude/extended-thinking"
+                },
+                {
+                  "title": "OpenAI Batch API",
+                  "url": "https://platform.openai.com/docs/guides/batch"
+                },
+                {
+                  "title": "OpenAI reinforcement fine-tuning",
+                  "url": "https://platform.openai.com/docs/guides/reinforcement-fine-tuning"
+                },
+                {
+                  "title": "Amazon Bedrock model evaluation",
+                  "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/evaluation.html"
+                }
+              ],
+              "project": "On 50 multi-step tasks, compare a non-reasoning model with a reasoning model at low, medium and high effort. Report accuracy, latency, total tokens and cost per correct answer. Then move an offline summarization job to a batch API and add prompt caching to the agent's system prompt, and measure the savings.",
+              "topics": [
+                {
+                  "id": "e-reasoning-t1",
+                  "title": "Reasoning models and test-time compute",
+                  "explainer": "Reasoning models are trained, typically with reinforcement learning on verifiable tasks, to produce long internal chains of thought before answering. More thinking tokens generally improve accuracy on hard problems, with diminishing returns. APIs expose this as reasoning effort levels or thinking token budgets. For agents, reasoning helps planning and tool selection; keep reasoning state across tool calls where the API supports it (for example, passing back reasoning items or thinking blocks) to avoid repeated thinking. Route easy requests to non-reasoning models.",
+                  "subtopics": [
+                    {
+                      "id": "e-reasoning-t1-s1",
+                      "title": "How reasoning models are trained"
+                    },
+                    {
+                      "id": "e-reasoning-t1-s2",
+                      "title": "Reasoning effort and thinking budgets"
+                    },
+                    {
+                      "id": "e-reasoning-t1-s3",
+                      "title": "Interleaved thinking with tools"
+                    },
+                    {
+                      "id": "e-reasoning-t1-s4",
+                      "title": "Preserving reasoning state"
+                    },
+                    {
+                      "id": "e-reasoning-t1-s5",
+                      "title": "Routing easy vs hard requests"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-reasoning-t2",
+                  "title": "Stateful APIs, built-in tools, caching and batch",
+                  "explainer": "The Responses API can store conversation state server-side and run built-in tools such as web search, file search over uploaded files, code interpreter and computer use, which removes boilerplate but couples you to a vendor. Prompt caching discounts repeated prefixes, so put stable instructions and tool definitions first. Batch APIs process large offline jobs asynchronously at about half price within a 24-hour window; Bedrock batch inference is the cloud equivalent. Use streaming for user-facing latency and batch for everything that can wait.",
+                  "subtopics": [
+                    {
+                      "id": "e-reasoning-t2-s1",
+                      "title": "Responses API and stored state"
+                    },
+                    {
+                      "id": "e-reasoning-t2-s2",
+                      "title": "Built-in web search, file search, code interpreter"
+                    },
+                    {
+                      "id": "e-reasoning-t2-s3",
+                      "title": "Prompt caching and prefix ordering"
+                    },
+                    {
+                      "id": "e-reasoning-t2-s4",
+                      "title": "Batch APIs and Bedrock batch inference"
+                    },
+                    {
+                      "id": "e-reasoning-t2-s5",
+                      "title": "Streaming vs batch"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-reasoning-t3",
+                  "title": "Vendor fine-tuning, evaluation and safety services",
+                  "explainer": "Hosted fine-tuning covers supervised fine-tuning, preference tuning and reinforcement fine-tuning, where you supply tasks and graders and the vendor runs RL on a reasoning model. Managed evaluation services (Bedrock model evaluation, Azure AI Foundry evaluations, OpenAI Evals) run LLM-as-judge and human evaluation jobs. Moderation and content safety APIs (OpenAI Moderation, Azure AI Content Safety with Prompt Shields, Bedrock Guardrails) classify harmful content and injection attempts. Use them as building blocks, while keeping your own golden sets as the source of truth.",
+                  "subtopics": [
+                    {
+                      "id": "e-reasoning-t3-s1",
+                      "title": "SFT, preference tuning, RFT"
+                    },
+                    {
+                      "id": "e-reasoning-t3-s2",
+                      "title": "Graders for RFT"
+                    },
+                    {
+                      "id": "e-reasoning-t3-s3",
+                      "title": "Managed evaluation jobs: Bedrock model evaluation, Azure AI Foundry"
+                    },
+                    {
+                      "id": "e-reasoning-t3-s4",
+                      "title": "Moderation and content safety APIs"
+                    },
+                    {
+                      "id": "e-reasoning-t3-s5",
+                      "title": "Keeping your own golden sets"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "A model at high reasoning effort is 2% more accurate but 4x the cost on simple FAQ questions. Best action?",
+                  "choices": [
+                    "Use high effort everywhere",
+                    "Use batch for chat",
+                    "Disable caching",
+                    "Route simple questions to low effort or a non-reasoning model"
+                  ],
+                  "answer": 3,
+                  "why": "Optimize cost per correct answer by routing by difficulty."
+                },
+                {
+                  "q": "Where should stable instructions and tool definitions go to benefit from prompt caching?",
+                  "choices": [
+                    "In random order",
+                    "In the user message",
+                    "At the start, as a stable prefix",
+                    "At the end of the prompt"
+                  ],
+                  "answer": 2,
+                  "why": "Caches match on identical prefixes."
+                },
+                {
+                  "q": "Which workload fits a batch API?",
+                  "choices": [
+                    "Live voice agent",
+                    "Real-time fraud alert",
+                    "Interactive chat",
+                    "Nightly classification of 200k documents"
+                  ],
+                  "answer": 3,
+                  "why": "Batch suits large, latency-tolerant offline jobs at lower price."
+                }
+              ],
+              "conceptIds": [
+                "model-router"
               ]
             }
           ]
@@ -4713,6 +5065,302 @@
               "conceptIds": [
                 "distillation"
               ]
+            },
+            {
+              "id": "e-docrag",
+              "title": "Multimodal and Document RAG: PDFs, Tables, Charts and Images",
+              "why": "Enterprise answers hide in tables, charts and scanned pages; text-only RAG silently fails on them.",
+              "explainer": "Document RAG extends retrieval to the parts of a document that are not running prose. There are two families of approaches.\n\nParse-then-embed: a layout-aware parser (Docling, Unstructured, Azure Document Intelligence, AWS Textract, LlamaParse) detects headings, tables, figures and reading order. Tables become Markdown or HTML with headers preserved; charts and images get VLM-generated descriptions (and ideally extracted data series); everything is chunked with page and bounding-box references and embedded as text.\n\nEmbed-the-page: visual document retrieval models such as ColPali/ColQwen embed page images directly into multi-vector representations and use late interaction (MaxSim) to match query tokens to image patches. No OCR pipeline, strong on charts and complex layouts, but indexes are larger and answers need a VLM that reads the retrieved page images.\n\nMany production systems are hybrid: text retrieval over parsed content plus visual retrieval over pages, fused and reranked, with a VLM generating the answer and citing page regions.\n\nCommon mistakes: flattening tables into word soup; ignoring figures; losing page references so answers cannot be cited; sending 40 full-resolution page images to a VLM per question.\n\nMental model: a PDF is a picture of information. Either turn the picture into faithful structure, or retrieve the picture itself.",
+              "resources": [
+                {
+                  "title": "ColPali paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2407.01449"
+                },
+                {
+                  "title": "Docling (IBM) document conversion",
+                  "url": "https://github.com/docling-project/docling"
+                },
+                {
+                  "title": "Byaldi (ColPali made easy)",
+                  "url": "https://github.com/AnswerDotAI/byaldi"
+                },
+                {
+                  "title": "Azure AI Document Intelligence",
+                  "url": "https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview"
+                }
+              ],
+              "project": "Take 30 annual-report PDFs. Build (a) a parse-then-embed pipeline with Docling plus VLM chart captions and (b) a ColPali/ColQwen page index. Write 40 questions (15 about tables, 15 about charts, 10 prose) and compare recall@5 and answer accuracy per question type, plus index size and cost.",
+              "topics": [
+                {
+                  "id": "e-docrag-t1",
+                  "title": "Layout parsing and table/chart extraction",
+                  "explainer": "Layout models detect regions (title, paragraph, table, figure, caption) and reading order, which matters for multi-column pages. Table structure recognition recovers rows, columns and merged headers; serialize tables to Markdown or HTML and keep the header with every chunk of a long table. For charts, a VLM can produce a caption and often the underlying data series as JSON, which makes numbers searchable. Keep page numbers and bounding boxes so citations can highlight the exact region.",
+                  "subtopics": [
+                    {
+                      "id": "e-docrag-t1-s0",
+                      "title": "Parsers compared: Docling, Unstructured, LlamaParse, cloud document AI"
+                    },
+                    {
+                      "id": "e-docrag-t1-s1",
+                      "title": "Region detection and reading order"
+                    },
+                    {
+                      "id": "e-docrag-t1-s2",
+                      "title": "Table structure recognition"
+                    },
+                    {
+                      "id": "e-docrag-t1-s3",
+                      "title": "Serializing tables with headers"
+                    },
+                    {
+                      "id": "e-docrag-t1-s4",
+                      "title": "Chart-to-data with VLMs"
+                    },
+                    {
+                      "id": "e-docrag-t1-s5",
+                      "title": "Page and bounding-box citations"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-docrag-t2",
+                  "title": "Visual retrieval with ColPali-style models",
+                  "explainer": "ColPali feeds a page image through a vision-language model and keeps one embedding per image patch, about a thousand vectors per page. A query is embedded per token, and the score is the sum, over query tokens, of the best-matching patch (late interaction, MaxSim). This captures layout, fonts, charts and tables without OCR. The cost is storage and compute: multi-vector indexes are much larger than one-vector-per-chunk indexes, so use token pooling, binarization or a first-stage single-vector filter.",
+                  "subtopics": [
+                    {
+                      "id": "e-docrag-t2-s1",
+                      "title": "Patch embeddings and late interaction"
+                    },
+                    {
+                      "id": "e-docrag-t2-s2",
+                      "title": "MaxSim scoring"
+                    },
+                    {
+                      "id": "e-docrag-t2-s3",
+                      "title": "Index size and compression"
+                    },
+                    {
+                      "id": "e-docrag-t2-s4",
+                      "title": "Two-stage retrieval"
+                    },
+                    {
+                      "id": "e-docrag-t2-s5",
+                      "title": "When visual retrieval beats parsing"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-docrag-t3",
+                  "title": "Multimodal embeddings, fusion and generation",
+                  "explainer": "Multimodal embedding models place images and text in one space so a text query can find a photo or diagram. Hybrid systems run text and visual retrieval in parallel, fuse with reciprocal rank fusion, and rerank. Generation uses a VLM that receives the top pages as images plus extracted text, with instructions to cite page and region. Evaluate by question type, because a system that is great on prose can still be poor on charts, and control image count and resolution to manage latency and cost.",
+                  "subtopics": [
+                    {
+                      "id": "e-docrag-t3-s1",
+                      "title": "Multimodal embedding models"
+                    },
+                    {
+                      "id": "e-docrag-t3-s2",
+                      "title": "Reciprocal rank fusion"
+                    },
+                    {
+                      "id": "e-docrag-t3-s3",
+                      "title": "VLM answer generation with citations"
+                    },
+                    {
+                      "id": "e-docrag-t3-s4",
+                      "title": "Per-question-type evals"
+                    },
+                    {
+                      "id": "e-docrag-t3-s5",
+                      "title": "Image resolution and token budgets"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "What does ColPali embed?",
+                  "choices": [
+                    "Page images as multi-vector patch embeddings",
+                    "SQL tables",
+                    "Audio",
+                    "Only OCR text"
+                  ],
+                  "answer": 0,
+                  "why": "It embeds page images directly with one vector per patch and scores with late interaction."
+                },
+                {
+                  "q": "A long table is split across chunks and answers get columns wrong. Best fix?",
+                  "choices": [
+                    "Use smaller embeddings",
+                    "Raise temperature",
+                    "Remove the table",
+                    "Repeat the table header in every chunk of the table"
+                  ],
+                  "answer": 3,
+                  "why": "Headers give each chunk the column meaning."
+                },
+                {
+                  "q": "Main trade-off of multi-vector visual indexes?",
+                  "choices": [
+                    "Worse on charts",
+                    "Much larger storage and scoring cost",
+                    "Require OCR",
+                    "Cannot be searched"
+                  ],
+                  "answer": 1,
+                  "why": "Hundreds to thousands of vectors per page increase index size; compress or use two stages."
+                }
+              ],
+              "conceptIds": [
+                "docrag-pipeline"
+              ]
+            },
+            {
+              "id": "e-vision",
+              "title": "Vision and Document AI: OCR vs VLM Extraction to Structured Data",
+              "why": "Receipts, invoices, IDs and forms drive real workflows; agents need their data as validated JSON, not as a picture.",
+              "explainer": "Document AI turns images and scans into structured records. Classic pipelines run OCR (Tesseract, PaddleOCR, cloud OCR) to get text with coordinates, then rules or a small model map text to fields. Specialized processors (AWS Textract AnalyzeExpense, Azure prebuilt receipt/invoice, Google Document AI) return typed fields with confidence scores.\n\nVision-language models (GPT-class, Claude, Gemini, Qwen-VL) can read an image and emit JSON directly against a schema using structured outputs. They handle messy layouts and handwriting better than rules, but can hallucinate a plausible total. The robust pattern combines them: VLM or processor extraction into a strict schema, then deterministic validation (line items sum to subtotal, subtotal plus tax equals total, dates parse, currency is known, vendor matches a known list), confidence thresholds, and a human review queue for failures.\n\nCommon mistakes: trusting a single extraction without arithmetic checks; storing floats for money; ignoring image quality (blur, rotation, glare); no ground-truth set to measure field accuracy.\n\nMental model: extraction is a guess; validation turns it into data.",
+              "resources": [
+                {
+                  "title": "AWS Textract AnalyzeExpense",
+                  "url": "https://docs.aws.amazon.com/textract/latest/dg/analyzing-document-expense.html"
+                },
+                {
+                  "title": "PaddleOCR",
+                  "url": "https://github.com/PaddlePaddle/PaddleOCR"
+                },
+                {
+                  "title": "OpenAI structured outputs",
+                  "url": "https://platform.openai.com/docs/guides/structured-outputs"
+                },
+                {
+                  "title": "Google Document AI",
+                  "url": "https://cloud.google.com/document-ai/docs/overview"
+                }
+              ],
+              "project": "Build a receipt reader: photo in, validated JSON out (vendor, date, currency, line items, tax, total) logged to a SQLite expenses table. Compare a VLM with structured output against OCR + rules on 50 hand-labeled receipts; report per-field accuracy, validation catch rate and cost per receipt.",
+              "topics": [
+                {
+                  "id": "e-vision-t1",
+                  "title": "OCR pipelines and specialized processors",
+                  "explainer": "OCR detects text regions and recognizes characters, returning words with bounding boxes and confidence. Preprocessing (deskew, denoise, contrast, crop) matters as much as the engine for phone photos. Specialized cloud processors add document understanding on top: they know where totals and tax usually sit and return normalized fields. They are fast, cheap per page and give confidence scores, but only for supported document types and languages.",
+                  "subtopics": [
+                    {
+                      "id": "e-vision-t1-s1",
+                      "title": "Text detection and recognition"
+                    },
+                    {
+                      "id": "e-vision-t1-s2",
+                      "title": "Image preprocessing"
+                    },
+                    {
+                      "id": "e-vision-t1-s3",
+                      "title": "Word boxes and confidence"
+                    },
+                    {
+                      "id": "e-vision-t1-s4",
+                      "title": "Prebuilt receipt and invoice processors"
+                    },
+                    {
+                      "id": "e-vision-t1-s5",
+                      "title": "Language and layout coverage"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-vision-t2",
+                  "title": "VLM extraction with structured outputs",
+                  "explainer": "Give the VLM the image, a JSON schema and field definitions, and use structured-output mode so the response always parses. Ask for null rather than guesses when a field is unreadable, and for the source text of each value to aid review. Downscale images to the smallest resolution that preserves legibility to control tokens. VLMs generalize to new layouts without templates, which makes them the fastest way to cover long-tail documents.",
+                  "subtopics": [
+                    {
+                      "id": "e-vision-t2-s1",
+                      "title": "Schema-constrained JSON"
+                    },
+                    {
+                      "id": "e-vision-t2-s2",
+                      "title": "Null instead of guessing"
+                    },
+                    {
+                      "id": "e-vision-t2-s3",
+                      "title": "Field-level evidence"
+                    },
+                    {
+                      "id": "e-vision-t2-s4",
+                      "title": "Resolution and token cost"
+                    },
+                    {
+                      "id": "e-vision-t2-s5",
+                      "title": "Long-tail document coverage"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-vision-t3",
+                  "title": "Validation, confidence and human review",
+                  "explainer": "Validate every record deterministically: arithmetic (line items sum to subtotal, subtotal plus tax equals total), formats (dates, currency codes), ranges and reference data (known vendors, tax rates). Store money as integer cents or decimals, never floats. Route records that fail validation or have low confidence to a review queue, and feed corrections back into the eval set. Measure field-level accuracy and straight-through processing rate, the share of documents needing no human touch.",
+                  "subtopics": [
+                    {
+                      "id": "e-vision-t3-s1",
+                      "title": "Arithmetic and format checks"
+                    },
+                    {
+                      "id": "e-vision-t3-s2",
+                      "title": "Decimal money handling"
+                    },
+                    {
+                      "id": "e-vision-t3-s3",
+                      "title": "Confidence thresholds"
+                    },
+                    {
+                      "id": "e-vision-t3-s4",
+                      "title": "Human review queues"
+                    },
+                    {
+                      "id": "e-vision-t3-s5",
+                      "title": "Straight-through processing rate"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "A VLM returns a receipt total that does not equal its line items plus tax. Which check catches this?",
+                  "choices": [
+                    "Higher temperature",
+                    "Spell check",
+                    "Subtotal + tax = total arithmetic validation",
+                    "Image resize"
+                  ],
+                  "answer": 2,
+                  "why": "Deterministic arithmetic checks catch inconsistent extractions."
+                },
+                {
+                  "q": "How should money be stored?",
+                  "choices": [
+                    "Integer cents or decimal type",
+                    "float",
+                    "String with $",
+                    "Embedding"
+                  ],
+                  "answer": 0,
+                  "why": "Floats introduce rounding errors."
+                },
+                {
+                  "q": "What does straight-through processing rate measure?",
+                  "choices": [
+                    "OCR font size",
+                    "Share of documents processed with no human review",
+                    "GPU speed",
+                    "Token count"
+                  ],
+                  "answer": 1,
+                  "why": "It is the key automation metric for document AI."
+                }
+              ],
+              "conceptIds": [
+                "docrag-pipeline"
+              ]
             }
           ]
         },
@@ -5205,7 +5853,154 @@
               ],
               "conceptIds": [
                 "eval-pipeline",
-                "agentops-loop"
+                "agentops-loop",
+                "model-router"
+              ]
+            },
+            {
+              "id": "e-voice",
+              "title": "Real-Time Voice Agents: STT, TTS, Turn-Taking and Telephony",
+              "why": "Voice is the most natural agent interface and the least forgiving: a second of silence feels broken.",
+              "explainer": "A voice agent listens, decides and speaks in real time. Two architectures dominate.\n\nCascaded: streaming speech-to-text (Deepgram, AssemblyAI, Whisper variants) → LLM with tools → streaming text-to-speech (ElevenLabs, Cartesia, others). Each stage is swappable and inspectable, and you can use any LLM and tool stack.\n\nSpeech-to-speech: a single realtime model (OpenAI Realtime API, Gemini Live and similar) takes audio in and produces audio out, preserving tone and cutting latency, with less control over each stage.\n\nEither way the hard parts are conversational: voice activity detection (VAD) and turn detection decide when the user has finished; barge-in lets the user interrupt and must stop TTS instantly and truncate the agent's context to what was actually spoken; backchannels and fillers mask tool latency. Everything streams: partial transcripts, token streaming into TTS sentence by sentence, audio chunks over WebRTC or WebSockets.\n\nTelephony adds SIP trunks or providers like Twilio, 8 kHz audio, DTMF, call transfer to humans, and recording consent. Frameworks such as LiveKit Agents and Pipecat handle the plumbing.\n\nCommon mistakes: waiting for full LLM output before speaking; fixed silence timeouts that cut people off; no barge-in; tools that take 4 seconds with no filler.\n\nMental model: a voice agent is a latency budget with a personality.",
+              "resources": [
+                {
+                  "title": "LiveKit Agents docs",
+                  "url": "https://docs.livekit.io/agents/"
+                },
+                {
+                  "title": "Pipecat (open-source voice agent framework)",
+                  "url": "https://github.com/pipecat-ai/pipecat"
+                },
+                {
+                  "title": "OpenAI Realtime API guide",
+                  "url": "https://platform.openai.com/docs/guides/realtime"
+                },
+                {
+                  "title": "Twilio Media Streams",
+                  "url": "https://www.twilio.com/docs/voice/media-streams"
+                }
+              ],
+              "project": "Build a phone receptionist for a local business (hours, booking, FAQs, transfer to a human) with LiveKit Agents or Pipecat and a Twilio number. Measure voice-to-voice latency p50/p95, barge-in stop time and task success on 20 scripted calls; compare cascaded vs speech-to-speech.",
+              "topics": [
+                {
+                  "id": "e-voice-t1",
+                  "title": "Cascaded vs speech-to-speech",
+                  "explainer": "Cascaded pipelines give control: best-in-class STT for accents, any LLM with tools and guardrails, a branded TTS voice, and text transcripts for evals and audits. The cost is latency stacking across three services. Speech-to-speech models collapse the pipeline, respond faster and carry prosody and emotion, but limit model choice and make text-level guardrails and logging harder. Many teams start cascaded for control, then move latency-critical flows to realtime models.",
+                  "subtopics": [
+                    {
+                      "id": "e-voice-t1-s1",
+                      "title": "Cascaded STT → LLM → TTS"
+                    },
+                    {
+                      "id": "e-voice-t1-s2",
+                      "title": "Speech-to-speech realtime models"
+                    },
+                    {
+                      "id": "e-voice-t1-s3",
+                      "title": "Control vs latency trade-off"
+                    },
+                    {
+                      "id": "e-voice-t1-s4",
+                      "title": "Transcripts for evals and audit"
+                    },
+                    {
+                      "id": "e-voice-t1-s5",
+                      "title": "Hybrid designs"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-voice-t2",
+                  "title": "Turn-taking, VAD and barge-in",
+                  "explainer": "VAD classifies audio frames as speech or silence; turn detection decides whether a pause means the user is done, increasingly using small semantic models on the partial transcript instead of fixed silence timers. Barge-in: when the user starts speaking during agent speech, stop TTS within about 200 ms, cancel pending generation, and record only the words actually played into context so the agent does not believe it said things the user never heard. Echo cancellation prevents the agent hearing itself.",
+                  "subtopics": [
+                    {
+                      "id": "e-voice-t2-s1",
+                      "title": "Voice activity detection"
+                    },
+                    {
+                      "id": "e-voice-t2-s2",
+                      "title": "Semantic end-of-turn detection"
+                    },
+                    {
+                      "id": "e-voice-t2-s3",
+                      "title": "Barge-in and cancellation"
+                    },
+                    {
+                      "id": "e-voice-t2-s4",
+                      "title": "Truncating context to spoken words"
+                    },
+                    {
+                      "id": "e-voice-t2-s5",
+                      "title": "Echo cancellation"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-voice-t3",
+                  "title": "Streaming, latency budget and telephony",
+                  "explainer": "Target roughly 800 ms or less from end of user speech to first agent audio. Budget each hop: end-of-turn detection, final transcript, LLM time to first token, first TTS audio, and network. Stream everything and start TTS on the first sentence. Mask slow tools with short fillers. For phone calls, connect via SIP trunk or Twilio Media Streams, handle 8 kHz mu-law audio, DTMF input, warm transfer to humans, recording disclosures and call-level analytics.",
+                  "subtopics": [
+                    {
+                      "id": "e-voice-t3-s1",
+                      "title": "Voice-to-voice latency budget"
+                    },
+                    {
+                      "id": "e-voice-t3-s2",
+                      "title": "Sentence-level streaming to TTS"
+                    },
+                    {
+                      "id": "e-voice-t3-s3",
+                      "title": "Fillers for tool latency"
+                    },
+                    {
+                      "id": "e-voice-t3-s4",
+                      "title": "SIP, Twilio and 8 kHz audio"
+                    },
+                    {
+                      "id": "e-voice-t3-s5",
+                      "title": "Transfers, DTMF and consent"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "The user interrupts the agent mid-sentence. What must happen to the agent's context?",
+                  "choices": [
+                    "Keep the full planned reply",
+                    "Nothing",
+                    "Clear all history",
+                    "Truncate to the words actually spoken before the interruption"
+                  ],
+                  "answer": 3,
+                  "why": "Otherwise the agent believes the user heard things they did not."
+                },
+                {
+                  "q": "Biggest latency win in a cascaded pipeline?",
+                  "choices": [
+                    "Longer silence timeout",
+                    "Higher sample rate",
+                    "Bigger model",
+                    "Streaming LLM tokens into TTS sentence by sentence"
+                  ],
+                  "answer": 3,
+                  "why": "Starting TTS on the first sentence avoids waiting for the full reply."
+                },
+                {
+                  "q": "Why use semantic end-of-turn detection instead of a fixed silence timer?",
+                  "choices": [
+                    "It removes STT",
+                    "It avoids cutting off users who pause mid-thought while staying responsive",
+                    "It is cheaper",
+                    "Required by SIP"
+                  ],
+                  "answer": 1,
+                  "why": "Pauses do not always mean the turn is over."
+                }
+              ],
+              "conceptIds": [
+                "voice-latency"
               ]
             }
           ]
@@ -5296,6 +6091,33 @@
                     }
                   ],
                   "explainer": "Training can make things worse. Models over-fit to the harness or eval used in training. Reward hacking finds loopholes, such as editing tests instead of fixing code. Entropy collapse makes outputs repetitive and kills exploration. Contaminated evals hide all of this. Often the right call is not to train at all and instead improve prompts, retrieval or tools. Try it: before approving a training run, write down which prompt, retrieval or tool change you tried first and why it was not enough."
+                },
+                {
+                  "id": "e-post-x1",
+                  "title": "Post-training pipeline end to end",
+                  "explainer": "A typical post-training pipeline runs supervised fine-tuning on curated demonstrations, then preference optimization (DPO or RLHF with a reward model), then reinforcement learning with verifiable rewards for reasoning and tool use, often with GRPO. Each stage needs held-out evals for capability and safety regressions. Pretraining checkpoints set the ceiling; post-training shapes behavior. Track data provenance throughout, and compare every stage against the previous checkpoint and a prompting baseline.",
+                  "subtopics": [
+                    {
+                      "id": "e-post-x1-s1",
+                      "title": "SFT on demonstrations"
+                    },
+                    {
+                      "id": "e-post-x1-s2",
+                      "title": "Preference optimization: DPO and RLHF"
+                    },
+                    {
+                      "id": "e-post-x1-s3",
+                      "title": "RL with verifiable rewards"
+                    },
+                    {
+                      "id": "e-post-x1-s4",
+                      "title": "Safety and capability regression evals"
+                    },
+                    {
+                      "id": "e-post-x1-s5",
+                      "title": "Data provenance across stages"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -5447,6 +6269,303 @@
                   ],
                   "answer": 1,
                   "why": "Vision inputs are another untrusted channel."
+                }
+              ],
+              "conceptIds": [
+                "docrag-pipeline",
+                "voice-latency"
+              ]
+            },
+            {
+              "id": "e-rlenv",
+              "title": "RL Environments, Reward Design and Prompt Optimization",
+              "why": "Post-training for agents is now mostly environment and reward engineering; the quality of the environment decides what the model learns.",
+              "explainer": "Reinforcement learning for LLM agents needs three things: an environment (tasks plus sandboxed tools such as code execution, a browser or a simulated company), a reward (verifiable checks like tests passing or a correct database state, or graders and reward models), and an RL algorithm (PPO, GRPO and variants) run by a framework such as verl, OpenRLHF or TRL with fast rollouts on vLLM.\n\nEnvironment design is the hard part: tasks must be diverse, realistic, solvable and verifiable, at the right difficulty for the current model. Reward hacking is the central failure: the policy finds ways to score without solving the task, such as editing tests, special-casing graders or exploiting simulator bugs. Defenses include hidden tests, multiple independent graders, monitoring trajectories and held-out evals.\n\nBefore spending GPUs on RL, prompt and program optimization can capture much of the gain: DSPy compiles prompts and few-shot examples against a metric, and GEPA evolves prompts using reflective feedback on trajectories. Model merging (for example with mergekit) combines fine-tuned checkpoints without further training.\n\nCommon mistakes: rewards that can be gamed; environments far easier than production; no held-out evaluation; training on contaminated benchmark data.\n\nMental model: the model optimizes exactly what you reward, in the world you built for it.",
+              "resources": [
+                {
+                  "title": "verl (Volcano Engine RL for LLMs)",
+                  "url": "https://github.com/volcengine/verl"
+                },
+                {
+                  "title": "DeepSeekMath (GRPO) paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2402.03300"
+                },
+                {
+                  "title": "DSPy",
+                  "url": "https://dspy.ai/"
+                },
+                {
+                  "title": "GEPA: Reflective prompt evolution (arXiv)",
+                  "url": "https://arxiv.org/abs/2507.19457"
+                },
+                {
+                  "title": "mergekit",
+                  "url": "https://github.com/arcee-ai/mergekit"
+                }
+              ],
+              "project": "Build a sandboxed tool-use environment with 200 verifiable tasks. First optimize the prompt with DSPy or GEPA and record the gain. Then run GRPO on a small open model with verl or TRL, add one deliberate reward loophole, detect the reward hacking from trajectories, close it, and compare held-out results.",
+              "topics": [
+                {
+                  "id": "e-rlenv-t1",
+                  "title": "Environments and verifiable rewards",
+                  "explainer": "An RL environment for agents exposes a task, tools and a final check. Verifiable rewards come from deterministic checks: unit tests, exact answers, database end states, or a compiler. Gym-style interfaces (reset, step, reward) make environments reusable. Sandboxed execution in containers keeps rollouts safe and reproducible at scale. Tune difficulty so the model succeeds sometimes; tasks that are always solved or never solved give no learning signal under group-relative methods like GRPO.",
+                  "subtopics": [
+                    {
+                      "id": "e-rlenv-t1-s1",
+                      "title": "Gym-style reset/step/reward"
+                    },
+                    {
+                      "id": "e-rlenv-t1-s2",
+                      "title": "Verifiable checks and graders"
+                    },
+                    {
+                      "id": "e-rlenv-t1-s3",
+                      "title": "Sandboxed rollouts at scale"
+                    },
+                    {
+                      "id": "e-rlenv-t1-s4",
+                      "title": "Difficulty calibration"
+                    },
+                    {
+                      "id": "e-rlenv-t1-s5",
+                      "title": "Task diversity and realism"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-rlenv-t2",
+                  "title": "Reward hacking and environment quality",
+                  "explainer": "Reward hacking happens when the policy maximizes the reward signal without achieving the intended goal, for example deleting failing tests, hard-coding expected outputs or exploiting a lenient judge. Detect it by sampling and reading trajectories, comparing reward with held-out evaluation, and watching for sudden reward jumps. Prevent it with hidden or regenerated tests, read-only graders, multiple reward sources, penalties for forbidden actions, and environment red-teaming before training starts.",
+                  "subtopics": [
+                    {
+                      "id": "e-rlenv-t2-s1",
+                      "title": "Common reward hacks"
+                    },
+                    {
+                      "id": "e-rlenv-t2-s2",
+                      "title": "Trajectory auditing"
+                    },
+                    {
+                      "id": "e-rlenv-t2-s3",
+                      "title": "Hidden tests and read-only graders"
+                    },
+                    {
+                      "id": "e-rlenv-t2-s4",
+                      "title": "Reward vs held-out divergence"
+                    },
+                    {
+                      "id": "e-rlenv-t2-s5",
+                      "title": "Environment red-teaming"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-rlenv-t3",
+                  "title": "Prompt optimization, RL frameworks and merging",
+                  "explainer": "Prompt and program optimizers search over instructions and examples against your metric: DSPy compiles modular programs; GEPA uses reflection on failed trajectories to evolve prompts and often rivals RL at a fraction of the cost. When weights must change, frameworks such as verl, OpenRLHF and TRL orchestrate rollouts, reward computation and PPO or GRPO updates. Model merging averages or combines fine-tuned weights to blend skills cheaply; always re-evaluate merged models.",
+                  "subtopics": [
+                    {
+                      "id": "e-rlenv-t3-s1",
+                      "title": "DSPy optimizers"
+                    },
+                    {
+                      "id": "e-rlenv-t3-s2",
+                      "title": "GEPA reflective evolution"
+                    },
+                    {
+                      "id": "e-rlenv-t3-s3",
+                      "title": "verl, OpenRLHF, TRL"
+                    },
+                    {
+                      "id": "e-rlenv-t3-s4",
+                      "title": "Rollout throughput with vLLM"
+                    },
+                    {
+                      "id": "e-rlenv-t3-s5",
+                      "title": "Model merging with mergekit"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "Why are tasks the model always solves useless for GRPO?",
+                  "choices": [
+                    "They are too long",
+                    "All samples get the same reward, so group-relative advantages are zero",
+                    "They use too many tokens",
+                    "They are not verifiable"
+                  ],
+                  "answer": 1,
+                  "why": "GRPO learns from reward differences within a group; identical rewards give no signal."
+                },
+                {
+                  "q": "Training reward rises sharply but held-out success is flat. Most likely?",
+                  "choices": [
+                    "Reward hacking",
+                    "Tokenizer bug",
+                    "Better learning",
+                    "GPU failure"
+                  ],
+                  "answer": 0,
+                  "why": "Divergence between reward and held-out evals signals the policy is gaming the reward."
+                },
+                {
+                  "q": "What should you try before spending GPUs on RL?",
+                  "choices": [
+                    "Bigger context",
+                    "Prompt/program optimization (DSPy, GEPA) against the same metric",
+                    "Nothing",
+                    "More temperature"
+                  ],
+                  "answer": 1,
+                  "why": "Prompt optimization often captures much of the gain cheaply."
+                }
+              ],
+              "conceptIds": [
+                "rlhf-dpo-grpo"
+              ]
+            },
+            {
+              "id": "e-genmedia",
+              "title": "Image and Video Generation: Diffusion Models in Products",
+              "why": "Generative media is part of many agent workflows (marketing, design, product content), and it brings its own cost, safety and IP questions.",
+              "explainer": "Diffusion models generate images by learning to reverse a noising process: starting from random noise, a network repeatedly predicts and removes noise, guided by a text prompt. Latent diffusion (Stable Diffusion) runs this in a compressed latent space for speed; diffusion transformers (DiT) replaced the U-Net backbone in many recent models; flow matching is a closely related training objective. Video models extend this across time. Control methods (ControlNet, image-to-image, inpainting) and fine-tuning (LoRA, DreamBooth) shape outputs to a brand or subject.\n\nIn agentic products, an agent might write a brief, call an image or video generation API, check the output with a vision model, and iterate. Production concerns: cost per image or second of video, latency, content safety filters, provenance marking (C2PA, and EU AI Act Article 50 duties to mark synthetic content), likeness and IP rights, and human review for public assets.\n\nCommon mistakes: no safety filter on prompts and outputs; no record of model and prompt for provenance; ignoring licensing of training data and outputs.\n\nMental model: generation is cheap to try and expensive to trust; build the review loop first.",
+              "resources": [
+                {
+                  "title": "Denoising Diffusion Probabilistic Models (arXiv)",
+                  "url": "https://arxiv.org/abs/2006.11239"
+                },
+                {
+                  "title": "Hugging Face Diffusers docs",
+                  "url": "https://huggingface.co/docs/diffusers/index"
+                },
+                {
+                  "title": "C2PA content provenance",
+                  "url": "https://c2pa.org/"
+                },
+                {
+                  "title": "Scalable Diffusion Models with Transformers (DiT, arXiv)",
+                  "url": "https://arxiv.org/abs/2212.09748"
+                }
+              ],
+              "project": "Build an agent that turns a product description into three ad images: it writes prompts, calls a diffusion model (local Diffusers or an API), checks each image with a VLM against a brand checklist, regenerates failures, and attaches C2PA provenance. Report cost per approved image and the rejection rate.",
+              "topics": [
+                {
+                  "id": "e-genmedia-t1",
+                  "title": "How diffusion models work",
+                  "explainer": "Training adds Gaussian noise to images over many steps and teaches a network to predict that noise given the noisy image, the step and a text embedding. Generation starts from pure noise and denoises step by step. Latent diffusion compresses images with an autoencoder so denoising runs on small latents. Classifier-free guidance strengthens prompt adherence by mixing conditional and unconditional predictions. Fewer sampling steps via better samplers or distillation cut latency at some quality cost.",
+                  "subtopics": [
+                    {
+                      "id": "e-genmedia-t1-s1",
+                      "title": "Forward noising and reverse denoising"
+                    },
+                    {
+                      "id": "e-genmedia-t1-s2",
+                      "title": "Latent diffusion and autoencoders"
+                    },
+                    {
+                      "id": "e-genmedia-t1-s3",
+                      "title": "U-Net vs diffusion transformers"
+                    },
+                    {
+                      "id": "e-genmedia-t1-s4",
+                      "title": "Classifier-free guidance"
+                    },
+                    {
+                      "id": "e-genmedia-t1-s5",
+                      "title": "Samplers and step distillation"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-genmedia-t2",
+                  "title": "Control, customization and video",
+                  "explainer": "Image-to-image, inpainting and outpainting edit existing images. ControlNet and similar adapters condition on edges, poses or depth for layout control. LoRA and DreamBooth fine-tune a model on a few images of a product, style or person. Video diffusion models add temporal layers or operate on spatio-temporal latents, with cost scaling with resolution and duration. Agents can orchestrate these steps, but each one needs automated checks.",
+                  "subtopics": [
+                    {
+                      "id": "e-genmedia-t2-s1",
+                      "title": "Inpainting and outpainting"
+                    },
+                    {
+                      "id": "e-genmedia-t2-s2",
+                      "title": "ControlNet conditioning"
+                    },
+                    {
+                      "id": "e-genmedia-t2-s3",
+                      "title": "LoRA and DreamBooth customization"
+                    },
+                    {
+                      "id": "e-genmedia-t2-s4",
+                      "title": "Video diffusion"
+                    },
+                    {
+                      "id": "e-genmedia-t2-s5",
+                      "title": "Agent-orchestrated pipelines"
+                    }
+                  ]
+                },
+                {
+                  "id": "e-genmedia-t3",
+                  "title": "Safety, provenance and cost in production",
+                  "explainer": "Filter prompts and outputs for disallowed content, and block likeness of real people without consent. Mark outputs as AI-generated with C2PA manifests or watermarks, which supports EU AI Act Article 50 transparency obligations for synthetic content. Log the model, prompt, seed and reviewer for each published asset. Track cost per approved asset, not per generation, since rejected attempts add up. Clarify licensing and IP terms of the model and outputs before commercial use.",
+                  "subtopics": [
+                    {
+                      "id": "e-genmedia-t3-s1",
+                      "title": "Prompt and output safety filters"
+                    },
+                    {
+                      "id": "e-genmedia-t3-s2",
+                      "title": "Likeness and consent"
+                    },
+                    {
+                      "id": "e-genmedia-t3-s3",
+                      "title": "C2PA provenance and watermarking"
+                    },
+                    {
+                      "id": "e-genmedia-t3-s4",
+                      "title": "Audit logging of generations"
+                    },
+                    {
+                      "id": "e-genmedia-t3-s5",
+                      "title": "Cost per approved asset"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "What does a diffusion model learn during training?",
+                  "choices": [
+                    "To rank documents",
+                    "To predict the noise added to an image at a given step",
+                    "To compress text",
+                    "To classify images"
+                  ],
+                  "answer": 1,
+                  "why": "It learns to denoise; generation runs that in reverse from noise."
+                },
+                {
+                  "q": "Why does latent diffusion run faster?",
+                  "choices": [
+                    "It generates text first",
+                    "It uses no GPU",
+                    "It skips the prompt",
+                    "Denoising happens in a compressed latent space"
+                  ],
+                  "answer": 3,
+                  "why": "Smaller latents make each denoising step cheaper."
+                },
+                {
+                  "q": "Which practice supports transparency duties for synthetic images?",
+                  "choices": [
+                    "Higher resolution",
+                    "Removing metadata",
+                    "C2PA provenance or watermark marking",
+                    "More sampling steps"
+                  ],
+                  "answer": 2,
+                  "why": "Provenance marking identifies content as AI-generated."
                 }
               ],
               "conceptIds": []
@@ -6962,6 +8081,33 @@
                       "title": "Policy reviews"
                     }
                   ]
+                },
+                {
+                  "id": "i-gateway-x1",
+                  "title": "Kubernetes Gateway API Inference Extension and llm-d",
+                  "explainer": "The Kubernetes Gateway API Inference Extension adds model-aware routing to standard gateways: an InferencePool groups model-server pods, and an endpoint picker chooses a pod using live signals such as queue depth, KV-cache utilization and loaded LoRA adapters. llm-d builds on vLLM and this extension for distributed inference on Kubernetes, adding prefix-cache-aware routing, disaggregated prefill and decode, and KV cache offloading. Databricks AI Gateway and similar products provide the higher-level policy layer.",
+                  "subtopics": [
+                    {
+                      "id": "i-gateway-x1-s1",
+                      "title": "InferencePool and endpoint picker"
+                    },
+                    {
+                      "id": "i-gateway-x1-s2",
+                      "title": "Queue- and KV-aware scheduling"
+                    },
+                    {
+                      "id": "i-gateway-x1-s3",
+                      "title": "llm-d architecture"
+                    },
+                    {
+                      "id": "i-gateway-x1-s4",
+                      "title": "KV cache offloading"
+                    },
+                    {
+                      "id": "i-gateway-x1-s5",
+                      "title": "Policy gateways (Databricks AI Gateway) vs inference routers"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -7011,7 +8157,8 @@
                 }
               ],
               "conceptIds": [
-                "llm-gateway-routing"
+                "llm-gateway-routing",
+                "model-router"
               ]
             }
           ]
@@ -10489,6 +11636,156 @@
                 "agent-loop",
                 "harness"
               ]
+            },
+            {
+              "id": "g-patterns",
+              "title": "Agentic Design Patterns: Reflection, Planning, Tools, Multi-Agent, Deep Research",
+              "why": "A handful of reusable patterns explain almost every agent architecture; knowing them lets you pick the simplest one that works.",
+              "explainer": "Andrew Ng's four agentic design patterns are a useful vocabulary. Reflection: the model critiques and revises its own output (or a second model does). Tool use: the model calls functions, search, code or APIs to act and to get facts. Planning: the model decomposes a goal into steps (ReAct interleaves reasoning and acting; plan-and-execute writes a plan, then runs it). Multi-agent: specialized agents collaborate through an orchestrator or hand-offs.\n\nAnthropic's 'Building effective agents' adds workflow patterns that are often better than free agents: prompt chaining, routing, parallelization, orchestrator-workers and evaluator-optimizer. The broader idea is augmented language models: an LLM plus retrieval, tools and memory.\n\nDeep research agents combine these: plan sub-questions, run many searches in parallel (often with built-in web search, file search and code interpreter tools), read and extract evidence, reflect on gaps, and write a cited report.\n\nCommon mistakes: starting with multi-agent when one agent with good tools would do; reflection loops with no stopping rule; plans that are never re-checked against observations.\n\nMental model: use workflows when the steps are known, agents when they are not, and add autonomy only where it pays.",
+              "resources": [
+                {
+                  "title": "Anthropic: Building effective agents",
+                  "url": "https://www.anthropic.com/engineering/building-effective-agents"
+                },
+                {
+                  "title": "DeepLearning.AI: Agentic AI (Andrew Ng)",
+                  "url": "https://www.deeplearning.ai/courses/agentic-ai/"
+                },
+                {
+                  "title": "ReAct paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2210.03629"
+                },
+                {
+                  "title": "Anthropic: How we built our multi-agent research system",
+                  "url": "https://www.anthropic.com/engineering/multi-agent-research-system"
+                }
+              ],
+              "project": "Implement the same research task four ways: single prompt, prompt chain, ReAct agent with web search, and orchestrator plus parallel research sub-agents with a reflection step. Compare citation accuracy, coverage, cost and latency on 15 questions.",
+              "topics": [
+                {
+                  "id": "g-patterns-t1",
+                  "title": "Reflection and evaluator-optimizer",
+                  "explainer": "Reflection asks the model to critique its draft against criteria, then revise. It helps most when feedback is concrete: failing tests, schema errors, a checklist, or a judge with a rubric. The evaluator-optimizer workflow makes this explicit with a separate evaluator. Always cap iterations and stop when the evaluator passes or improvement stalls. Reflection without external signal can entrench errors, so prefer tool-grounded feedback such as running the code or checking the citation.",
+                  "subtopics": [
+                    {
+                      "id": "g-patterns-t1-s1",
+                      "title": "Self-critique against criteria"
+                    },
+                    {
+                      "id": "g-patterns-t1-s2",
+                      "title": "External feedback (tests, validators)"
+                    },
+                    {
+                      "id": "g-patterns-t1-s3",
+                      "title": "Evaluator-optimizer loops"
+                    },
+                    {
+                      "id": "g-patterns-t1-s4",
+                      "title": "Iteration caps"
+                    },
+                    {
+                      "id": "g-patterns-t1-s5",
+                      "title": "When reflection hurts"
+                    }
+                  ]
+                },
+                {
+                  "id": "g-patterns-t2",
+                  "title": "Planning, routing and workflows",
+                  "explainer": "ReAct interleaves a thought, an action and an observation each step, which adapts well but can wander. Plan-and-execute writes a full plan first, then executes and re-plans on failure, which is cheaper and easier to audit. Routing classifies the input and sends it to a specialized prompt or model. Prompt chaining and parallelization handle known multi-step tasks deterministically. Pick the least autonomous pattern that meets the requirement, and log plans so failures are debuggable.",
+                  "subtopics": [
+                    {
+                      "id": "g-patterns-t2-s1",
+                      "title": "Augmented language models: retrieval, tools, memory"
+                    },
+                    {
+                      "id": "g-patterns-t2-s2",
+                      "title": "ReAct loop"
+                    },
+                    {
+                      "id": "g-patterns-t2-s3",
+                      "title": "Plan-and-execute with re-planning"
+                    },
+                    {
+                      "id": "g-patterns-t2-s4",
+                      "title": "Routing to specialists"
+                    },
+                    {
+                      "id": "g-patterns-t2-s5",
+                      "title": "Prompt chaining"
+                    },
+                    {
+                      "id": "g-patterns-t2-s6",
+                      "title": "Parallelization and voting"
+                    }
+                  ]
+                },
+                {
+                  "id": "g-patterns-t3",
+                  "title": "Multi-agent systems and deep research",
+                  "explainer": "Multi-agent designs split work across specialized agents: an orchestrator that delegates to workers, or peer hand-offs. They help with parallel breadth such as researching ten sub-topics at once, and with separation of privileges. They cost more tokens and add coordination failures. Deep research agents plan sub-questions, fan out parallel searches with built-in web and file search tools, extract evidence with sources, reflect on gaps, and synthesize a cited report. Evaluate citation accuracy, not just fluency.",
+                  "subtopics": [
+                    {
+                      "id": "g-patterns-t3-s1",
+                      "title": "Orchestrator-worker"
+                    },
+                    {
+                      "id": "g-patterns-t3-s2",
+                      "title": "Hand-offs between agents"
+                    },
+                    {
+                      "id": "g-patterns-t3-s3",
+                      "title": "Parallel research fan-out"
+                    },
+                    {
+                      "id": "g-patterns-t3-s4",
+                      "title": "Evidence extraction with citations"
+                    },
+                    {
+                      "id": "g-patterns-t3-s5",
+                      "title": "Token cost of multi-agent"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "Which pattern fits a task whose steps are fully known in advance?",
+                  "choices": [
+                    "Reflection only",
+                    "Prompt chaining / workflow",
+                    "Multi-agent debate",
+                    "Free-form autonomous agent"
+                  ],
+                  "answer": 1,
+                  "why": "Workflows are cheaper and more reliable when steps are known."
+                },
+                {
+                  "q": "Reflection works best when…",
+                  "choices": [
+                    "The model critiques with no external signal",
+                    "Iterations are unlimited",
+                    "Feedback comes from tests, validators or a rubric-based judge",
+                    "Temperature is high"
+                  ],
+                  "answer": 2,
+                  "why": "Concrete external signal makes revisions converge."
+                },
+                {
+                  "q": "Main benefit of multi-agent deep research?",
+                  "choices": [
+                    "No need for citations",
+                    "Parallel breadth across many sub-questions",
+                    "Fewer tool calls",
+                    "Lower cost"
+                  ],
+                  "answer": 1,
+                  "why": "Parallel sub-agents cover more ground at higher token cost."
+                }
+              ],
+              "conceptIds": [
+                "agent-loop"
+              ]
             }
           ]
         },
@@ -10992,6 +12289,160 @@
               "conceptIds": [
                 "multi-agent",
                 "a2a"
+              ]
+            },
+            {
+              "id": "g-frameworks",
+              "title": "Agent Frameworks and Managed Agent Platforms",
+              "why": "Teams lose months picking frameworks; knowing what each one actually provides lets you choose in a day and stay portable.",
+              "explainer": "Agent frameworks package the loop, tools, state, memory, tracing and multi-agent coordination. Open frameworks: LangGraph (explicit state graphs, checkpointing, human-in-the-loop interrupts, streaming; traced with LangSmith), OpenAI Agents SDK (agents, tools, hand-offs, guardrails, tracing), Claude Agent SDK (the harness behind Claude Code: tools, permissions, sub-agents, context compaction), Google ADK (Agent Development Kit, multi-agent, A2A support), CrewAI and AutoGen (role-based and conversational multi-agent), Hugging Face smolagents (minimal code agents), and LlamaIndex (workflows and query engines over data).\n\nManaged platforms run agents for you with enterprise identity, logging and scaling: AWS Bedrock AgentCore (runtime, memory, identity, gateway, observability) alongside Bedrock Agents and Knowledge Bases; Google Vertex AI Agent Engine; Azure AI Foundry Agent Service and Copilot Studio; Databricks Mosaic AI Agent Framework with Agent Evaluation, Genie and Unity Catalog; Snowflake Cortex Agents.\n\nCommon mistakes: choosing by GitHub stars; deep framework lock-in for logic that is 200 lines of plain code; ignoring how the framework handles state persistence, tracing and identity.\n\nMental model: frameworks are harness kits. Keep your tools (MCP), evals and data framework-agnostic so you can swap the harness.",
+              "resources": [
+                {
+                  "title": "LangGraph docs",
+                  "url": "https://langchain-ai.github.io/langgraph/"
+                },
+                {
+                  "title": "OpenAI Agents SDK",
+                  "url": "https://openai.github.io/openai-agents-python/"
+                },
+                {
+                  "title": "Claude Agent SDK overview",
+                  "url": "https://docs.claude.com/en/api/agent-sdk/overview"
+                },
+                {
+                  "title": "Google Agent Development Kit (ADK)",
+                  "url": "https://google.github.io/adk-docs/"
+                },
+                {
+                  "title": "Amazon Bedrock AgentCore",
+                  "url": "https://aws.amazon.com/bedrock/agentcore/"
+                },
+                {
+                  "title": "Hugging Face smolagents",
+                  "url": "https://huggingface.co/docs/smolagents/index"
+                }
+              ],
+              "project": "Build one support agent (two tools, one MCP server, human approval for refunds) in three stacks: plain Python, LangGraph, and one of OpenAI Agents SDK / Claude Agent SDK / Google ADK. Deploy one version on a managed platform (Bedrock AgentCore, Vertex AI Agent Engine or Azure AI Foundry Agent Service). Compare lines of code, tracing, state persistence, identity integration and eval results.",
+              "topics": [
+                {
+                  "id": "g-frameworks-t1",
+                  "title": "Open-source agent frameworks",
+                  "explainer": "LangGraph models agents as state graphs with nodes and edges, persistent checkpoints, interrupts for human approval and streaming, and pairs with LangSmith for tracing and evals. The OpenAI Agents SDK is a light layer with agents, tools, hand-offs, guardrails and built-in tracing. The Claude Agent SDK exposes the Claude Code harness: file and shell tools, permissions, sub-agents and context compaction. Google ADK supports multi-agent hierarchies and A2A. CrewAI and AutoGen focus on role-based or conversational multi-agent setups, smolagents on minimal code-writing agents, and LlamaIndex on data-centric workflows and query engines.",
+                  "subtopics": [
+                    {
+                      "id": "g-frameworks-t1-s1",
+                      "title": "LangGraph graphs, checkpoints, interrupts"
+                    },
+                    {
+                      "id": "g-frameworks-t1-s2",
+                      "title": "OpenAI Agents SDK hand-offs and guardrails"
+                    },
+                    {
+                      "id": "g-frameworks-t1-s3",
+                      "title": "Claude Agent SDK and Claude Code harness"
+                    },
+                    {
+                      "id": "g-frameworks-t1-s4",
+                      "title": "Google ADK and A2A"
+                    },
+                    {
+                      "id": "g-frameworks-t1-s5",
+                      "title": "CrewAI, AutoGen, smolagents, LlamaIndex"
+                    }
+                  ]
+                },
+                {
+                  "id": "g-frameworks-t2",
+                  "title": "Managed agent platforms",
+                  "explainer": "Managed platforms trade flexibility for enterprise plumbing. Bedrock AgentCore provides a serverless agent runtime, memory, identity, a tool gateway and observability for agents built with any framework; Bedrock Agents and Knowledge Bases offer configured agents and managed RAG. Vertex AI Agent Engine hosts ADK or LangGraph agents with sessions and memory. Azure AI Foundry Agent Service and Copilot Studio integrate with Entra identity and Microsoft 365. Databricks Mosaic AI Agent Framework adds Agent Evaluation, Genie text-to-SQL and Unity Catalog governance; Snowflake offers Cortex Agents.",
+                  "subtopics": [
+                    {
+                      "id": "g-frameworks-t2-s1",
+                      "title": "Bedrock AgentCore, Agents, Knowledge Bases"
+                    },
+                    {
+                      "id": "g-frameworks-t2-s2",
+                      "title": "Vertex AI Agent Engine"
+                    },
+                    {
+                      "id": "g-frameworks-t2-s3",
+                      "title": "Azure AI Foundry Agent Service, Copilot Studio"
+                    },
+                    {
+                      "id": "g-frameworks-t2-s4",
+                      "title": "Databricks Mosaic AI and Agent Evaluation"
+                    },
+                    {
+                      "id": "g-frameworks-t2-s5",
+                      "title": "Snowflake Cortex Agents"
+                    }
+                  ]
+                },
+                {
+                  "id": "g-frameworks-t3",
+                  "title": "Choosing and staying portable",
+                  "explainer": "Choose on: state and durability model, human-in-the-loop support, tracing and eval integration, identity and secrets handling, multi-agent needs, language support, and where it will run. Keep the valuable parts portable: tools as MCP servers, prompts in a registry, evals in your own harness, and data behind your own APIs. Wrap framework calls behind a thin interface. Re-evaluate yearly; the landscape moves fast, and a plain loop with good tools often beats a heavy framework.",
+                  "subtopics": [
+                    {
+                      "id": "g-frameworks-t3-s1",
+                      "title": "Selection criteria"
+                    },
+                    {
+                      "id": "g-frameworks-t3-s2",
+                      "title": "Tools via MCP for portability"
+                    },
+                    {
+                      "id": "g-frameworks-t3-s3",
+                      "title": "Framework-agnostic evals"
+                    },
+                    {
+                      "id": "g-frameworks-t3-s4",
+                      "title": "Thin abstraction layers"
+                    },
+                    {
+                      "id": "g-frameworks-t3-s5",
+                      "title": "Build vs adopt"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "Which LangGraph feature supports human approval mid-run?",
+                  "choices": [
+                    "Quantization",
+                    "Interrupts with persisted checkpoints",
+                    "Tokenizers",
+                    "Embeddings"
+                  ],
+                  "answer": 1,
+                  "why": "Interrupts pause the graph and checkpoints let it resume after approval."
+                },
+                {
+                  "q": "What is the best way to stay portable across agent frameworks?",
+                  "choices": [
+                    "Use only managed platforms",
+                    "Expose tools as MCP servers and keep evals and data framework-agnostic",
+                    "Write all logic inside one framework's classes",
+                    "Avoid tracing"
+                  ],
+                  "answer": 1,
+                  "why": "Portable tools, evals and data make the harness swappable."
+                },
+                {
+                  "q": "Which managed service offers an agent runtime, memory, identity and tool gateway on AWS?",
+                  "choices": [
+                    "AWS Glue",
+                    "Amazon S3",
+                    "Amazon Bedrock AgentCore",
+                    "Amazon SQS"
+                  ],
+                  "answer": 2,
+                  "why": "Bedrock AgentCore provides those agent runtime services."
+                }
+              ],
+              "conceptIds": [
+                "agent-loop"
               ]
             }
           ]
@@ -13080,6 +14531,33 @@
                       "title": "Audit logs per tool call"
                     }
                   ]
+                },
+                {
+                  "id": "d-connect-x1",
+                  "title": "Warehouse-native agents: Genie, Cortex Analyst and Unity Catalog",
+                  "explainer": "Data platforms now ship their own text-to-SQL agents. Databricks Genie answers questions over Unity Catalog tables using curated instructions, example queries and certified metrics; Snowflake Cortex Analyst uses semantic models, and Cortex Agents orchestrate search and SQL. They keep data and governance inside the platform, with Unity Catalog or Snowflake roles enforcing access. Treat them like any text-to-SQL agent: curate the semantic context, evaluate with golden questions and expose them to other agents as tools.",
+                  "subtopics": [
+                    {
+                      "id": "d-connect-x1-s1",
+                      "title": "Databricks Genie spaces"
+                    },
+                    {
+                      "id": "d-connect-x1-s2",
+                      "title": "Snowflake Cortex Analyst and semantic models"
+                    },
+                    {
+                      "id": "d-connect-x1-s3",
+                      "title": "Unity Catalog permissions"
+                    },
+                    {
+                      "id": "d-connect-x1-s4",
+                      "title": "Golden questions for text-to-SQL agents"
+                    },
+                    {
+                      "id": "d-connect-x1-s5",
+                      "title": "Exposing platform agents as tools"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -13826,6 +15304,33 @@
                       "title": "Alert routing with example traces"
                     }
                   ]
+                },
+                {
+                  "id": "t-agentops-x1",
+                  "title": "Tooling landscape: Langfuse, LangSmith, Phoenix and more",
+                  "explainer": "Agent observability tools share a model of traces, spans, sessions, scores and datasets. Langfuse is open source with tracing, prompt management and evals. LangSmith is tightly integrated with LangChain and LangGraph. Arize Phoenix is open source and OpenTelemetry-native. Braintrust focuses on evals and experiments, and Datadog and Sentry add LLM tracing to existing APM. Prefer tools that ingest OpenTelemetry GenAI spans so you can switch vendors without re-instrumenting, and check data residency for stored prompts.",
+                  "subtopics": [
+                    {
+                      "id": "t-agentops-x1-s1",
+                      "title": "Langfuse"
+                    },
+                    {
+                      "id": "t-agentops-x1-s2",
+                      "title": "LangSmith"
+                    },
+                    {
+                      "id": "t-agentops-x1-s3",
+                      "title": "Arize Phoenix"
+                    },
+                    {
+                      "id": "t-agentops-x1-s4",
+                      "title": "Braintrust, Datadog, Sentry"
+                    },
+                    {
+                      "id": "t-agentops-x1-s5",
+                      "title": "OpenTelemetry for portability"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -13970,6 +15475,33 @@
                     {
                       "id": "t-evalfound-t3-s5",
                       "title": "Regression gates with confidence intervals"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-evalfound-x1",
+                  "title": "Evaluation-driven development and model selection",
+                  "explainer": "Evaluation-driven development makes evals the main loop: write cases first, change prompts, tools or models, and keep a change only if the eval improves without regressions. The same suite drives model selection. Public benchmarks and leaderboards shortlist candidates, but contamination and task mismatch mean only your own golden set decides. Compare quality, latency and cost per correct answer for each candidate, and re-run the comparison when new models ship.",
+                  "subtopics": [
+                    {
+                      "id": "t-evalfound-x1-s1",
+                      "title": "Evals-first iteration loop"
+                    },
+                    {
+                      "id": "t-evalfound-x1-s2",
+                      "title": "Model selection with your own golden set"
+                    },
+                    {
+                      "id": "t-evalfound-x1-s3",
+                      "title": "Benchmark contamination"
+                    },
+                    {
+                      "id": "t-evalfound-x1-s4",
+                      "title": "Cost per correct answer"
+                    },
+                    {
+                      "id": "t-evalfound-x1-s5",
+                      "title": "Re-evaluating on new releases"
                     }
                   ]
                 }
@@ -14410,6 +15942,33 @@
                     {
                       "id": "t-cloudsec-t3-s5",
                       "title": "Automated evidence export"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-cloudsec-x1",
+                  "title": "Securing managed AI services: Bedrock, Vertex AI and Azure AI Foundry",
+                  "explainer": "Each cloud provides AI-specific controls. On AWS, Bedrock offers private VPC endpoints, IAM condition keys per model, Bedrock Guardrails for content and PII filtering, and model invocation logging. On Google Cloud, Vertex AI supports VPC Service Controls, CMEK, workload identity and Model Armor for prompt and response screening. Azure AI Foundry uses private networking, managed identity, Entra-based access and Content Safety with Prompt Shields. Enable these by default in landing zones and audit them with CSPM.",
+                  "subtopics": [
+                    {
+                      "id": "t-cloudsec-x1-s1",
+                      "title": "Bedrock IAM, endpoints, Guardrails, logging"
+                    },
+                    {
+                      "id": "t-cloudsec-x1-s2",
+                      "title": "Vertex AI VPC-SC, CMEK, Model Armor"
+                    },
+                    {
+                      "id": "t-cloudsec-x1-s3",
+                      "title": "Azure AI Foundry managed identity and Prompt Shields"
+                    },
+                    {
+                      "id": "t-cloudsec-x1-s4",
+                      "title": "Default-on landing zone controls"
+                    },
+                    {
+                      "id": "t-cloudsec-x1-s5",
+                      "title": "CSPM checks for AI services"
                     }
                   ]
                 }
@@ -14900,6 +16459,296 @@
               "conceptIds": [
                 "audit-trail"
               ]
+            },
+            {
+              "id": "t-agentattacks",
+              "title": "Agent Attacks Deep Dive: Goal Hijacking, Tool Tampering, Poisoning and Model Extraction",
+              "why": "Attacks on agents target their goals, tools, memory and the model itself; each needs a specific defense beyond generic guardrails.",
+              "explainer": "Beyond basic prompt injection, agentic systems face a wider attack catalog (OWASP's agentic threats guidance and MITRE ATLAS describe many).\n\nGoal hijacking: injected content redirects the agent's objective, for example a web page that tells a browsing agent to buy something else. Tool parameter tampering: the attacker manipulates tool arguments, such as changing a recipient address or amount, often via injected text the model copies into a call. Tool and MCP supply chain: a malicious or compromised MCP server returns poisoned descriptions or outputs ('tool poisoning') or a trusted tool changes behavior after approval ('rug pull'). Memory and context poisoning: attackers plant false facts in long-term memory or retrieval corpora that persist across sessions. Data poisoning: tampered training or fine-tuning data implants backdoors. Model extraction and inversion: repeated queries reconstruct a model's behavior or leak training data; system prompt extraction leaks proprietary instructions.\n\nDefenses: argument validation and policy checks on every tool call, pinning and reviewing tool descriptions, provenance and write controls for memory, data supply-chain checks, rate limiting and anomaly detection against extraction, and assuming system prompts are public.\n\nMental model: every input channel to an agent, whether a page, a tool description, a memory or a dataset, is an attack surface.",
+              "resources": [
+                {
+                  "title": "OWASP GenAI Security Project: Agentic threats",
+                  "url": "https://genai.owasp.org/initiatives/agentic-security-initiative/"
+                },
+                {
+                  "title": "MITRE ATLAS",
+                  "url": "https://atlas.mitre.org/"
+                },
+                {
+                  "title": "Invariant Labs: MCP tool poisoning attacks",
+                  "url": "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+                },
+                {
+                  "title": "Stealing machine learning models via prediction APIs (arXiv)",
+                  "url": "https://arxiv.org/abs/1609.02943"
+                }
+              ],
+              "project": "Red-team a browsing and email agent connected to two MCP servers. Demonstrate goal hijacking via a web page, tool parameter tampering of an email recipient, an MCP tool-description poisoning, and memory poisoning that persists to a new session. Implement defenses (argument policies, pinned tool manifests, memory write review, approvals) and report attack success before and after.",
+              "topics": [
+                {
+                  "id": "t-agentattacks-t1",
+                  "title": "Goal hijacking and tool parameter tampering",
+                  "explainer": "Goal hijacking replaces the user's objective with the attacker's through injected instructions in content the agent reads. Tool parameter tampering is quieter: the objective stays, but arguments change, such as a payment to a different account or an email to an external address. Defend by validating arguments against policies and the user's original request (allowed recipients, amount limits, domains), showing previews of consequential calls for approval, and keeping untrusted content from flowing into high-privilege tool arguments without checks.",
+                  "subtopics": [
+                    {
+                      "id": "t-agentattacks-t1-s1",
+                      "title": "Goal hijacking via content"
+                    },
+                    {
+                      "id": "t-agentattacks-t1-s2",
+                      "title": "Argument tampering patterns"
+                    },
+                    {
+                      "id": "t-agentattacks-t1-s3",
+                      "title": "Policy validation of arguments"
+                    },
+                    {
+                      "id": "t-agentattacks-t1-s4",
+                      "title": "Previews and approvals"
+                    },
+                    {
+                      "id": "t-agentattacks-t1-s5",
+                      "title": "Taint tracking from untrusted inputs"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-agentattacks-t2",
+                  "title": "Tool, MCP and memory poisoning",
+                  "explainer": "Tool poisoning hides malicious instructions in an MCP tool's description or outputs that the model reads but the user never sees. Rug pulls change a tool's behavior after it was approved. Memory poisoning writes false facts or instructions into long-term memory or a retrieval corpus so they influence future sessions. Mitigate by pinning and diffing tool manifests, allowlisting MCP servers, isolating servers by privilege, reviewing or scoring memory writes, storing provenance with every memory, and expiring unverified memories.",
+                  "subtopics": [
+                    {
+                      "id": "t-agentattacks-t2-s1",
+                      "title": "Tool description poisoning"
+                    },
+                    {
+                      "id": "t-agentattacks-t2-s2",
+                      "title": "Rug pulls and manifest pinning"
+                    },
+                    {
+                      "id": "t-agentattacks-t2-s3",
+                      "title": "MCP server allowlists"
+                    },
+                    {
+                      "id": "t-agentattacks-t2-s4",
+                      "title": "Memory poisoning across sessions"
+                    },
+                    {
+                      "id": "t-agentattacks-t2-s5",
+                      "title": "Provenance and expiry for memories"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-agentattacks-t3",
+                  "title": "Data poisoning, model extraction and prompt leakage",
+                  "explainer": "Data poisoning inserts crafted examples into training or fine-tuning data to create backdoors triggered by specific phrases; vet data sources, deduplicate, and test for trigger behaviors. Model extraction queries an API at scale to train a copy, and model inversion or membership inference tries to recover training data; mitigate with rate limits, anomaly detection, output limits and avoiding sensitive training data. System prompt extraction is easy, so never put secrets in prompts and assume instructions will leak.",
+                  "subtopics": [
+                    {
+                      "id": "t-agentattacks-t3-s1",
+                      "title": "Backdoors via poisoned data"
+                    },
+                    {
+                      "id": "t-agentattacks-t3-s2",
+                      "title": "Training data vetting"
+                    },
+                    {
+                      "id": "t-agentattacks-t3-s3",
+                      "title": "Extraction and inversion attacks"
+                    },
+                    {
+                      "id": "t-agentattacks-t3-s4",
+                      "title": "Rate limiting and anomaly detection"
+                    },
+                    {
+                      "id": "t-agentattacks-t3-s5",
+                      "title": "System prompt leakage"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "An injected email makes the agent send the report to attacker@evil.com instead of the user's manager. This is…",
+                  "choices": [
+                    "Data poisoning",
+                    "Reward hacking",
+                    "Tool parameter tampering",
+                    "Model extraction"
+                  ],
+                  "answer": 2,
+                  "why": "The goal stays the same, but a tool argument was manipulated."
+                },
+                {
+                  "q": "Best defense against an MCP 'rug pull'?",
+                  "choices": [
+                    "Disable logging",
+                    "Higher temperature",
+                    "Bigger context window",
+                    "Pin and diff tool manifests, re-approve on change"
+                  ],
+                  "answer": 3,
+                  "why": "Detecting changed tool definitions prevents silent behavior changes."
+                },
+                {
+                  "q": "Why never put secrets in system prompts?",
+                  "choices": [
+                    "They cost tokens",
+                    "System prompts can be extracted by users",
+                    "They slow inference",
+                    "Models ignore them"
+                  ],
+                  "answer": 1,
+                  "why": "Prompt extraction is routine; secrets belong in secret managers."
+                }
+              ],
+              "conceptIds": [
+                "policy-gate"
+              ]
+            },
+            {
+              "id": "t-responsible",
+              "title": "Responsible AI: Fairness, Transparency and Content Safety",
+              "why": "Responsible AI turns values like fairness and transparency into tests, controls and disclosures that ship with the product.",
+              "explainer": "Responsible AI covers fairness, reliability and safety, privacy, inclusiveness, transparency and accountability (Microsoft's principles; similar lists from Google, NIST and the OECD). For engineers it becomes concrete work.\n\nFairness and bias: measure outcome differences across groups (demographic parity, equalized odds) for decisions such as screening or credit, and test generative outputs for stereotyped or uneven quality across languages, dialects and names. Content safety: classify and filter harmful inputs and outputs with moderation APIs (OpenAI Moderation, Azure AI Content Safety, Bedrock Guardrails, Llama Guard), tuned per use case and audience. Transparency: tell users they are talking to AI, explain limitations, and document the system with model cards, system cards or transparency notes. Human oversight: meaningful review for consequential decisions, with the ability to contest.\n\nThis aligns with regulation: the EU AI Act prohibits certain practices, requires transparency (Article 50) and imposes data governance and bias-examination duties on high-risk systems.\n\nCommon mistakes: one aggregate accuracy number hiding group disparities; safety filters so strict they block legitimate use; ethics as a one-time review instead of ongoing tests.\n\nMental model: if a value is not measured, it is not a requirement.",
+              "resources": [
+                {
+                  "title": "Microsoft Responsible AI Standard",
+                  "url": "https://www.microsoft.com/en-us/ai/principles-and-approach"
+                },
+                {
+                  "title": "Fairlearn",
+                  "url": "https://fairlearn.org/"
+                },
+                {
+                  "title": "Azure AI Content Safety",
+                  "url": "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview"
+                },
+                {
+                  "title": "Model Cards for Model Reporting (arXiv)",
+                  "url": "https://arxiv.org/abs/1810.03993"
+                }
+              ],
+              "project": "For a resume-screening assistant, build a fairness eval with synthetic resumes varied only by name and gender cues, measure selection-rate differences, and mitigate. Add content safety filtering with a moderation API, tune thresholds on 100 labeled examples, and write a transparency note and model card.",
+              "topics": [
+                {
+                  "id": "t-responsible-t1",
+                  "title": "Fairness and bias testing",
+                  "explainer": "Define the decision and the groups that matter, then measure: selection rates per group (demographic parity), error rates per group (equalized odds), and calibration. For LLMs, use counterfactual tests that swap names, genders or dialects while holding qualifications fixed, and compare outputs. Report disaggregated metrics, not one average. Mitigations include better data, prompt and policy changes, post-processing thresholds and human review, each re-measured. Fairlearn and similar toolkits help compute and visualize disparities.",
+                  "subtopics": [
+                    {
+                      "id": "t-responsible-t1-s1",
+                      "title": "Choosing groups and decisions"
+                    },
+                    {
+                      "id": "t-responsible-t1-s2",
+                      "title": "Demographic parity and equalized odds"
+                    },
+                    {
+                      "id": "t-responsible-t1-s3",
+                      "title": "Counterfactual prompt tests"
+                    },
+                    {
+                      "id": "t-responsible-t1-s4",
+                      "title": "Disaggregated reporting"
+                    },
+                    {
+                      "id": "t-responsible-t1-s5",
+                      "title": "Mitigation and re-measurement"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-responsible-t2",
+                  "title": "Content safety and moderation",
+                  "explainer": "Content safety systems classify text and images into harm categories (hate, violence, sexual content, self-harm) with severity levels, and detect jailbreak or injection attempts. Use them on inputs, tool outputs and model outputs. Tune thresholds per audience: a children's tutor and a security research tool need different settings. Measure both misses and false blocks on labeled samples, give users a clear message when blocked, and log decisions for review and appeals.",
+                  "subtopics": [
+                    {
+                      "id": "t-responsible-t2-s1",
+                      "title": "Harm categories and severity"
+                    },
+                    {
+                      "id": "t-responsible-t2-s2",
+                      "title": "Moderation APIs and Llama Guard"
+                    },
+                    {
+                      "id": "t-responsible-t2-s3",
+                      "title": "Thresholds per audience"
+                    },
+                    {
+                      "id": "t-responsible-t2-s4",
+                      "title": "False blocks vs misses"
+                    },
+                    {
+                      "id": "t-responsible-t2-s5",
+                      "title": "Block messages and appeals"
+                    }
+                  ]
+                },
+                {
+                  "id": "t-responsible-t3",
+                  "title": "Transparency, documentation and oversight",
+                  "explainer": "Tell people when they interact with AI and when content is AI-generated, as EU AI Act Article 50 requires in many cases. Document systems with model cards, system cards or transparency notes covering intended use, limitations, evaluation results and known risks. Provide meaningful human oversight for consequential decisions: reviewers need the evidence, time and authority to override, and affected people need a way to contest. Review documentation whenever models or prompts change.",
+                  "subtopics": [
+                    {
+                      "id": "t-responsible-t3-s1",
+                      "title": "AI disclosure to users"
+                    },
+                    {
+                      "id": "t-responsible-t3-s2",
+                      "title": "Model cards and transparency notes"
+                    },
+                    {
+                      "id": "t-responsible-t3-s3",
+                      "title": "Limitations and intended use"
+                    },
+                    {
+                      "id": "t-responsible-t3-s4",
+                      "title": "Meaningful human oversight"
+                    },
+                    {
+                      "id": "t-responsible-t3-s5",
+                      "title": "Contestability and appeals"
+                    }
+                  ]
+                }
+              ],
+              "quiz": [
+                {
+                  "q": "Why report fairness metrics disaggregated by group?",
+                  "choices": [
+                    "Required by Kafka",
+                    "A single average can hide large disparities between groups",
+                    "To raise accuracy",
+                    "Saves compute"
+                  ],
+                  "answer": 1,
+                  "why": "Aggregates mask subgroup harms."
+                },
+                {
+                  "q": "A counterfactual fairness test for an LLM screener changes…",
+                  "choices": [
+                    "Only identity cues like names while keeping qualifications fixed",
+                    "The tokenizer",
+                    "The model weights",
+                    "Temperature"
+                  ],
+                  "answer": 0,
+                  "why": "Holding qualifications constant isolates the effect of identity cues."
+                },
+                {
+                  "q": "Content safety thresholds should be…",
+                  "choices": [
+                    "Identical for every product",
+                    "Disabled in production",
+                    "Set by the model itself",
+                    "Tuned per audience and measured for misses and false blocks"
+                  ],
+                  "answer": 3,
+                  "why": "Different audiences need different trade-offs."
+                }
+              ],
+              "conceptIds": []
             }
           ]
         },
@@ -15558,7 +17407,10 @@
     "policy-gate",
     "audit-trail",
     "controls-crosswalk",
-    "fde-lifecycle"
+    "fde-lifecycle",
+    "voice-latency",
+    "docrag-pipeline",
+    "model-router"
   ],
   "capstones": {
     "shared": {
@@ -16088,6 +17940,11 @@
           "How LLMs work: the workload behind every role"
         ],
         [
+          "shared",
+          "sc-found",
+          "NLP foundations: word vectors to scaling laws"
+        ],
+        [
           "engineer",
           "e-api",
           "Calling models: APIs, streaming, structured outputs"
@@ -16098,9 +17955,19 @@
           "Prompt and context engineering"
         ],
         [
+          "engineer",
+          "e-reasoning",
+          "Reasoning models and API platform features"
+        ],
+        [
           "agentic",
           "g-mental",
           "Agent mental models: loop, tools, memory, stop"
+        ],
+        [
+          "agentic",
+          "g-patterns",
+          "Agentic design patterns and deep research"
         ],
         [
           "engineer",
@@ -16131,6 +17998,16 @@
           "data",
           "d-unstruct",
           "Unstructured pipelines at scale"
+        ],
+        [
+          "engineer",
+          "e-docrag",
+          "Multimodal and document RAG"
+        ],
+        [
+          "engineer",
+          "e-vision",
+          "Vision and document AI extraction"
         ],
         [
           "data",
@@ -16178,6 +18055,11 @@
           "Building the harness"
         ],
         [
+          "agentic",
+          "g-frameworks",
+          "Agent frameworks and managed platforms"
+        ],
+        [
           "trust",
           "t-traj",
           "Trajectory evals and pass^k"
@@ -16186,6 +18068,11 @@
           "trust",
           "t-agentops",
           "Tracing and SLOs"
+        ],
+        [
+          "engineer",
+          "e-voice",
+          "Real-time voice agents"
         ],
         [
           "trust",
@@ -16214,6 +18101,11 @@
         ],
         [
           "trust",
+          "t-agentattacks",
+          "Agent attacks deep dive"
+        ],
+        [
+          "trust",
           "t-cloudsec",
           "Cloud security for AI"
         ],
@@ -16231,6 +18123,11 @@
           "trust",
           "t-reg",
           "EU AI Act, NIST AI RMF, ISO 42001 mapping"
+        ],
+        [
+          "trust",
+          "t-responsible",
+          "Responsible AI: fairness, transparency, safety"
         ],
         [
           "infra",
@@ -16276,6 +18173,11 @@
           "agentic",
           "g-train",
           "RL on agent harnesses"
+        ],
+        [
+          "engineer",
+          "e-rlenv",
+          "RL environments and reward design"
         ],
         [
           "data",
@@ -16359,6 +18261,10 @@
       "def": "Activation-aware weight quantization method for INT4 weights."
     },
     {
+      "term": "Barge-in",
+      "def": "The user interrupting a voice agent mid-speech; the agent must stop audio and truncate context to what was spoken."
+    },
+    {
       "term": "Best-of-N",
       "def": "Sample N answers and pick the best with a scorer or verifier."
     },
@@ -16397,6 +18303,10 @@
     {
       "term": "Cold start",
       "def": "Time for a new replica to become ready: node, image, weights, engine init."
+    },
+    {
+      "term": "ColPali",
+      "def": "A visual document retrieval model that embeds page images as patch vectors and scores with late interaction."
     },
     {
       "term": "Confidential computing",
@@ -16441,6 +18351,14 @@
     {
       "term": "Decode",
       "def": "Generation phase producing one token per step; memory-bandwidth-bound."
+    },
+    {
+      "term": "Demographic parity",
+      "def": "A fairness criterion requiring similar positive-outcome rates across groups."
+    },
+    {
+      "term": "Diffusion model",
+      "def": "A generative model that creates data by iteratively removing noise."
     },
     {
       "term": "Digital Omnibus on AI",
@@ -16499,8 +18417,16 @@
       "def": "Starting all pods of a distributed job together or not at all."
     },
     {
+      "term": "GEPA",
+      "def": "A prompt optimizer that evolves prompts using reflection on trajectories."
+    },
+    {
       "term": "GGUF",
       "def": "llama.cpp file format for quantized models."
+    },
+    {
+      "term": "Goal hijacking",
+      "def": "An attack where injected content replaces an agent's objective."
     },
     {
       "term": "Golden set",
@@ -16595,6 +18521,10 @@
       "def": "Object storage plus open table formats (Iceberg, Delta) giving warehouse-like tables on open files."
     },
     {
+      "term": "Late interaction",
+      "def": "Scoring by matching each query token to its best document vector (MaxSim) and summing."
+    },
+    {
       "term": "Lethal trifecta",
       "def": "An agent with private data access, exposure to untrusted content and an exfiltration channel."
     },
@@ -16633,6 +18563,10 @@
     {
       "term": "MLA",
       "def": "Multi-head latent attention: compresses KV into a smaller latent."
+    },
+    {
+      "term": "Model router",
+      "def": "A component that sends each request to the cheapest model likely to answer correctly, escalating when needed."
     },
     {
       "term": "MoE",
@@ -16736,7 +18670,7 @@
     },
     {
       "term": "Reward hacking",
-      "def": "A model exploiting loopholes in a reward instead of solving the task."
+      "def": "A policy maximizing the reward signal without achieving the intended task."
     },
     {
       "term": "RLHF",
@@ -16759,6 +18693,10 @@
       "def": "Safe, memory-mappable tensor file format that cannot execute code."
     },
     {
+      "term": "Scaling laws",
+      "def": "Empirical power laws relating loss to parameters, data and compute."
+    },
+    {
       "term": "Semantic cache",
       "def": "Cache returning stored answers for semantically similar prompts."
     },
@@ -16779,8 +18717,16 @@
       "def": "Draft tokens cheaply, verify them in one target-model pass."
     },
     {
+      "term": "Speech-to-speech model",
+      "def": "A realtime model that takes audio in and produces audio out without separate STT and TTS."
+    },
+    {
       "term": "Straggler",
       "def": "A slow rank holding back a synchronous distributed job."
+    },
+    {
+      "term": "Straight-through processing",
+      "def": "The share of documents processed end to end with no human review."
     },
     {
       "term": "Structured output",
@@ -16795,12 +18741,20 @@
       "def": "Splitting each layer's matrices across GPUs."
     },
     {
+      "term": "Test-time compute",
+      "def": "Extra inference computation, such as reasoning tokens, spent to improve answers."
+    },
+    {
       "term": "Time-slicing",
       "def": "Sharing one GPU across processes by context switching, no isolation."
     },
     {
       "term": "Token fertility",
       "def": "Average tokens per word for a language or domain."
+    },
+    {
+      "term": "Tool poisoning",
+      "def": "Malicious instructions hidden in a tool's description or output."
     },
     {
       "term": "Top-p",
@@ -16811,8 +18765,16 @@
       "def": "Time to first token."
     },
     {
+      "term": "VAD",
+      "def": "Voice activity detection: classifying audio frames as speech or silence."
+    },
+    {
       "term": "vLLM",
       "def": "Open-source LLM serving engine with PagedAttention and continuous batching."
+    },
+    {
+      "term": "Voice-to-voice latency",
+      "def": "Time from the end of user speech to the first audible agent reply."
     },
     {
       "term": "Volcano",
@@ -16886,7 +18848,13 @@
         "g-mcp",
         "d-connect",
         "e-prod",
-        "e-cache"
+        "e-cache",
+        "e-docrag",
+        "e-vision",
+        "e-voice",
+        "g-patterns",
+        "g-frameworks",
+        "e-reasoning"
       ]
     },
     {
@@ -16933,7 +18901,9 @@
         "t-cloudsec",
         "e-prod",
         "a-solarch",
-        "a-product"
+        "a-product",
+        "e-voice",
+        "g-frameworks"
       ]
     },
     {
@@ -17024,7 +18994,8 @@
         "t-policy",
         "t-cloudsec",
         "a-secarch",
-        "t-audit"
+        "t-audit",
+        "t-agentattacks"
       ]
     },
     {
@@ -17162,7 +19133,8 @@
         "a-privacy",
         "t-evalfound",
         "d-catalog",
-        "t-fleet"
+        "t-fleet",
+        "t-responsible"
       ]
     },
     {
@@ -17205,7 +19177,8 @@
         "g-eval",
         "e-synth",
         "d-memory",
-        "e-llmops"
+        "e-llmops",
+        "e-rlenv"
       ]
     },
     {
@@ -17252,7 +19225,8 @@
         "d-products",
         "d-memory",
         "d-fleetdata",
-        "a-data"
+        "a-data",
+        "e-docrag"
       ]
     },
     {
@@ -17298,7 +19272,9 @@
         "f-traininfra",
         "i-quant",
         "t-evalfound",
-        "d-memory"
+        "d-memory",
+        "sc-found",
+        "e-rlenv"
       ]
     },
     {
@@ -17342,7 +19318,9 @@
         "t-policy",
         "e-cache",
         "d-products",
-        "f-finops"
+        "f-finops",
+        "e-reasoning",
+        "g-frameworks"
       ]
     },
     {
@@ -17388,7 +19366,8 @@
         "a-scale",
         "d-connect",
         "t-reg",
-        "a-fde"
+        "a-fde",
+        "g-frameworks"
       ]
     },
     {
@@ -17430,8 +19409,819 @@
         "t-evalfound",
         "a-cost",
         "d-products",
-        "a-org"
+        "a-org",
+        "t-responsible",
+        "e-genmedia"
       ]
     }
-  ]
+  ],
+  "projects": [
+    {
+      "id": "p-semsearch",
+      "emoji": "🔎",
+      "title": "Semantic search over your notes",
+      "tier": 1,
+      "goal": "Search your own notes by meaning, not keywords, and get cited answers.",
+      "stack": [
+        "Python",
+        "sentence-transformers or an embedding API",
+        "pgvector / LanceDB / Chroma",
+        "Obsidian or Markdown folder"
+      ],
+      "steps": [
+        "Load notes and split by heading",
+        "Embed and index with metadata (path, date, tags)",
+        "Add BM25 and fuse with vector results",
+        "Answer with an LLM that cites note paths",
+        "Re-index only changed files by content hash"
+      ],
+      "stretch": [
+        "Reranker",
+        "Agent tool: search_notes exposed via MCP",
+        "Daily digest of related notes"
+      ],
+      "done": [
+        "20-question golden set with recall@5 ≥ 0.8",
+        "Every answer cites at least one note",
+        "Incremental re-index under 10 s for one changed note"
+      ],
+      "roles": [
+        "ai-engineer",
+        "data-eng"
+      ],
+      "subjects": [
+        "e-vector",
+        "e-rag",
+        "d-unstruct"
+      ]
+    },
+    {
+      "id": "p-mcp-db",
+      "emoji": "🔌",
+      "title": "Your own MCP server to a database",
+      "tier": 1,
+      "goal": "Let any MCP client (Claude, Cursor, your agent) safely query and update a real database.",
+      "stack": [
+        "Python or TypeScript MCP SDK",
+        "SQLite or Postgres",
+        "Read-only DB role"
+      ],
+      "steps": [
+        "Design 4 task-shaped tools (search, get, query_metric, create_task)",
+        "Use a read-only role for read tools",
+        "Cap rows and response size; paginate",
+        "Require confirmation for the write tool",
+        "Log every call with arguments and caller"
+      ],
+      "stretch": [
+        "OAuth on-behalf-of with row-level security",
+        "Semantic-layer metric tool",
+        "Publish in an internal registry"
+      ],
+      "done": [
+        "Works from 2 different MCP clients",
+        "Injection test: a row containing instructions does not trigger writes",
+        "20 task scenarios with ≥ 90% success"
+      ],
+      "roles": [
+        "ai-engineer",
+        "data-eng",
+        "fde"
+      ],
+      "subjects": [
+        "g-mcp",
+        "d-connect",
+        "d-perm"
+      ]
+    },
+    {
+      "id": "p-calendar",
+      "emoji": "📅",
+      "title": "Function calling that books real calendar meetings",
+      "tier": 1,
+      "goal": "An assistant that finds free slots and books meetings on your real calendar.",
+      "stack": [
+        "OpenAI/Anthropic/Gemini tool calling",
+        "Google Calendar or Microsoft Graph API",
+        "OAuth"
+      ],
+      "steps": [
+        "Define tools: find_free_slots, create_event, cancel_event with strict schemas",
+        "Handle time zones explicitly (store UTC, display local)",
+        "Confirm before creating or cancelling",
+        "Use idempotency keys so retries never double-book",
+        "Log tool calls and results"
+      ],
+      "stretch": [
+        "Multi-attendee scheduling",
+        "Rescheduling by natural language",
+        "Voice front end (see voice project)"
+      ],
+      "done": [
+        "30 scheduling requests with ≥ 95% correct slot and time zone",
+        "Zero double bookings under retry tests",
+        "Never books without confirmation"
+      ],
+      "roles": [
+        "ai-engineer",
+        "fde"
+      ],
+      "subjects": [
+        "e-tools",
+        "e-api",
+        "d-connect"
+      ]
+    },
+    {
+      "id": "p-evals-ci",
+      "emoji": "🧪",
+      "title": "Evals that catch prompt regressions",
+      "tier": 1,
+      "goal": "A CI gate that blocks a prompt or model change when quality drops.",
+      "stack": [
+        "promptfoo or Inspect AI",
+        "GitHub Actions",
+        "LLM judge + code assertions"
+      ],
+      "steps": [
+        "Do error analysis on 50 real outputs",
+        "Build a 60-case golden set with per-failure-mode assertions",
+        "Add one calibrated judge for a subjective criterion",
+        "Run in CI on every PR and compare to main",
+        "Block merges on significant drops"
+      ],
+      "stretch": [
+        "Online evals on sampled production traffic",
+        "Judge calibration report (TPR/TNR)",
+        "Dashboard of scores over time"
+      ],
+      "done": [
+        "A deliberately bad prompt change is blocked",
+        "Judge agreement with your labels ≥ 85% on held-out cases",
+        "Suite runs in under 5 minutes"
+      ],
+      "roles": [
+        "evals",
+        "ai-engineer",
+        "platform"
+      ],
+      "subjects": [
+        "t-evalfound",
+        "t-judge",
+        "e-eval"
+      ]
+    },
+    {
+      "id": "p-docrag",
+      "emoji": "📄",
+      "title": "Multimodal RAG over PDFs with charts, tables and images",
+      "tier": 2,
+      "goal": "Answer questions about reports where the answer lives in a table or chart, with page citations.",
+      "stack": [
+        "Docling / Unstructured / LlamaParse",
+        "ColPali or ColQwen via Byaldi",
+        "A VLM (GPT, Claude, Gemini, Qwen-VL)",
+        "Vector DB with multi-vector support"
+      ],
+      "steps": [
+        "Parse PDFs into text, Markdown tables and figure captions",
+        "Build a ColPali page index alongside the text index",
+        "Fuse with reciprocal rank fusion and rerank",
+        "Answer with a VLM given top page images and text",
+        "Cite page numbers and regions"
+      ],
+      "stretch": [
+        "Chart-to-data extraction",
+        "Binarized visual index",
+        "Per-question-type dashboard"
+      ],
+      "done": [
+        "40 questions split prose/table/chart with accuracy reported per type",
+        "Chart questions ≥ 70% correct",
+        "Every answer cites a page"
+      ],
+      "roles": [
+        "ai-engineer",
+        "data-eng"
+      ],
+      "subjects": [
+        "e-docrag",
+        "d-unstruct",
+        "e-rag"
+      ]
+    },
+    {
+      "id": "p-receipts",
+      "emoji": "🧾",
+      "title": "Computer-vision receipt reader that logs expenses",
+      "tier": 2,
+      "goal": "Snap a receipt; get validated JSON logged to an expenses table.",
+      "stack": [
+        "VLM with structured outputs or Textract AnalyzeExpense",
+        "Pydantic / JSON Schema",
+        "SQLite or Google Sheets"
+      ],
+      "steps": [
+        "Define a receipt schema with decimal money",
+        "Extract with a VLM in structured-output mode",
+        "Validate arithmetic, dates, currency",
+        "Route failures to a review list",
+        "Log valid records to the expenses table"
+      ],
+      "stretch": [
+        "Compare OCR + rules vs VLM",
+        "Telegram/WhatsApp bot intake",
+        "Monthly spend summary agent"
+      ],
+      "done": [
+        "50 labeled receipts: field accuracy ≥ 95% on total and date",
+        "Validation catches all seeded inconsistent totals",
+        "Cost per receipt reported"
+      ],
+      "roles": [
+        "ai-engineer",
+        "fde"
+      ],
+      "subjects": [
+        "e-vision",
+        "e-tools"
+      ]
+    },
+    {
+      "id": "p-router",
+      "emoji": "🔀",
+      "title": "Model routing: cheap vs smart",
+      "tier": 2,
+      "goal": "Route each request to the cheapest model that gets it right, and prove the savings.",
+      "stack": [
+        "LiteLLM or another gateway",
+        "Small and large models",
+        "Golden set + verifier"
+      ],
+      "steps": [
+        "Score both models on a golden set",
+        "Implement rules-based routing, then a cascade with a verifier",
+        "Log route, cost and quality per request",
+        "Compare routed vs always-large on quality and cost",
+        "Alert on escalation-rate drift"
+      ],
+      "stretch": [
+        "Trained difficulty classifier",
+        "Per-tenant routing policies",
+        "Latency-aware routing"
+      ],
+      "done": [
+        "Quality within 2 points of always-large on the golden set",
+        "Cost reduction measured and reported",
+        "Every request logs its route and reason"
+      ],
+      "roles": [
+        "platform",
+        "ai-infra",
+        "ai-engineer"
+      ],
+      "subjects": [
+        "i-gateway",
+        "e-llmops",
+        "e-cache"
+      ]
+    },
+    {
+      "id": "p-obs",
+      "emoji": "📊",
+      "title": "Observability dashboard: per-request cost, latency and failures",
+      "tier": 2,
+      "goal": "See every agent request's cost, latency, tokens and failure reason.",
+      "stack": [
+        "OpenTelemetry GenAI conventions",
+        "Langfuse or Arize Phoenix",
+        "Grafana (optional)"
+      ],
+      "steps": [
+        "Instrument model, tool and retrieval spans",
+        "Attach run_id, user, tenant, cost and outcome",
+        "Build fleet and per-agent dashboards",
+        "Add burn-rate and cost-spike alerts",
+        "Inject failures and confirm they show up"
+      ],
+      "stretch": [
+        "Tail-based sampling",
+        "Cost per successful task SLO",
+        "Link user feedback to traces"
+      ],
+      "done": [
+        "Any user complaint can be traced to its run in under a minute",
+        "Injected timeout, loop and bad retrieval are all visible",
+        "Cost per request shown per agent"
+      ],
+      "roles": [
+        "agentops",
+        "platform"
+      ],
+      "subjects": [
+        "t-agentops",
+        "f-obs"
+      ]
+    },
+    {
+      "id": "p-guardrails",
+      "emoji": "🛡️",
+      "title": "Guardrails blocking prompt injection and PII leaks",
+      "tier": 2,
+      "goal": "Defense-in-depth around an agent: input and output checks plus containment.",
+      "stack": [
+        "Presidio (PII)",
+        "Prompt-injection classifier (e.g. Llama Prompt Guard)",
+        "promptfoo / PyRIT red team",
+        "Policy engine (OPA)"
+      ],
+      "steps": [
+        "Threat-model the agent and its tools",
+        "Add PII detection and redaction on inputs, outputs and traces",
+        "Add injection detection on tool outputs",
+        "Enforce tool permissions outside the model",
+        "Red-team with 50 payloads and measure attack success"
+      ],
+      "stretch": [
+        "Egress allowlist",
+        "Human approval for external sends",
+        "CI red-team regression suite"
+      ],
+      "done": [
+        "Attack success rate reported before and after",
+        "No PII in stored traces",
+        "A classifier miss still cannot exfiltrate data (containment test)"
+      ],
+      "roles": [
+        "ai-security",
+        "governance"
+      ],
+      "subjects": [
+        "t-threat",
+        "g-secure",
+        "t-policy"
+      ]
+    },
+    {
+      "id": "p-research-email",
+      "emoji": "✉️",
+      "title": "Research agent that writes cold emails",
+      "tier": 2,
+      "goal": "Given a company, research it and draft a personalized, accurate outreach email for human review.",
+      "stack": [
+        "Agent framework (LangGraph / Agents SDK)",
+        "Web search and fetch tools",
+        "CRM or spreadsheet"
+      ],
+      "steps": [
+        "Plan research steps with a budget",
+        "Search, fetch and extract facts with source URLs",
+        "Draft an email citing only verified facts",
+        "Score drafts with a judge for accuracy and tone",
+        "Queue drafts for human approval; never auto-send"
+      ],
+      "stretch": [
+        "Batch mode with durable workflows",
+        "Personalization A/B test",
+        "CRM write-back"
+      ],
+      "done": [
+        "Every factual claim links to a source",
+        "Hallucinated-fact rate < 5% on 30 companies",
+        "Step and cost caps enforced per run"
+      ],
+      "roles": [
+        "ai-engineer",
+        "fde",
+        "product"
+      ],
+      "subjects": [
+        "g-harness",
+        "e-agents",
+        "t-runbook"
+      ]
+    },
+    {
+      "id": "p-lora",
+      "emoji": "🎙️",
+      "title": "LoRA fine-tune in your voice",
+      "tier": 3,
+      "goal": "Fine-tune a small open model to write like you, and prove it beats prompting.",
+      "stack": [
+        "Hugging Face TRL / Unsloth / Axolotl",
+        "Llama, Qwen or Mistral 7-8B",
+        "One GPU (cloud or local)"
+      ],
+      "steps": [
+        "Collect and clean 1-5k examples of your writing (with consent for others' text)",
+        "Format as instruction pairs",
+        "Train a LoRA adapter",
+        "Blind-compare against few-shot prompting",
+        "Serve the adapter with vLLM multi-LoRA"
+      ],
+      "stretch": [
+        "DPO on preferred vs rejected drafts",
+        "Quantize for laptop inference",
+        "Style classifier eval"
+      ],
+      "done": [
+        "Blind preference test: adapter wins ≥ 60% vs prompting",
+        "Training cost and time reported",
+        "No private data leaked in samples"
+      ],
+      "roles": [
+        "ml-posttrain"
+      ],
+      "subjects": [
+        "e-ft",
+        "e-post",
+        "i-lora-serve"
+      ]
+    },
+    {
+      "id": "p-voice",
+      "emoji": "📞",
+      "title": "Voice agent answering calls for a local business",
+      "tier": 3,
+      "goal": "A phone receptionist that answers FAQs, books appointments and transfers to a human.",
+      "stack": [
+        "LiveKit Agents or Pipecat",
+        "Deepgram/AssemblyAI + ElevenLabs/Cartesia, or a realtime speech-to-speech model",
+        "Twilio number / SIP",
+        "Calendar tool"
+      ],
+      "steps": [
+        "Set up telephony and media streaming",
+        "Wire STT → LLM with tools → TTS, streaming",
+        "Add semantic turn detection and barge-in",
+        "Add booking and warm transfer tools",
+        "Measure latency and run 20 scripted calls"
+      ],
+      "stretch": [
+        "Compare cascaded vs speech-to-speech",
+        "Call analytics dashboard",
+        "Multilingual support"
+      ],
+      "done": [
+        "p95 voice-to-voice latency ≤ 1 s",
+        "Barge-in stops audio in ≤ 200 ms",
+        "≥ 90% task success on scripted calls; recording disclosure played"
+      ],
+      "roles": [
+        "ai-engineer",
+        "fde",
+        "agentops"
+      ],
+      "subjects": [
+        "e-voice",
+        "e-tools",
+        "t-agentops"
+      ]
+    },
+    {
+      "id": "p-data-product",
+      "emoji": "🗄️",
+      "title": "AI-ready data product with CDC",
+      "tier": 3,
+      "goal": "Turn one domain into fresh, contracted, permission-aware data an agent can use.",
+      "stack": [
+        "Postgres + Debezium + Kafka/Redpanda",
+        "Iceberg + dbt",
+        "OpenMetadata",
+        "pgvector + OpenFGA"
+      ],
+      "steps": [
+        "Stream changes into gold tables",
+        "Write an ODCS contract and tests",
+        "Index documents with ACLs and sync deletes",
+        "Expose via an MCP server",
+        "Ship an eval set with the product"
+      ],
+      "stretch": [
+        "Semantic layer metrics",
+        "OpenLineage to the agent",
+        "Freshness canary"
+      ],
+      "done": [
+        "p95 freshness ≤ 30 s",
+        "Revoked document unretrievable within SLO",
+        "Another agent uses it without help"
+      ],
+      "roles": [
+        "data-eng"
+      ],
+      "subjects": [
+        "d-cdc",
+        "d-quality",
+        "d-products",
+        "d-perm"
+      ]
+    },
+    {
+      "id": "p-durable",
+      "emoji": "⏳",
+      "title": "Durable long-running agent workflow",
+      "tier": 3,
+      "goal": "An agent that survives crashes, waits for human approval and never double-acts.",
+      "stack": [
+        "Temporal or Restate",
+        "Queue (SQS / Redis)",
+        "LLM gateway"
+      ],
+      "steps": [
+        "Model the task as workflow + activities",
+        "Add retries, timeouts and idempotency keys",
+        "Add a human approval signal",
+        "Kill workers mid-run and verify resume",
+        "Add per-tenant concurrency limits"
+      ],
+      "stretch": [
+        "Workflow versioning",
+        "Dead-letter handling",
+        "Cost per workflow report"
+      ],
+      "done": [
+        "Resumes without repeating completed LLM calls",
+        "Zero duplicate side effects under chaos test",
+        "Fairness test across tenants passes"
+      ],
+      "roles": [
+        "agentops",
+        "platform"
+      ],
+      "subjects": [
+        "t-durable",
+        "t-runbook"
+      ]
+    },
+    {
+      "id": "p-killswitch",
+      "emoji": "🛑",
+      "title": "Kill switches and budgets for an agent fleet",
+      "tier": 3,
+      "goal": "Stop runaway agents in seconds and cap spend.",
+      "stack": [
+        "OpenFeature flags",
+        "LiteLLM budgets",
+        "Tool middleware"
+      ],
+      "steps": [
+        "Add tool, agent, tenant and global-autonomy switches",
+        "Enforce step/token/time caps per run",
+        "Set per-tenant daily budgets",
+        "Write runbooks for 5 incident types",
+        "Run a game day with a simulated loop"
+      ],
+      "stretch": [
+        "Automated cost anomaly response",
+        "Atomic rollback manifest",
+        "Postmortem template"
+      ],
+      "done": [
+        "Switch takes effect in < 10 s",
+        "Runaway loop capped at the budget",
+        "Game-day postmortem written"
+      ],
+      "roles": [
+        "agentops"
+      ],
+      "subjects": [
+        "t-runbook",
+        "t-fleet"
+      ]
+    },
+    {
+      "id": "p-policy",
+      "emoji": "⚖️",
+      "title": "Policy-as-code gate for agent tools",
+      "tier": 3,
+      "goal": "Make tool permissions and deploy rules executable and auditable.",
+      "stack": [
+        "OPA/Rego or Cedar",
+        "Conftest",
+        "Gatekeeper (optional)"
+      ],
+      "steps": [
+        "Write tool-call policies with allow/deny/require-approval",
+        "Unit-test every rule",
+        "Check agent manifests in CI",
+        "Log every decision with policy version",
+        "Roll out in dry-run first"
+      ],
+      "stretch": [
+        "Cedar formal analysis",
+        "Admission control for model versions",
+        "Deny-rate dashboard"
+      ],
+      "done": [
+        "100% of tool calls pass through the engine",
+        "Policy tests in CI",
+        "Decision log reconstructs any run's permissions"
+      ],
+      "roles": [
+        "governance",
+        "ai-security",
+        "cloud-security"
+      ],
+      "subjects": [
+        "t-policy",
+        "t-audit"
+      ]
+    },
+    {
+      "id": "p-audit",
+      "emoji": "📜",
+      "title": "Audit trail and EU AI Act evidence pack",
+      "tier": 4,
+      "goal": "Prove what your agent did and map it to obligations.",
+      "stack": [
+        "S3 Object Lock or immutable storage",
+        "Hash chaining",
+        "OSCAL (optional)"
+      ],
+      "steps": [
+        "Define an audit event schema",
+        "Emit events with run IDs to WORM storage",
+        "Minimize PII",
+        "Build run-reconstruction queries",
+        "Map fields to EU AI Act Art. 12, ISO 42001 and SOC 2"
+      ],
+      "stretch": [
+        "Controls crosswalk with automated gates",
+        "Mock audit",
+        "Retention and legal hold automation"
+      ],
+      "done": [
+        "Any run reconstructable from its ID",
+        "Tampering detected by the hash chain",
+        "Evidence pack generated per agent"
+      ],
+      "roles": [
+        "governance",
+        "cloud-security"
+      ],
+      "subjects": [
+        "t-audit",
+        "t-reg"
+      ]
+    },
+    {
+      "id": "p-cloudsec",
+      "emoji": "☁️",
+      "title": "Secure agent landing zone",
+      "tier": 4,
+      "goal": "Deploy an agent with least privilege, private networking and no static keys.",
+      "stack": [
+        "Terraform",
+        "EKS/GKE/AKS with workload identity",
+        "Private endpoints, KMS",
+        "Prowler / CSPM"
+      ],
+      "steps": [
+        "Workload identity per agent",
+        "Private endpoints to model API and data",
+        "Egress allowlist proxy",
+        "KMS-encrypted vector store",
+        "Scan and fix posture findings"
+      ],
+      "stretch": [
+        "AI-SPM inventory",
+        "Automated compliance evidence",
+        "Multi-account guardrails"
+      ],
+      "done": [
+        "No static credentials anywhere",
+        "Simulated exfiltration blocked at network layer",
+        "Clean CSPM scan"
+      ],
+      "roles": [
+        "cloud-security",
+        "ai-security"
+      ],
+      "subjects": [
+        "t-cloudsec",
+        "f-secinfra"
+      ]
+    },
+    {
+      "id": "p-traj",
+      "emoji": "🎯",
+      "title": "Agent trajectory eval sandbox",
+      "tier": 4,
+      "goal": "Measure agent reliability with end-state checks and pass^k.",
+      "stack": [
+        "Inspect AI or custom harness",
+        "Mock APIs with fault injection",
+        "LLM user simulator"
+      ],
+      "steps": [
+        "Build a sandbox with seeded data and policies",
+        "Write 40 tasks with verifiable end states",
+        "Add trajectory assertions",
+        "Run each task 5 times",
+        "Report pass@1, pass^5, steps and cost"
+      ],
+      "stretch": [
+        "Simulator validation",
+        "CI integration",
+        "Model-upgrade campaign"
+      ],
+      "done": [
+        "pass^5 reported with confidence intervals",
+        "Failures categorized by type",
+        "One prompt change's reliability/cost trade-off shown"
+      ],
+      "roles": [
+        "evals",
+        "agentops"
+      ],
+      "subjects": [
+        "t-traj",
+        "g-eval"
+      ]
+    },
+    {
+      "id": "p-inference",
+      "emoji": "🖥️",
+      "title": "Self-hosted inference with autoscaling",
+      "tier": 4,
+      "goal": "Serve an open model on Kubernetes within an SLO and know its $/1M tokens.",
+      "stack": [
+        "Kubernetes + GPU Operator",
+        "vLLM or SGLang",
+        "KEDA / HPA",
+        "Prometheus + Grafana"
+      ],
+      "steps": [
+        "Deploy vLLM with a pinned model",
+        "Load test for TTFT and tokens/s",
+        "Autoscale on queue depth",
+        "Add gateway routing and fallback",
+        "Compute $/1M tokens at 3 loads"
+      ],
+      "stretch": [
+        "Prefix caching",
+        "Multi-LoRA serving",
+        "Disaggregated prefill/decode"
+      ],
+      "done": [
+        "p95 TTFT within target at planned RPS",
+        "Scale-up time measured",
+        "Cost model published"
+      ],
+      "roles": [
+        "ai-infra",
+        "platform"
+      ],
+      "subjects": [
+        "i-engines",
+        "i-batch",
+        "f-k8s",
+        "f-econ"
+      ]
+    },
+    {
+      "id": "p-fde",
+      "emoji": "🚀",
+      "title": "End-to-end FDE engagement (capstone)",
+      "tier": 4,
+      "goal": "Take a real workflow from discovery to a handed-over production pilot.",
+      "stack": [
+        "Everything above, chosen to fit the customer"
+      ],
+      "steps": [
+        "Shadow a workflow and scope one use case with a metric",
+        "Prototype on real-shaped data in days",
+        "Build evals, connectors, tracing and guardrails",
+        "Pass a security review",
+        "Pilot, measure and hand over with runbooks"
+      ],
+      "stretch": [
+        "Reusable accelerator",
+        "Exec ROI readout",
+        "Second-customer reuse"
+      ],
+      "done": [
+        "Baseline vs pilot metric reported",
+        "Customer team operates it without you",
+        "Runbooks, dashboards and eval suite delivered"
+      ],
+      "roles": [
+        "fde",
+        "solutions-architect",
+        "product"
+      ],
+      "subjects": [
+        "a-fde",
+        "a-solarch",
+        "a-product"
+      ]
+    }
+  ],
+  "projectTiers": {
+    "1": "Starter",
+    "2": "Builder",
+    "3": "Production",
+    "4": "Expert"
+  }
 }

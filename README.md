@@ -1,4 +1,4 @@
-# Sapient Edge — AI Deep Learning Atlas (v4)
+# Sapient Edge — AI Deep Learning Atlas (v5)
 
 **0→100 expert learning paths for 13 enterprise agentic-AI roles**, organized as 7 tracks plus a Shared Core.
 
@@ -12,19 +12,30 @@ Everything is centered on agentic AI and on the data engineering agents depend o
 
 ## At a glance
 
-| | v3 | v4 |
+| | v3 | v5 |
 |---|---|---|
 | Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** |
 | Tracks (+ Shared Core) | 5 | **7** |
-| Subjects | 91 | **118** |
-| Topics (each with its own explainer) | 198 | **279** |
-| Subtopics | 990 | **1,395** |
-| Quiz questions (≥3 per subject, with explanations) | 283 | **364** |
-| Unique resource URLs (link-checked) | 130 | **217** |
-| Concept cards (diagram + worked example) | 41 | **51** |
+| Subjects | 91 | **121** |
+| Topics (each with its own explainer) | 198 | **288** |
+| Subtopics | 990 | **1,440** |
+| Quiz questions (≥3 per subject, with explanations) | 283 | **373** |
+| Unique resource URLs (link-checked) | 130 | **228** |
+| Concept cards (diagram + worked example) | 41 | **54** |
 | Capstone projects | 6 | **8** |
+| Project ladder builds (4 tiers) | – | **21** |
 | Learning paths | 5 | **6** |
-| Glossary terms | 104 | **128** |
+| Glossary terms | 104 | **136** |
+
+### New in v6: coverage audit
+We checked the atlas against 167 topics taken from about 45 job postings from 2026, course syllabi (DeepLearning.AI, CS336, CS224N, FSDL, Hugging Face), vendor docs (OpenAI, Anthropic, Google, Bedrock, Azure Foundry, Databricks, LangChain, LlamaIndex) and roadmap repos. Before: 114 covered, 31 thin, 22 missing. After: 167 covered. See `docs/coverage_audit.csv` (after) and `docs/coverage_audit_before.csv`. To re-run it: `python3 scripts/audit/audit.py`.
+The audit added 8 subjects: NLP Foundations, Agentic Design Patterns, Agent Frameworks & Platforms, Reasoning Models & API Platform, RL Environments, Generative Media, Agent Attacks and Responsible AI. It also added 8 topics to existing subjects.
+
+## New in v5
+
+- **Project Ladder view: one AI skill = one project.** There are 21 hands-on builds in 4 tiers (Starter → Expert). Each has a goal, stack options, steps, stretch goals, checkable "done when" criteria, mapped roles and linked subjects. They cover semantic search over notes, your own MCP server to a database, function calling that books real calendar meetings, evals that catch prompt regressions, multimodal PDF RAG, a receipt reader, model routing, an observability dashboard, guardrails, a research/cold-email agent, a LoRA fine-tune in your voice, and a phone voice agent. The agentic, data and ops builds are CDC data product, durable workflows, kill switches, policy as code, audit trail, secure landing zone, trajectory evals, self-hosted inference and an end-to-end FDE engagement.
+- **3 new subjects:** Multimodal and Document RAG (layout parsing, tables/charts, ColPali visual retrieval, multimodal embeddings), Vision and Document AI (OCR vs VLM extraction, validated JSON from receipts and invoices), and Real-Time Voice Agents (STT/TTS, speech-to-speech, VAD and turn-taking, barge-in, latency budget, SIP/Twilio).
+- **3 new concept cards:** voice agent latency pipeline · document/multimodal RAG pipeline · model router (cheap vs smart).
 
 ### New in v4
 
@@ -60,13 +71,13 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 | `assets/img/` | SVG illustrations (track heroes, level art) |
 | `assets/vendor/mermaid.min.js` | Bundled Mermaid (offline diagrams) |
 | `data/curriculum.json`, `data/concepts.json` | Full content (also per-track `data/_*.json` and `data/_roles.json`) |
-| `scripts/build_v4.py` | Runs `build_v3.py`, then merges `scripts/v4/*` (new tracks, roles, concepts, paths) and re-embeds `index.html` |
+| `scripts/build_v5.py` | Runs `build_v4.py` (which runs `build_v3.py`), then merges `scripts/v5/*` (voice/doc/vision subjects, concepts, Project Ladder) and re-embeds `index.html` |
 | `scripts/linkcheck.py` | HTTP-checks every resource URL → `docs/resources_linkcheck.csv` |
 | `docs/` | Screenshots, link report, stats, launch drafts |
 
 ## Link check
 
-All 217 resource URLs were checked on 2026-10-11, and 213 passed the automated check. The 4 exceptions are known false negatives. ISO/IEC 42001 (iso.org) returns 403 to scripted clients. Three docs.vllm.ai pages returned 429 (rate limiting) during the run but are live. EUR-Lex returns a 202 bot challenge to scripts; the Digital Omnibus page it links to was confirmed separately. See `docs/resources_linkcheck.csv`.
+All 259 resource URLs were checked on 2026-10-11, and 254 passed the automated check. The 5 exceptions are known false negatives. ISO/IEC 42001 (iso.org) returns 403 to scripted clients. Three docs.vllm.ai pages returned 429 (rate limiting) but are live. The Stanford CS336 site timed out at 20 s but answers with a 301 when given a longer timeout. EUR-Lex returns a 202 bot challenge to scripts. See `docs/resources_linkcheck.csv`.
 
 ## GitHub Pages
 
