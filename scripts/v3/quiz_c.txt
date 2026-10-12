@@ -1,0 +1,62 @@
+f-gpu|MIG differs from MPS in that MIG…|Shares SMs without isolation ~ Partitions the GPU into hardware-isolated slices ~ Only works on CPUs ~ Disables HBM|1|MIG gives dedicated SMs, memory and cache per slice.
+f-gpu|A container built for a newer CUDA than the node driver supports will…|Run faster ~ Likely fail to initialize CUDA ~ Auto-upgrade the driver ~ Use the CPU silently always|1|Driver and userspace must be compatible.
+f-k8s|Taints on GPU nodes are used to…|Speed up GPUs ~ Keep non-GPU pods off expensive nodes ~ Encrypt traffic ~ Enable MIG|1|Only pods tolerating the taint schedule there.
+f-k8s|Init containers or node caches for model weights avoid…|Pod security ~ Every pod downloading huge weights on start ~ Logging ~ DNS|1|Weight pulls dominate cold start.
+f-linux|NVSwitch-based servers require which service for multi-GPU jobs?|cron ~ NVIDIA Fabric Manager ~ sshd ~ chronyd|1|Fabric Manager configures the NVSwitch fabric.
+f-linux|Pinning images by digest prevents…|Image scanning ~ A retagged image silently changing your stack ~ GPU access ~ Logging|1|Digests are immutable; tags are not.
+f-sched|Kueue adds to Kubernetes…|GPU drivers ~ Job queueing, quotas and fair sharing ~ Service mesh ~ DNS|1|It admits jobs when quota is available.
+f-sched|Spot GPU serving needs…|No changes ~ Graceful drain and fast restart ~ Bigger prompts ~ Disabled autoscaling|1|Spot capacity can vanish with short notice.
+f-store|100 nodes each pulling a 140 GB model at once moves about…|1.4 TB ~ 14 TB ~ 140 GB ~ 140 TB|1|100 × 140 GB = 14,000 GB = 14 TB.
+f-store|Fastest tier for a hot model cache on a node is usually…|Object storage ~ Local NVMe ~ Tape ~ Email|1|Local NVMe avoids network latency.
+f-net|RoCE requires careful configuration of…|Fonts ~ Congestion control such as PFC and ECN ~ Tokenizers ~ GPUs only|1|RDMA over Ethernet needs a well-behaved lossless or near-lossless fabric.
+f-net|If NCCL logs show it fell back to TCP sockets on an InfiniBand cluster, you should…|Ignore it ~ Check NCCL_IB_HCA, drivers and RDMA device visibility ~ Lower batch size ~ Retrain the model|1|Socket fallback cuts bandwidth dramatically.
+f-procure|Owned GPU hardware has the lowest unit cost when…|Utilization is low ~ Utilization is high and sustained ~ Workloads are one-off ~ You lack power|1|Fixed costs amortize over many busy hours.
+f-procure|A key non-GPU lead-time risk for owned AI capacity is…|Keyboards ~ Utility power and data center space ~ Tokenizers ~ DNS|1|Power provisioning can take months to years.
+f-obs|Which DCGM signal indicates a hardware or driver fault?|Fan speed only ~ XID errors ~ Tokens per second ~ Prompt length|1|XIDs are driver-reported error events.
+f-obs|Why page on quality regressions?|They are rare ~ A fast wrong model is still an outage ~ Regulators require pages ~ To test pagers|1|Users experience bad answers as failure.
+f-secinfra|Prefer safetensors over pickle because…|It is smaller always ~ It cannot execute code on load ~ It is faster to train ~ It compresses KV|1|Safetensors stores raw tensors only.
+f-secinfra|Strong isolation for untrusted agent code is…|A shared host shell ~ gVisor or microVMs with egress limits ~ Root containers ~ A longer prompt|1|Stronger boundaries limit escape and exfiltration.
+f-cloud|GPU quota should be requested…|After launch ~ Well ahead, per region ~ Never ~ Only for CPUs|1|GPU quota is scarce and approved slowly.
+f-cloud|A forgotten 8-GPU node mostly shows up as…|Better accuracy ~ A cost anomaly ~ Faster CI ~ Lower power|1|Daily cost alerts catch idle spend.
+f-energy|PUE is…|GPU utilization ~ Total facility power divided by IT power ~ Tokens per watt ~ Rack count|1|A PUE of 1.2 means 20% overhead.
+f-energy|Air cooling generally stops being practical around…|5 kW/rack ~ 30-40 kW/rack ~ 500 kW/rack ~ 1 MW/rack|1|Beyond that, liquid or rear-door cooling is needed.
+f-traininfra|FSDP/ZeRO save memory by…|Deleting layers ~ Sharding parameters, gradients and optimizer states ~ Using smaller vocabularies ~ Skipping backprop|1|Each rank holds only a shard.
+f-traininfra|The best measure of training resilience is…|Number of GPUs ~ Time to resume after a node failure ~ Model size ~ Dataset name|1|Recovery time sets how much goodput failures cost.
+f-mlops|Prompt lineage means tracking…|GPU temperatures ~ Which prompt version produced which outputs and evals ~ User passwords ~ Font sizes|1|Prompts are code-like artifacts.
+f-mlops|Feature flags for prompts or models enable…|Faster GPUs ~ Switching versions without redeploying ~ Bigger models ~ Removing evals|1|Fast rollout and rollback.
+f-edgeinfra|Remote attestation lets you…|Speed up inference ~ Verify a site runs approved software ~ Skip updates ~ Share keys|1|Measured boot and signed reports prove state.
+f-edgeinfra|Non-exfil telemetry means…|No telemetry ~ Health metrics leave, prompts and user data do not ~ Everything is logged ~ Only video|1|Design schemas with no sensitive fields.
+f-finops|Showback means…|Charging teams' budgets directly ~ Showing teams their usage and cost without billing ~ Hiding costs ~ Refunds|1|It builds awareness before chargeback.
+f-finops|Binpacking helps cost by…|Spreading pods everywhere ~ Packing work onto fewer nodes so others can scale down ~ Raising prices ~ Disabling quotas|1|Empty nodes can be released.
+g-mental|Keeping explicit state separate from the transcript helps because…|Transcripts are free ~ Transcripts grow noisy; state stays concise ~ State is slower ~ It removes tools|1|Clean state reduces drift and context cost.
+g-mental|A kill switch should…|Need a deploy ~ Halt all agent activity immediately ~ Only log ~ Lower temperature|1|Speed matters when agents misbehave.
+g-tools|Marking tools by side-effect class lets the harness…|Skip schemas ~ Apply approval and retry policies per class ~ Hide tools ~ Remove logs|1|Irreversible writes get stricter handling.
+g-tools|Giving an agent 50 tools when 8 are relevant usually…|Improves accuracy ~ Confuses tool choice and wastes context ~ Has no effect ~ Reduces cost|1|Load tools dynamically per task.
+g-harness-intro|An empty tool result treated as truth is an example of…|Compaction ~ A silent tool failure ~ Idempotency ~ Caching|1|Tools should return explicit errors.
+g-harness-intro|The same model in two harnesses can…|Perform identically always ~ Perform very differently ~ Not run ~ Share weights|1|Loop, context and tools shape behavior.
+g-harness|Pinning critical spans during compaction protects…|GPU memory ~ Task goals and constraints from being summarized away ~ Tool latency ~ Logs|1|Pinned content survives every compaction.
+g-harness|Deterministic replay is useful for…|Training only ~ Debugging by re-running with recorded tool responses ~ Faster GPUs ~ Encryption|1|It reproduces failures exactly.
+g-mem|Semantic memory usually lives in…|The GPU register file ~ A vector store of facts ~ The tokenizer ~ DNS|1|Facts are retrieved by similarity.
+g-mem|Memory systems must support deletion because…|It saves GPU ~ Privacy rules and user requests require forgetting ~ It speeds tokenization ~ Models require it|1|Including summaries and embeddings.
+g-mcp|An MCP "rug pull" is…|A transport bug ~ A server silently changing a tool's description or behavior after approval ~ A token limit ~ A GPU fault|1|Pin manifests and alert on changes.
+g-mcp|MCP's remote transport is…|FTP ~ Streamable HTTP ~ SMTP ~ Bluetooth|1|stdio serves local servers; streamable HTTP serves remote ones.
+g-a2a|An A2A agent card is used for…|Billing ~ Advertising an agent's capabilities for discovery ~ GPU allocation ~ Logging|1|Clients discover what a remote agent can do.
+g-a2a|Delegating via A2A differs from calling a tool because…|It is synchronous only ~ You hand a goal to an autonomous peer with its own lifecycle ~ It needs no auth ~ It is cheaper always|1|Tasks can run long, stream status and ask for input.
+g-multi|Multi-agent runs often quietly multiply…|GPU temperature ~ Token spend ~ Accuracy ~ Logging cost only|1|Each agent re-reads context and coordinates.
+g-multi|Supervisor-worker is popular because…|It needs no coordination ~ One coordinator splits work and merges results clearly ~ It is a market ~ It avoids tools|1|Ownership and flow are easy to reason about.
+g-secure|An ephemeral filesystem per task ensures…|Faster GPUs ~ Nothing persists between tasks to be stolen or poisoned ~ Larger prompts ~ Free storage|1|State is destroyed after each run.
+g-secure|Checking actions against the user's original intent helps against…|Latency ~ Indirect prompt injection steering the agent ~ Disk errors ~ Tokenization|1|Hijacked plans deviate from the request.
+g-eval|Running each agent task several times is needed because…|Agents are deterministic ~ Agents are nondeterministic and one run proves little ~ It is cheaper ~ Judges require it|1|Report pass rate per task.
+g-eval|Correct abstention means the agent…|Always answers ~ Declines tasks that are impossible or unsafe ~ Never uses tools ~ Stops at step 1|1|Saying "can't do this" correctly is valuable.
+g-browser|Domain allowlists for browser agents limit…|Screen size ~ Where a hijacked agent can navigate or send data ~ Rendering ~ Fonts|1|They contain injection and exfiltration.
+g-browser|Verifying a browser agent's work should rely on…|The agent's own claim ~ An independent check such as reading back the record ~ Screenshots only ~ Nothing|1|Agents can report success wrongly.
+g-long|Partial credit in long-horizon evals helps…|Hide failures ~ Measure progress before full success is common ~ Lower cost ~ Skip tests|1|Gradients of improvement become visible.
+g-long|Git-based workspace snapshots make it easy to…|Train models ~ Roll back a bad step cheaply ~ Encrypt data ~ Speed up GPUs|1|Diffs and resets are built in.
+g-train|Loss masks in agent RL ensure the model learns from…|Tool outputs ~ Only its own generated tokens ~ System prompts ~ Random tokens|1|Environment tokens are not actions to imitate.
+g-train|Training across multiple harnesses improves…|Overfitting ~ Generalization beyond one harness ~ Token prices ~ GPU heat|1|Diversity reduces harness-specific tricks.
+g-redteam|A confirmed red-team finding should become…|A blog post only ~ An automated regression test ~ Nothing ~ A new model|1|Regression tests catch reintroduced bugs.
+g-redteam|Agent red teams should retest after…|Only major launches ~ Every model, prompt or tool change ~ Never ~ Yearly audits|1|Defenses can break with any change.
+g-org|"Draft + human send" corresponds to…|Lights-out autonomy ~ An early, low-risk autonomy level ~ No AI ~ Multi-agent markets|1|Humans keep the final action.
+g-org|Blast-radius limits cap…|Model size ~ Spend, records touched and messages sent ~ Prompt length ~ GPU count|1|They bound damage from any failure.
+g-eco|Durable advantage in agent products usually comes from…|Model access alone ~ Proprietary data, workflows and evals ~ Logos ~ Prompt length|1|Model access commoditizes quickly.
+g-eco|Adopting open protocols mainly reduces…|Accuracy ~ Lock-in and switching cost ~ Security ~ Latency always|1|Standard interfaces make components swappable.

@@ -1,0 +1,60 @@
+e-api|Which errors should a client usually retry with backoff?|400 Bad Request ~ 429 and 5xx ~ 401 Unauthorized ~ 404 Not Found|1|Rate limits and transient server errors are retryable; client errors are not.
+e-api|Propagating user cancellation to the model call mainly saves…|Disk space ~ Tokens and money spent on output nobody reads ~ DNS lookups ~ Embeddings|1|Generation keeps billing until the request stops.
+e-prompt|Untrusted content in a prompt should be…|Mixed into instructions ~ Delimited and labeled as data ~ Deleted always ~ Put in the system prompt|1|Clear boundaries help, though they do not fully stop injection.
+e-prompt|Models tend to use information best when it is placed…|In the exact middle ~ At the start or end of the context ~ Randomly ~ In metadata only|1|"Lost in the middle" degrades recall for centered content.
+e-tok|Matryoshka (MRL) embeddings let you…|Skip tokenization ~ Truncate vectors to fewer dimensions with modest quality loss ~ Train without data ~ Encrypt vectors|1|Prefixes of the vector remain useful embeddings.
+e-tok|After L2-normalizing vectors, dot product equals…|Euclidean distance ~ Cosine similarity ~ Jaccard index ~ Hamming distance|1|Normalization removes magnitude, leaving the cosine.
+e-tools|Idempotency keys on write tools prevent…|Slow responses ~ Duplicate side effects on retries ~ Schema errors ~ Long prompts|1|A retried call with the same key is a no-op.
+e-tools|When a tool fails, the harness should…|Crash the run ~ Return a clear error so the model can repair its call ~ Hide the failure ~ Retry forever|1|Actionable errors enable self-correction within budgets.
+e-rag|Reranking with a cross-encoder is typically applied to…|The entire corpus ~ A shortlist of retrieved candidates ~ Only the query ~ The final answer|1|Cross-encoders are accurate but too slow for full-corpus search.
+e-rag|To diagnose a bad RAG answer first check…|GPU temperature ~ Which chunks were retrieved ~ The font ~ The tokenizer license|1|Separate retrieval misses from generation errors.
+e-cache|The classic semantic-cache incident is…|A cache miss ~ One wrong answer served thousands of times ~ Low disk usage ~ High TTL on images|1|Keep the ability to purge entries instantly.
+e-cache|Personalized or tool-using requests should usually…|Always hit the cache ~ Bypass the semantic cache ~ Be cached forever ~ Be cached across tenants|1|Their correct answers depend on user-specific state.
+e-eval|Why slice eval results by cohort?|To reduce cost ~ Averages hide segments that fail ~ To use fewer cases ~ Judges require it|1|A 90% average can hide a 50% language or task slice.
+e-eval|A case that flips pass/fail with no changes is…|A great signal ~ Flaky and should be fixed before gating releases ~ Proof of improvement ~ A judge upgrade|1|Flaky cases erode trust in the eval gate.
+e-agents|Before building multiple agents you should…|Add more agents ~ Try a workflow, then a single tool-using agent ~ Remove budgets ~ Skip evals|1|Complexity should be earned by evidence.
+e-agents|A visible todo list or scratchpad in an agent helps…|Encrypt data ~ Keep the plan coherent across many turns ~ Lower GPU temperature ~ Avoid tool calls|1|Explicit plans reduce drift.
+e-prod|Spend caps per user mainly guard against…|Slow DNS ~ Abuse and runaway loops creating huge bills ~ Low accuracy ~ UI bugs|1|Hard limits contain the blast radius.
+e-prod|Tool calls should be authorized against…|The app's admin account ~ The end user's permissions ~ Nobody ~ The model's preference|1|Otherwise the agent becomes a confused deputy.
+e-ft|Fine-tuning is a poor choice for…|Teaching output format ~ Injecting frequently changing facts ~ Distilling a skill into a smaller model ~ Adjusting tone|1|RAG handles fresh facts better; tuning bakes in a snapshot.
+e-ft|DPO trains on…|Unlabeled text only ~ Pairs of chosen and rejected responses ~ Images ~ Reward model logits only|1|It optimizes preferences directly without an RL loop.
+e-synth|Diversity controls in synthetic data generation prevent…|Fast generation ~ Thousands of near-duplicate examples ~ Labeling ~ Evaluation|1|Varied seeds, personas and topics broaden coverage.
+e-synth|Logit distillation carries more signal than response distillation because…|It is cheaper ~ The student sees the teacher's full probability distribution ~ It needs no teacher ~ It uses images|1|Soft targets show how the teacher ranks alternatives.
+e-multi|A cascade router escalates to a larger model when…|Always ~ The small model is uncertain or fails a check ~ Never ~ At night|1|Confidence signals or verifiers trigger deferral.
+e-multi|Best-of-N works best when…|Outputs cannot be scored ~ A reliable scorer or verifier exists ~ Latency budget is tiny ~ N=1|1|Picking the best needs a way to recognize it.
+e-datafly|User edits to a draft are valuable because they…|Cost nothing to store ~ Provide natural preference pairs ~ Speed up GPUs ~ Remove the need for evals|1|Original vs edited is a chosen/rejected pair.
+e-datafly|The main sampling risk in feedback data is…|Too many tokens ~ Feedback-givers are not representative ~ JSON formatting ~ Compression|1|Bias toward vocal users skews training and evals.
+e-edge|A 7B model quantized to 4 bits needs roughly how much memory for weights?|0.5 GB ~ 3.5-4 GB ~ 14 GB ~ 28 GB|1|7B × 0.5 bytes ≈ 3.5 GB plus some overhead.
+e-edge|Hybrid edge designs typically…|Send everything to the cloud ~ Keep simple or private tasks local and escalate hard ones ~ Never update models ~ Disable offline mode|1|They balance privacy, latency and capability.
+e-post|GRPO-style RL is especially effective when…|Rewards are verifiable, like passing tests ~ No reward exists ~ Data is unlabeled images ~ The model is frozen|0|Verifiable rewards give clean training signals.
+e-post|Entropy collapse in RL shows up as…|More creative outputs ~ Repetitive outputs and lost exploration ~ Faster tokenization ~ Larger vocabularies|1|The policy over-concentrates on a few behaviors.
+e-multimodal-app|A cost-aware document pipeline usually starts with…|Sending every page as an image ~ Text extraction and OCR, with VLM fallback ~ Audio transcription ~ Manual typing|1|Text paths are cheaper and often more accurate.
+e-multimodal-app|"Prompt injection in pixels" refers to…|Low-resolution images ~ Instructions hidden in images that a VLM may follow ~ Image compression ~ Color profiles|1|Vision inputs are another untrusted channel.
+i-life|Decode is usually limited by…|Network DNS ~ Memory bandwidth ~ Disk size ~ CPU clock|1|Every step re-reads weights and KV for little compute.
+i-life|Goodput counts…|All tokens generated ~ Only requests that met their latency SLOs ~ GPU hours ~ Failed requests|1|Throughput that violates SLOs is not useful work.
+i-engines|llama.cpp and Ollama are best known for…|Multi-node training ~ Running quantized models on CPUs, Macs and small GPUs ~ Vector search ~ Kubernetes scheduling|1|They target local and edge inference.
+i-engines|TensorRT-LLM's main trade-off is…|Lower speed for simplicity ~ Peak NVIDIA performance at the cost of build/compile steps ~ CPU only ~ No quantization|1|Compiled engines are fast but add pipeline work.
+i-mem|Weights of a 70B model in FP16 take about…|35 GB ~ 70 GB ~ 140 GB ~ 280 GB|2|70B × 2 bytes = 140 GB.
+i-mem|nvidia-smi shows a vLLM GPU "full" at idle because…|A memory leak ~ The engine pre-reserves memory for KV cache ~ The driver is old ~ Logging|1|gpu_memory_utilization reserves space up front.
+i-batch|Chunked prefill prevents…|Prefix caching ~ Long prompts from stalling other users' token streams ~ Quantization ~ Tokenization|1|Splitting prefill lets decode steps interleave.
+i-batch|Prefix caching benefits most when…|Every prompt is unique ~ Many requests share a long system prompt or document ~ Outputs are long ~ Batch size is 1|1|Shared prefixes reuse KV blocks.
+i-quant|FP8 serving requires…|Any GPU ~ Hardware support such as Hopper or newer ~ CPUs only ~ No calibration ever|1|Native FP8 Tensor Core support makes it fast.
+i-quant|After quantizing a model you must…|Delete the original ~ Re-run your evals ~ Retrain from scratch ~ Disable batching|1|Averages can hide broken edge cases.
+i-spec|Speculative decoding preserves output quality because…|It skips verification ~ The target model verifies every accepted token ~ It uses higher temperature ~ It shortens outputs|1|Rejection sampling keeps the target distribution.
+i-spec|N-gram lookup speculation works especially well for…|Creative poetry ~ Editing and RAG where outputs copy prompt spans ~ Image generation ~ Training|1|Copied spans are easy to predict from the prompt.
+i-struct|Constrained decoding guarantees…|Correct values ~ Syntactically valid output for the schema ~ Shorter outputs ~ Lower cost|1|Valid structure, not necessarily true content.
+i-struct|Grammar compilation cost is best handled by…|Recompiling each request ~ Caching compiled schemas ~ Disabling schemas ~ Bigger GPUs|1|Repeated schemas then cost nothing to compile.
+i-pd|Co-located prefill and decode is usually better for…|Very long inputs with strict TBT ~ Short prompts and small deployments ~ Massive clusters ~ Never|1|Disaggregation adds KV transfer and orchestration overhead.
+i-pd|In P/D disaggregation the KV cache is…|Recomputed by the decode worker ~ Transferred from prefill to decode workers ~ Stored only on disk ~ Discarded|1|Transfer over NVLink/RDMA avoids recomputation.
+i-dist|Pipeline parallelism tolerates slower links but adds…|More memory per GPU ~ Pipeline bubbles ~ Larger vocabularies ~ No communication|1|Stages idle while waiting for micro-batches.
+i-dist|Expert parallelism mainly generates which collective?|All-reduce ~ All-to-all ~ Broadcast only ~ None|1|Tokens are dispatched to experts on other GPUs and gathered back.
+i-lora-serve|Multi-LoRA serving keeps…|One full model per adapter ~ One base model plus many small adapters ~ Only adapters ~ Only CPU copies|1|Adapters share the base weights.
+i-lora-serve|Cold adapters typically live in…|HBM always ~ CPU memory or disk until requested ~ The client ~ The tokenizer|1|Hot ones are promoted to GPU memory.
+i-kernel|CUDA graphs mainly reduce…|HBM usage ~ CPU kernel-launch overhead ~ Model size ~ Network latency|1|Replaying captured graphs avoids per-kernel launch cost, important in decode.
+i-kernel|The roofline model tells you whether a kernel is…|Correct ~ Compute-bound or memory-bound ~ Licensed ~ Deterministic|1|That decides which optimizations can help.
+i-slo|GPU serving should autoscale on…|CPU utilization ~ Queue depth or tokens in flight ~ Disk IO ~ Time of day only|1|CPU barely moves when GPUs saturate.
+i-slo|Warm pools exist because…|GPUs are free ~ GPU cold starts (node + image + weights) take minutes ~ They improve accuracy ~ Regulations|1|Spikes cannot wait for cold capacity.
+i-hw|HBM bandwidth mostly determines…|Training data size ~ Decode tokens per second ~ Tokenizer speed ~ Disk throughput|1|Decode re-reads weights each step.
+i-hw|A GB200 NVL72 rack is notable for…|CPU-only inference ~ 72 GPUs in one NVLink domain ~ Air cooling only ~ No HBM|1|Large NVLink domains suit big TP and MoE.
+i-research|A paper's speedup may not transfer if…|It used your exact setup ~ Your batch sizes, models or hardware differ ~ It has code ~ It is recent|1|Gains are often regime-specific.
+i-research|Learned schedulers try to predict…|Token prices ~ Output length or cost of requests ~ User names ~ GPU temperatures|1|Better length estimates improve batching and fairness.
