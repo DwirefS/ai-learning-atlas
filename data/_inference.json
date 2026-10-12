@@ -1,0 +1,2032 @@
+{
+  "id": "inference",
+  "name": "AI Inference Engineer",
+  "icon": "bolt",
+  "role": "Owns tokens/sec, latency SLOs, $/1M tokens. Day to day: engines, KV, batching, speculation, P/D disagg, CUDA profiles. Differs from Infra (clusters) and AI Engineer (apps).",
+  "levels": [
+    {
+      "id": "i-l1",
+      "name": "L1 Foundations",
+      "subjects": [
+        {
+          "id": "i-life",
+          "title": "Inference Request Lifecycle",
+          "why": "Name stages: tokenize, prefill, decode, detokenize.",
+          "explainer": "Prefill is compute-bound over the full prompt; decode is memory-bound while reading KV. TTFT, ITL/TBT, tokens/s, goodput, queue time, and KV utilization are the dashboard language. Streaming improves perceived latency. Chat templates and tool parsers sit on the critical path — moving render/derender off GPU nodes is an emerging pattern.\n\nCommon mistake: maximizing throughput while missing TTFT SLOs. Another: ignoring tokenizer CPU cost on huge batches.\n\nInstrument before you tune.",
+          "resources": [
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "PagedAttention / Efficient LLM Serving",
+              "url": "https://arxiv.org/abs/2309.06180"
+            },
+            {
+              "title": "PagedAttention paper (HTML)",
+              "url": "https://arxiv.org/html/2309.06180"
+            },
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            }
+          ],
+          "project": "Local vLLM: log TTFT, ITL, tokens/s, KV utilization for 3 prompt lengths.",
+          "topics": [
+            {
+              "id": "i-life-stages",
+              "title": "Stages",
+              "subtopics": [
+                {
+                  "id": "i-life-stages-s1",
+                  "title": "Tokenize / chat template"
+                },
+                {
+                  "id": "i-life-stages-s2",
+                  "title": "Prefill compute-bound"
+                },
+                {
+                  "id": "i-life-stages-s3",
+                  "title": "Decode memory-bound"
+                },
+                {
+                  "id": "i-life-stages-s4",
+                  "title": "Detokenize and tool parse"
+                },
+                {
+                  "id": "i-life-stages-s5",
+                  "title": "Streaming vs buffered"
+                }
+              ],
+              "explainer": "An inference request passes through clear stages. The server applies the chat template and tokenizes. Prefill processes the whole prompt in parallel; it is compute-bound and sets time to first token. Decode generates one token per step for every sequence in the batch; it is memory-bandwidth-bound because each step re-reads all weights and the KV cache. Detokenization and tool-call parsing turn ids back into text and structure. Streaming returns tokens as they come; buffering waits for the full output."
+            },
+            {
+              "id": "i-life-metrics",
+              "title": "Metrics",
+              "subtopics": [
+                {
+                  "id": "i-life-metrics-s1",
+                  "title": "TTFT / TBT / ITL"
+                },
+                {
+                  "id": "i-life-metrics-s2",
+                  "title": "Tokens/s per GPU"
+                },
+                {
+                  "id": "i-life-metrics-s3",
+                  "title": "Goodput vs throughput"
+                },
+                {
+                  "id": "i-life-metrics-s4",
+                  "title": "KV hit rate"
+                },
+                {
+                  "id": "i-life-metrics-s5",
+                  "title": "Queue time"
+                }
+              ],
+              "explainer": "TTFT (time to first token) measures prefill plus queueing. TBT or ITL (time between tokens) measures decode speed per user. Throughput is tokens per second per GPU across all users. Goodput counts only requests that met their SLOs, which is what actually matters. KV cache hit rate shows how much prefix reuse you get. Queue time reveals under-provisioning before latency explodes. Always report percentiles (p50, p95, p99), not averages."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Prefill is typically…",
+              "choices": [
+                "Compute-bound",
+                "Only memory-bound",
+                "Independent of prompt length",
+                "Free"
+              ],
+              "answer": 0,
+              "why": "Full-prompt matmuls dominate."
+            },
+            {
+              "q": "Decode is usually limited by…",
+              "choices": [
+                "Network DNS",
+                "Disk size",
+                "CPU clock",
+                "Memory bandwidth"
+              ],
+              "answer": 3,
+              "why": "Every step re-reads weights and KV for little compute."
+            },
+            {
+              "q": "Goodput counts…",
+              "choices": [
+                "Only requests that met their latency SLOs",
+                "All tokens generated",
+                "Failed requests",
+                "GPU hours"
+              ],
+              "answer": 0,
+              "why": "Throughput that violates SLOs is not useful work."
+            }
+          ],
+          "conceptIds": [
+            "prefill-decode"
+          ]
+        },
+        {
+          "id": "i-engines",
+          "title": "Serving Engines Landscape",
+          "why": "Pick engine for workload, not blog charts.",
+          "explainer": "vLLM (PagedAttention, broad HW), SGLang (RadixAttention, structured out), TensorRT-LLM (NVIDIA peak), TGI, llama.cpp for edge. Features differ: prefix cache, speculation, LoRA multiplexing, multimodal.\n\nCommon mistake: TRT-LLM without NVIDIA specialization on the team. Another: ignoring observability maturity.\n\nBake off on YOUR ISL/OSL/concurrency.",
+          "resources": [
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            },
+            {
+              "title": "SGLang GitHub",
+              "url": "https://github.com/sgl-project/sglang"
+            },
+            {
+              "title": "TensorRT-LLM docs",
+              "url": "https://nvidia.github.io/TensorRT-LLM/"
+            },
+            {
+              "title": "TensorRT-LLM GitHub",
+              "url": "https://github.com/NVIDIA/TensorRT-LLM"
+            },
+            {
+              "title": "llama.cpp",
+              "url": "https://github.com/ggml-org/llama.cpp"
+            }
+          ],
+          "project": "Same 7B on vLLM and llama.cpp; compare setup, throughput, features.",
+          "topics": [
+            {
+              "id": "i-eng-open",
+              "title": "Open Engines",
+              "subtopics": [
+                {
+                  "id": "i-eng-open-s1",
+                  "title": "vLLM"
+                },
+                {
+                  "id": "i-eng-open-s2",
+                  "title": "SGLang"
+                },
+                {
+                  "id": "i-eng-open-s3",
+                  "title": "TGI"
+                },
+                {
+                  "id": "i-eng-open-s4",
+                  "title": "llama.cpp / Ollama"
+                },
+                {
+                  "id": "i-eng-open-s5",
+                  "title": "Feature matrix"
+                }
+              ],
+              "explainer": "vLLM popularized PagedAttention and continuous batching and supports most models and hardware. SGLang adds RadixAttention for automatic prefix reuse and is strong for structured and agentic workloads. TGI is Hugging Face's server. llama.cpp and Ollama run quantized models on CPUs, Macs and small GPUs. Compare on features you need (quantization formats, speculative decoding, LoRA, structured output, disaggregation) and benchmark on your own traffic shape."
+            },
+            {
+              "id": "i-eng-nv",
+              "title": "NVIDIA Stack",
+              "subtopics": [
+                {
+                  "id": "i-eng-nv-s1",
+                  "title": "TensorRT-LLM"
+                },
+                {
+                  "id": "i-eng-nv-s2",
+                  "title": "Triton Inference Server"
+                },
+                {
+                  "id": "i-eng-nv-s3",
+                  "title": "Dynamo / disagg pieces"
+                },
+                {
+                  "id": "i-eng-nv-s4",
+                  "title": "NIM"
+                },
+                {
+                  "id": "i-eng-nv-s5",
+                  "title": "Migration costs"
+                }
+              ],
+              "explainer": "TensorRT-LLM compiles models into optimized engines for NVIDIA GPUs, often the fastest option at the cost of build steps. Triton Inference Server hosts many model types behind one API. NVIDIA Dynamo orchestrates distributed and disaggregated serving with KV-aware routing. NIM packages models as ready-to-run containers. Migrating between stacks costs engineering time, so weigh peak speed against operability. Try it: serve the same model with vLLM and TensorRT-LLM on one GPU and compare tokens per second at concurrency 1, 16 and 64."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "RadixAttention shines when…",
+              "choices": [
+                "Requests share prefixes",
+                "All prompts unique and short",
+                "CPU-only",
+                "Caching disabled"
+              ],
+              "answer": 0,
+              "why": "Prefix reuse wins."
+            },
+            {
+              "q": "llama.cpp and Ollama are best known for…",
+              "choices": [
+                "Kubernetes scheduling",
+                "Running quantized models on CPUs, Macs and small GPUs",
+                "Vector search",
+                "Multi-node training"
+              ],
+              "answer": 1,
+              "why": "They target local and edge inference."
+            },
+            {
+              "q": "TensorRT-LLM's main trade-off is…",
+              "choices": [
+                "Lower speed for simplicity",
+                "Peak NVIDIA performance at the cost of build/compile steps",
+                "No quantization",
+                "CPU only"
+              ],
+              "answer": 1,
+              "why": "Compiled engines are fast but add pipeline work."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "i-mem",
+          "title": "GPU Memory Model for Inference",
+          "why": "Weights + KV + activations must fit.",
+          "explainer": "Sizing: parameters times bytes/param plus KV scaling with layers, heads, sequence, batch, precision. PagedAttention treats KV like virtual memory to fight fragmentation.\n\nCommon mistake: forgetting KV when estimating 70B fit. Another: huge max_model_len wasting reserved pages.\n\nBack-of-envelope before buying.",
+          "resources": [
+            {
+              "title": "PagedAttention / Efficient LLM Serving",
+              "url": "https://arxiv.org/abs/2309.06180"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "CUDA docs",
+              "url": "https://docs.nvidia.com/cuda/"
+            }
+          ],
+          "project": "Estimate KV bytes for 32B GQA at 8k ctx batch 16; compare to vLLM stats.",
+          "topics": [
+            {
+              "id": "i-mem-fit",
+              "title": "Fitting",
+              "subtopics": [
+                {
+                  "id": "i-mem-fit-s1",
+                  "title": "Weight footprint"
+                },
+                {
+                  "id": "i-mem-fit-s2",
+                  "title": "KV scaling formula"
+                },
+                {
+                  "id": "i-mem-fit-s3",
+                  "title": "Activation peaks"
+                },
+                {
+                  "id": "i-mem-fit-s4",
+                  "title": "Fragmentation"
+                },
+                {
+                  "id": "i-mem-fit-s5",
+                  "title": "Reservation vs utilization"
+                }
+              ],
+              "explainer": "GPU memory holds weights, KV cache and activations. Weights are parameters times bytes per parameter: 70B at FP16 is 140 GB. KV per token is 2 × layers × KV heads × head dim × bytes. Activation peaks happen in prefill of long prompts. Fragmentation wastes memory unless the engine pages it. Engines reserve a fraction of memory up front (for example gpu_memory_utilization 0.9), so nvidia-smi shows \"full\" even when idle."
+            },
+            {
+              "id": "i-mem-tech",
+              "title": "Techniques",
+              "subtopics": [
+                {
+                  "id": "i-mem-tech-s1",
+                  "title": "PagedAttention blocks"
+                },
+                {
+                  "id": "i-mem-tech-s2",
+                  "title": "KV quantization"
+                },
+                {
+                  "id": "i-mem-tech-s3",
+                  "title": "CPU/NVMe offload"
+                },
+                {
+                  "id": "i-mem-tech-s4",
+                  "title": "Prefix sharing"
+                },
+                {
+                  "id": "i-mem-tech-s5",
+                  "title": "Max length policies"
+                }
+              ],
+              "explainer": "PagedAttention stores KV in fixed blocks like virtual memory pages, so there is almost no fragmentation and sequences can share prefix blocks. Quantizing KV to FP8 halves its size. Offloading cold KV to CPU memory or NVMe extends effective capacity at a latency cost. Prefix sharing lets requests with the same system prompt reuse KV. Capping max sequence length per tier is a simple and effective policy for protecting memory."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "KV scales primarily with…",
+              "choices": [
+                "Seq length × batch × layers/heads",
+                "CPU core count only",
+                "Disk RPM",
+                "TLS version"
+              ],
+              "answer": 0,
+              "why": "KV grows with context and concurrency."
+            },
+            {
+              "q": "Weights of a 70B model in FP16 take about…",
+              "choices": [
+                "140 GB",
+                "35 GB",
+                "280 GB",
+                "70 GB"
+              ],
+              "answer": 0,
+              "why": "70B × 2 bytes = 140 GB."
+            },
+            {
+              "q": "nvidia-smi shows a vLLM GPU \"full\" at idle because…",
+              "choices": [
+                "Logging",
+                "The driver is old",
+                "The engine pre-reserves memory for KV cache",
+                "A memory leak"
+              ],
+              "answer": 2,
+              "why": "gpu_memory_utilization reserves space up front."
+            }
+          ],
+          "conceptIds": [
+            "kv-cache",
+            "paged-attention"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "i-l2",
+      "name": "L2 Practitioner",
+      "subjects": [
+        {
+          "id": "i-batch",
+          "title": "Batching, Scheduling & KV Cache",
+          "why": "Continuous batching + paged KV = production.",
+          "explainer": "Static batching waits for the slowest. Continuous/in-flight batching lets finished sequences leave. Chunked prefill reduces TTFT interference. Prefix caching and RadixAttention trees, eviction, quantized KV are levers.\n\nCommon mistake: maximizing batch until TBT dies. Another: disabling prefix cache on agent workloads.\n\nPlot throughput-latency Pareto curves.",
+          "resources": [
+            {
+              "title": "PagedAttention / Efficient LLM Serving",
+              "url": "https://arxiv.org/abs/2309.06180"
+            },
+            {
+              "title": "Orca continuous batching (USENIX OSDI)",
+              "url": "https://www.usenix.org/conference/osdi22/presentation/yu"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            }
+          ],
+          "project": "Saturate GPU; ablate max_num_seqs and max_model_len; plot throughput vs latency.",
+          "topics": [
+            {
+              "id": "i-batch-types",
+              "title": "Batching",
+              "subtopics": [
+                {
+                  "id": "i-batch-types-s1",
+                  "title": "Static vs continuous"
+                },
+                {
+                  "id": "i-batch-types-s2",
+                  "title": "Chunked prefill"
+                },
+                {
+                  "id": "i-batch-types-s3",
+                  "title": "Preemption and priorities"
+                },
+                {
+                  "id": "i-batch-types-s4",
+                  "title": "Fairness"
+                },
+                {
+                  "id": "i-batch-types-s5",
+                  "title": "Scheduler knobs"
+                }
+              ],
+              "explainer": "Static batching waits for a full batch and holds GPUs until the longest sequence finishes. Continuous batching adds and removes sequences every step, keeping the GPU busy. Chunked prefill splits long prompts into pieces mixed with decode steps so a big prompt does not freeze everyone's token stream. Schedulers can preempt low-priority requests and enforce fairness between tenants. Knobs such as max batched tokens and max sequences trade latency against throughput."
+            },
+            {
+              "id": "i-kv",
+              "title": "KV Cache",
+              "subtopics": [
+                {
+                  "id": "i-kv-s1",
+                  "title": "Paged blocks"
+                },
+                {
+                  "id": "i-kv-s2",
+                  "title": "Prefix caching"
+                },
+                {
+                  "id": "i-kv-s3",
+                  "title": "RadixAttention"
+                },
+                {
+                  "id": "i-kv-s4",
+                  "title": "Eviction"
+                },
+                {
+                  "id": "i-kv-s5",
+                  "title": "KV FP8/INT8"
+                }
+              ],
+              "explainer": "The KV cache stores keys and values for past tokens so decode does not recompute them. Paged blocks manage it efficiently. Prefix caching reuses KV for identical prompt prefixes across requests; RadixAttention organizes cached prefixes as a tree for automatic matching. When memory fills, the engine evicts least-recently-used blocks or preempts sequences. FP8 or INT8 KV roughly doubles capacity with small quality cost on most models."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Continuous batching helps because…",
+              "choices": [
+                "Finished leave and new join without waiting for whole batch",
+                "Trains faster",
+                "Deletes tokenizer",
+                "Removes attention"
+              ],
+              "answer": 0,
+              "why": "In-flight membership raises utilization."
+            },
+            {
+              "q": "Chunked prefill prevents…",
+              "choices": [
+                "Tokenization",
+                "Long prompts from stalling other users' token streams",
+                "Quantization",
+                "Prefix caching"
+              ],
+              "answer": 1,
+              "why": "Splitting prefill lets decode steps interleave."
+            },
+            {
+              "q": "Prefix caching benefits most when…",
+              "choices": [
+                "Batch size is 1",
+                "Every prompt is unique",
+                "Many requests share a long system prompt or document",
+                "Outputs are long"
+              ],
+              "answer": 2,
+              "why": "Shared prefixes reuse KV blocks."
+            }
+          ],
+          "conceptIds": [
+            "batching",
+            "paged-attention"
+          ]
+        },
+        {
+          "id": "i-quant",
+          "title": "Quantization for Serving",
+          "why": "Bits → memory → batch → money.",
+          "explainer": "Weight quant (INT8/4, GPTQ, AWQ, GGUF), FP8, activation smoothing, KV quant trade quality for capacity. Calibration sets matter. Know when quality collapses on YOUR eval.\n\nCommon mistake: INT4 on safety classifiers. Another: English-only quality checks.\n\nA/B on task gold.",
+          "resources": [
+            {
+              "title": "GPTQ",
+              "url": "https://arxiv.org/abs/2210.17323"
+            },
+            {
+              "title": "AWQ",
+              "url": "https://arxiv.org/abs/2306.00978"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "llama.cpp",
+              "url": "https://github.com/ggml-org/llama.cpp"
+            }
+          ],
+          "project": "Serve large model AWQ/FP8; compare quality on 50 prompts vs higher precision.",
+          "topics": [
+            {
+              "id": "i-quant-w",
+              "title": "Weight Quant",
+              "subtopics": [
+                {
+                  "id": "i-quant-w-s1",
+                  "title": "INT8/4 GPTQ/AWQ/GGUF"
+                },
+                {
+                  "id": "i-quant-w-s2",
+                  "title": "FP8"
+                },
+                {
+                  "id": "i-quant-w-s3",
+                  "title": "Calibration"
+                },
+                {
+                  "id": "i-quant-w-s4",
+                  "title": "Accuracy recovery"
+                },
+                {
+                  "id": "i-quant-w-s5",
+                  "title": "Per-channel issues"
+                }
+              ],
+              "explainer": "Weight quantization stores weights in fewer bits. GPTQ and AWQ produce INT4 weights with small accuracy loss using a calibration set; GGUF is llama.cpp's format with many variants. FP8 on Hopper and newer GPUs keeps quality very close to BF16 with hardware support. Calibrate on data like your traffic. Per-channel or group scales handle outlier columns. Always re-run your evals after quantizing, because averages can hide broken edge cases."
+            },
+            {
+              "id": "i-quant-kv",
+              "title": "Activations & KV",
+              "subtopics": [
+                {
+                  "id": "i-quant-kv-s1",
+                  "title": "SmoothQuant ideas"
+                },
+                {
+                  "id": "i-quant-kv-s2",
+                  "title": "KV FP8"
+                },
+                {
+                  "id": "i-quant-kv-s3",
+                  "title": "Outliers"
+                },
+                {
+                  "id": "i-quant-kv-s4",
+                  "title": "Collapse symptoms"
+                },
+                {
+                  "id": "i-quant-kv-s5",
+                  "title": "Mixed schemes"
+                }
+              ],
+              "explainer": "Activations and KV are harder to quantize than weights because of outliers, a few huge values in certain channels. SmoothQuant shifts that difficulty from activations into weights. KV FP8 is widely supported and usually safe. Symptoms of quantization collapse include repetition, broken formatting and wrong math. Mixed schemes keep sensitive layers in higher precision while quantizing the rest. Try it: enable FP8 KV cache, rerun your eval, and compare both quality and the maximum concurrent sequences the engine reports."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Main serving win from quant is usually…",
+              "choices": [
+                "Higher effective batch from lower memory",
+                "Perfect accuracy always",
+                "No evals needed",
+                "Free networking"
+              ],
+              "answer": 0,
+              "why": "Memory→batch→throughput/$."
+            },
+            {
+              "q": "FP8 serving requires…",
+              "choices": [
+                "No calibration ever",
+                "Any GPU",
+                "CPUs only",
+                "Hardware support such as Hopper or newer"
+              ],
+              "answer": 3,
+              "why": "Native FP8 Tensor Core support makes it fast."
+            },
+            {
+              "q": "After quantizing a model you must…",
+              "choices": [
+                "Disable batching",
+                "Re-run your evals",
+                "Retrain from scratch",
+                "Delete the original"
+              ],
+              "answer": 1,
+              "why": "Averages can hide broken edge cases."
+            }
+          ],
+          "conceptIds": [
+            "quantization"
+          ]
+        },
+        {
+          "id": "i-spec",
+          "title": "Speculative Decoding",
+          "why": "Memory-bound decode; speculation helps at small batch.",
+          "explainer": "Draft models, EAGLE/Medusa, n-gram, MTP, tree verification raise tokens per expensive forward when acceptance is high. Gains shrink at high batch. Measure acceptance by position.\n\nCommon mistake: expecting miracles on saturated high-batch servers. Another: ignoring draft quality drift.\n\nBenchmark batch 1/8/32.",
+          "resources": [
+            {
+              "title": "Speculative Decoding (Leviathan et al.)",
+              "url": "https://arxiv.org/abs/2211.17192"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            }
+          ],
+          "project": "Enable EAGLE or draft speculation; measure speedup at batch 1/8/32.",
+          "topics": [
+            {
+              "id": "i-spec-m",
+              "title": "Methods",
+              "subtopics": [
+                {
+                  "id": "i-spec-m-s1",
+                  "title": "Draft model"
+                },
+                {
+                  "id": "i-spec-m-s2",
+                  "title": "EAGLE / Medusa"
+                },
+                {
+                  "id": "i-spec-m-s3",
+                  "title": "N-gram lookup"
+                },
+                {
+                  "id": "i-spec-m-s4",
+                  "title": "MTP"
+                },
+                {
+                  "id": "i-spec-m-s5",
+                  "title": "Tree verification"
+                }
+              ],
+              "explainer": "Speculative decoding guesses several tokens cheaply and verifies them in one pass of the big model. A small draft model can propose tokens. EAGLE and Medusa add lightweight heads to the target model. N-gram lookup copies spans from the prompt, great for editing and RAG. Multi-token prediction (MTP) trains the model to predict ahead. Tree verification checks several candidate branches at once. Output distribution stays the same as the target model when done correctly."
+            },
+            {
+              "id": "i-spec-lim",
+              "title": "Limits",
+              "subtopics": [
+                {
+                  "id": "i-spec-lim-s1",
+                  "title": "Acceptance drivers"
+                },
+                {
+                  "id": "i-spec-lim-s2",
+                  "title": "Batch collapse"
+                },
+                {
+                  "id": "i-spec-lim-s3",
+                  "title": "Verifier cost"
+                },
+                {
+                  "id": "i-spec-lim-s4",
+                  "title": "Quality parity"
+                },
+                {
+                  "id": "i-spec-lim-s5",
+                  "title": "Tuning"
+                }
+              ],
+              "explainer": "Speedup depends on acceptance rate: how often the target agrees with the draft. Predictable text (code, templated output) accepts well; creative text less so. At large batch sizes the GPU is already busy, so verification overhead can erase the gain. The draft model costs memory and compute too. Benchmark at your real concurrency and tune the number of speculated tokens."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Speculation helps most when…",
+              "choices": [
+                "Small/medium batch and high acceptance",
+                "Huge compute-saturated batch",
+                "Target model disabled",
+                "CPU only"
+              ],
+              "answer": 0,
+              "why": "Memory-bound decode + accepts = wins."
+            },
+            {
+              "q": "Speculative decoding preserves output quality because…",
+              "choices": [
+                "It uses higher temperature",
+                "The target model verifies every accepted token",
+                "It shortens outputs",
+                "It skips verification"
+              ],
+              "answer": 1,
+              "why": "Rejection sampling keeps the target distribution."
+            },
+            {
+              "q": "N-gram lookup speculation works especially well for…",
+              "choices": [
+                "Editing and RAG where outputs copy prompt spans",
+                "Creative poetry",
+                "Training",
+                "Image generation"
+              ],
+              "answer": 0,
+              "why": "Copied spans are easy to predict from the prompt."
+            }
+          ],
+          "conceptIds": [
+            "speculative"
+          ]
+        },
+        {
+          "id": "i-struct",
+          "title": "Structured Output & Constrained Decode",
+          "why": "JSON mode has perf tradeoffs.",
+          "explainer": "FSM/grammar masking, tool-call parsers, token healing keep outputs valid. Grammar compile cost and cache interactions matter.\n\nCommon mistake: regex on unconstrained dumps. Another: recompiling grammars per request.\n\nValidity rate is an SLO.",
+          "resources": [
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "OpenAI prompt engineering",
+              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering"
+            }
+          ],
+          "project": "Benchmark unconstrained vs grammar JSON; measure tokens/s and validity.",
+          "topics": [
+            {
+              "id": "i-struct-tech",
+              "title": "Techniques",
+              "subtopics": [
+                {
+                  "id": "i-struct-tech-s1",
+                  "title": "FSM / grammar masking"
+                },
+                {
+                  "id": "i-struct-tech-s2",
+                  "title": "Token healing"
+                },
+                {
+                  "id": "i-struct-tech-s3",
+                  "title": "Partial JSON repair"
+                },
+                {
+                  "id": "i-struct-tech-s4",
+                  "title": "Tool-call parsers"
+                },
+                {
+                  "id": "i-struct-tech-s5",
+                  "title": "Schema versioning"
+                }
+              ],
+              "explainer": "Constrained decoding compiles a JSON schema or grammar into a state machine and masks invalid tokens at each step, so output always parses. Token healing fixes boundary issues where the prompt ends mid-token. Partial JSON repair helps clients that parse streams. Tool-call parsers extract function calls from model-specific formats. Version schemas, since changing a schema can change model behavior. Try it: generate 1,000 outputs with and without schema constraints and count parse failures. The difference is usually dramatic."
+            },
+            {
+              "id": "i-struct-ops",
+              "title": "Ops",
+              "subtopics": [
+                {
+                  "id": "i-struct-ops-s1",
+                  "title": "Compile cost"
+                },
+                {
+                  "id": "i-struct-ops-s2",
+                  "title": "Cache interactions"
+                },
+                {
+                  "id": "i-struct-ops-s3",
+                  "title": "Failure modes"
+                },
+                {
+                  "id": "i-struct-ops-s4",
+                  "title": "Client contracts"
+                },
+                {
+                  "id": "i-struct-ops-s5",
+                  "title": "Observability"
+                }
+              ],
+              "explainer": "Grammar compilation costs time, so cache compiled schemas. Constraints can interact with prefix caching and speculative decoding in engine-specific ways. Failure modes include the model being forced into valid but wrong values, or long loops of whitespace. Agree on contracts with clients about required fields and error handling. Monitor schema violation and repair rates. Try it: log time spent compiling grammars per request; if it is large, cache compiled schemas by hash."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Constrained decoding enforces…",
+              "choices": [
+                "Token choices compatible with grammar/schema",
+                "Lower electricity always",
+                "License changes",
+                "NCCL topology"
+              ],
+              "answer": 0,
+              "why": "Masked logits implement grammar."
+            },
+            {
+              "q": "Constrained decoding guarantees…",
+              "choices": [
+                "Lower cost",
+                "Correct values",
+                "Shorter outputs",
+                "Syntactically valid output for the schema"
+              ],
+              "answer": 3,
+              "why": "Valid structure, not necessarily true content."
+            },
+            {
+              "q": "Grammar compilation cost is best handled by…",
+              "choices": [
+                "Recompiling each request",
+                "Bigger GPUs",
+                "Caching compiled schemas",
+                "Disabling schemas"
+              ],
+              "answer": 2,
+              "why": "Repeated schemas then cost nothing to compile."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    },
+    {
+      "id": "i-l3",
+      "name": "L3 Advanced",
+      "subjects": [
+        {
+          "id": "i-pd",
+          "title": "Prefill/Decode Disaggregation",
+          "why": "Long prompts stall decodes; split when justified.",
+          "explainer": "Co-located serving couples FTL and TBT. P/D disagg separates pools, transfers KV, rate-matches capacity. Bidirectional KV helps multi-turn.\n\nCommon mistake: disaggregating low-ISL chat where co-location wins. Another: ignoring transfer bandwidth.\n\nSLA-aware planners beat static ratios.",
+          "resources": [
+            {
+              "title": "DistServe Prefill/Decode Disaggregation",
+              "url": "https://arxiv.org/abs/2401.09670"
+            },
+            {
+              "title": "vLLM disaggregated serving guide",
+              "url": "https://blog.vllm.ai/2026/09/29/disaggregated-serving-guide.html"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "TensorRT-LLM docs",
+              "url": "https://nvidia.github.io/TensorRT-LLM/"
+            }
+          ],
+          "project": "Minimal P/D split or simulation; compare TTFT/TBT under long-ISL load.",
+          "topics": [
+            {
+              "id": "i-pd-why",
+              "title": "Motivation",
+              "subtopics": [
+                {
+                  "id": "i-pd-why-s1",
+                  "title": "ISL/OSL asymmetry"
+                },
+                {
+                  "id": "i-pd-why-s2",
+                  "title": "Piggyback interference"
+                },
+                {
+                  "id": "i-pd-why-s3",
+                  "title": "SLA rate matching"
+                },
+                {
+                  "id": "i-pd-why-s4",
+                  "title": "When co-locate wins"
+                },
+                {
+                  "id": "i-pd-why-s5",
+                  "title": "Cost model"
+                }
+              ],
+              "explainer": "Prefill is compute-heavy and bursty; decode is memory-bound and steady. On shared GPUs, a large prefill stalls ongoing decodes (interference), hurting time between tokens. Disaggregation runs them on separate GPU pools sized for each phase, so you can match the prefill-to-decode ratio to your input and output lengths. It wins for long inputs and strict latency SLOs; for short prompts and small deployments, co-location is simpler and cheaper."
+            },
+            {
+              "id": "i-pd-impl",
+              "title": "Implementation",
+              "subtopics": [
+                {
+                  "id": "i-pd-impl-s1",
+                  "title": "KV transfer"
+                },
+                {
+                  "id": "i-pd-impl-s2",
+                  "title": "Proxy orchestration"
+                },
+                {
+                  "id": "i-pd-impl-s3",
+                  "title": "Bidirectional KV"
+                },
+                {
+                  "id": "i-pd-impl-s4",
+                  "title": "Capacity planning"
+                },
+                {
+                  "id": "i-pd-impl-s5",
+                  "title": "Failure modes"
+                }
+              ],
+              "explainer": "In a disaggregated setup, a router sends a request to a prefill worker, which computes the KV cache and transfers it to a decode worker over NVLink or RDMA (NIXL, Mooncake and similar libraries do this). The proxy coordinates handoff and streaming. Capacity planning sets the ratio of prefill to decode GPUs. New failure modes include stuck KV transfers and imbalance between pools, so monitor transfer latency and queue depth on both sides."
+            },
+            {
+              "id": "i-pd-fw",
+              "title": "Frameworks & Operations",
+              "explainer": "Several stacks now ship disaggregated serving: vLLM and SGLang support separate prefill and decode instances with KV connectors, NVIDIA Dynamo adds KV-aware routing and the NIXL transfer library, llm-d brings it to Kubernetes, and Mooncake pioneered a KV-cache-centric design. Operating them means monitoring KV transfer latency and failures, the ratio of prefill to decode capacity, and queueing on each side. Start with co-located serving, measure interference, and move to disaggregation only when TBT SLOs demand it.",
+              "subtopics": [
+                {
+                  "id": "i-pd-fw-s1",
+                  "title": "vLLM / SGLang disagg modes"
+                },
+                {
+                  "id": "i-pd-fw-s2",
+                  "title": "NVIDIA Dynamo and NIXL"
+                },
+                {
+                  "id": "i-pd-fw-s3",
+                  "title": "llm-d on Kubernetes"
+                },
+                {
+                  "id": "i-pd-fw-s4",
+                  "title": "Mooncake KV-centric design"
+                },
+                {
+                  "id": "i-pd-fw-s5",
+                  "title": "Monitoring KV transfer"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "P/D disagg targets…",
+              "choices": [
+                "Interference between long prefills and ongoing decodes",
+                "Tokenizer training",
+                "EU paperwork",
+                "CSS"
+              ],
+              "answer": 0,
+              "why": "Stage separation reduces cross-SLO interference."
+            },
+            {
+              "q": "Co-located prefill and decode is usually better for…",
+              "choices": [
+                "Short prompts and small deployments",
+                "Never",
+                "Massive clusters",
+                "Very long inputs with strict TBT"
+              ],
+              "answer": 0,
+              "why": "Disaggregation adds KV transfer and orchestration overhead."
+            },
+            {
+              "q": "In P/D disaggregation the KV cache is…",
+              "choices": [
+                "Recomputed by the decode worker",
+                "Stored only on disk",
+                "Transferred from prefill to decode workers",
+                "Discarded"
+              ],
+              "answer": 2,
+              "why": "Transfer over NVLink/RDMA avoids recomputation."
+            }
+          ],
+          "conceptIds": [
+            "prefill-decode",
+            "pd-disagg"
+          ]
+        },
+        {
+          "id": "i-dist",
+          "title": "Distributed Inference Parallelism",
+          "why": "Bigger than one GPU needs a plan.",
+          "explainer": "Tensor, pipeline, expert (MoE), sequence/context parallelism. NCCL, NVLink/NVSwitch, IB/RoCE, overlap decide scale-out value.\n\nCommon mistake: TP across nodes without bandwidth. Another: EP without load-balance monitors.\n\nNCCL tests are bring-up.",
+          "resources": [
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "NCCL user guide",
+              "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html"
+            },
+            {
+              "title": "CUDA docs",
+              "url": "https://docs.nvidia.com/cuda/"
+            },
+            {
+              "title": "TensorRT-LLM docs",
+              "url": "https://nvidia.github.io/TensorRT-LLM/"
+            },
+            {
+              "title": "Mixture of Experts (Shazeer et al.)",
+              "url": "https://arxiv.org/abs/1701.06538"
+            }
+          ],
+          "project": "Serve TP=2 and TP=4; explain bottlenecks; note when PP/EP helps.",
+          "topics": [
+            {
+              "id": "i-dist-types",
+              "title": "Types",
+              "subtopics": [
+                {
+                  "id": "i-dist-types-s1",
+                  "title": "Tensor parallel"
+                },
+                {
+                  "id": "i-dist-types-s2",
+                  "title": "Pipeline parallel"
+                },
+                {
+                  "id": "i-dist-types-s3",
+                  "title": "Expert parallel"
+                },
+                {
+                  "id": "i-dist-types-s4",
+                  "title": "Sequence/context parallel"
+                },
+                {
+                  "id": "i-dist-types-s5",
+                  "title": "Combined"
+                }
+              ],
+              "explainer": "When a model does not fit on one GPU, split it. Tensor parallelism splits each layer's matrices across GPUs and needs fast all-reduce, so keep it within an NVLink domain. Pipeline parallelism assigns layers to stages, tolerating slower links but adding bubbles. Expert parallelism places MoE experts on different GPUs with all-to-all routing. Sequence or context parallelism splits very long sequences. Large deployments combine them."
+            },
+            {
+              "id": "i-dist-comm",
+              "title": "Communication",
+              "subtopics": [
+                {
+                  "id": "i-dist-comm-s1",
+                  "title": "NCCL collectives"
+                },
+                {
+                  "id": "i-dist-comm-s2",
+                  "title": "NVLink/NVSwitch"
+                },
+                {
+                  "id": "i-dist-comm-s3",
+                  "title": "InfiniBand/RoCE"
+                },
+                {
+                  "id": "i-dist-comm-s4",
+                  "title": "Overlap"
+                },
+                {
+                  "id": "i-dist-comm-s5",
+                  "title": "Topology awareness"
+                }
+              ],
+              "explainer": "Distributed inference lives or dies on communication. NCCL provides collectives such as all-reduce and all-to-all. NVLink and NVSwitch give hundreds of GB/s inside a node or rack; InfiniBand or RoCE connect nodes at lower bandwidth. Good engines overlap communication with compute. Place tensor-parallel groups inside the fastest domain and check the topology with nvidia-smi topo -m before blaming the model."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Tensor parallelism shards…",
+              "choices": [
+                "Matmuls across GPUs for one replica",
+                "Unrelated models only",
+                "Only tokenizer",
+                "Only audit log"
+              ],
+              "answer": 0,
+              "why": "TP splits layer math."
+            },
+            {
+              "q": "Pipeline parallelism tolerates slower links but adds…",
+              "choices": [
+                "Larger vocabularies",
+                "Pipeline bubbles",
+                "No communication",
+                "More memory per GPU"
+              ],
+              "answer": 1,
+              "why": "Stages idle while waiting for micro-batches."
+            },
+            {
+              "q": "Expert parallelism mainly generates which collective?",
+              "choices": [
+                "All-reduce",
+                "None",
+                "Broadcast only",
+                "All-to-all"
+              ],
+              "answer": 3,
+              "why": "Tokens are dispatched to experts on other GPUs and gathered back."
+            }
+          ],
+          "conceptIds": [
+            "parallelism",
+            "nvlink-ib",
+            "nccl-collectives",
+            "moe-routing"
+          ]
+        },
+        {
+          "id": "i-lora-serve",
+          "title": "Multi-LoRA & Adapter Serving",
+          "why": "Many customers, one base.",
+          "explainer": "Multi-LoRA batching hosts many adapters with request routing. Memory, hot-swap, noisy-neighbor need policy.\n\nCommon mistake: thousands of cold adapters in GPU memory. Another: no tenant rate isolation.\n\nAdapters are first-class deployables.",
+          "resources": [
+            {
+              "title": "LoRA: Low-Rank Adaptation",
+              "url": "https://arxiv.org/abs/2106.09685"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "Hugging Face PEFT docs",
+              "url": "https://huggingface.co/docs/peft/index"
+            },
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            }
+          ],
+          "project": "Serve two LoRAs on one vLLM; measure switch overhead and isolation.",
+          "topics": [
+            {
+              "id": "i-lora-mem",
+              "title": "Memory & Routing",
+              "subtopics": [
+                {
+                  "id": "i-lora-mem-s1",
+                  "title": "Adapter footprints"
+                },
+                {
+                  "id": "i-lora-mem-s2",
+                  "title": "Request routing"
+                },
+                {
+                  "id": "i-lora-mem-s3",
+                  "title": "Hot vs cold"
+                },
+                {
+                  "id": "i-lora-mem-s4",
+                  "title": "Quantized adapters"
+                },
+                {
+                  "id": "i-lora-mem-s5",
+                  "title": "Batching constraints"
+                }
+              ],
+              "explainer": "Multi-LoRA serving keeps one base model in memory and loads many small adapters. Adapters are megabytes to hundreds of megabytes each. The router sends each request to a server that has its adapter loaded; hot adapters stay in GPU memory, cold ones live in CPU or disk. Kernels such as Punica and S-LoRA batch requests with different adapters together. Quantized adapters save more memory."
+            },
+            {
+              "id": "i-lora-ops",
+              "title": "Ops",
+              "subtopics": [
+                {
+                  "id": "i-lora-ops-s1",
+                  "title": "Versioning"
+                },
+                {
+                  "id": "i-lora-ops-s2",
+                  "title": "Canary"
+                },
+                {
+                  "id": "i-lora-ops-s3",
+                  "title": "Noisy neighbor"
+                },
+                {
+                  "id": "i-lora-ops-s4",
+                  "title": "Rollback"
+                },
+                {
+                  "id": "i-lora-ops-s5",
+                  "title": "Per-adapter obs"
+                }
+              ],
+              "explainer": "Treat adapters as deployable artifacts with versions. Canary new adapters on a slice of traffic. A heavily used adapter can starve others, so enforce fairness. Keep rollback instant by retaining the previous version. Emit metrics per adapter (latency, errors, quality) so tenant-specific problems are visible. A useful rule: an adapter is a release, not a file. Give it a version, an owner, an eval report and a rollback path. Try it: serve two adapters on one base model and route by request header, watching latency per adapter."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Multi-LoRA aims to…",
+              "choices": [
+                "Host many adapters on one base engine",
+                "Train foundations nightly",
+                "Replace networking",
+                "Eliminate evals"
+              ],
+              "answer": 0,
+              "why": "Specialization without full replicas."
+            },
+            {
+              "q": "Multi-LoRA serving keeps…",
+              "choices": [
+                "Only adapters",
+                "One full model per adapter",
+                "One base model plus many small adapters",
+                "Only CPU copies"
+              ],
+              "answer": 2,
+              "why": "Adapters share the base weights."
+            },
+            {
+              "q": "Cold adapters typically live in…",
+              "choices": [
+                "HBM always",
+                "CPU memory or disk until requested",
+                "The client",
+                "The tokenizer"
+              ],
+              "answer": 1,
+              "why": "Hot ones are promoted to GPU memory."
+            }
+          ],
+          "conceptIds": [
+            "lora"
+          ]
+        },
+        {
+          "id": "i-coldstart",
+          "title": "Weight Loading & Cold Start",
+          "why": "Autoscaling LLMs fails if a new replica takes ten minutes to become ready.",
+          "explainer": "A new replica must get a node, pull an image, load tens to hundreds of GB of weights, initialize the engine and warm up. Each step can be measured and shortened. This subject covers where time goes, fast loading techniques, and how to choose between always-on, warm pools and scale-to-zero per model.\n\nCommon mistakes: pulling weights from object storage on every start; huge images with weights baked in and no layer caching; autoscaling on signals that react too late for a minutes-long cold start.",
+          "resources": [
+            {
+              "title": "vLLM Run:ai Model Streamer",
+              "url": "https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html"
+            },
+            {
+              "title": "safetensors docs",
+              "url": "https://huggingface.co/docs/safetensors/index"
+            },
+            {
+              "title": "Knative scale to zero",
+              "url": "https://knative.dev/docs/serving/autoscaling/scale-to-zero/"
+            },
+            {
+              "title": "KServe docs",
+              "url": "https://kserve.github.io/website/"
+            }
+          ],
+          "project": "Measure each cold-start phase for a 7B-70B model: node ready, image pull, weight load (object store vs local NVMe vs streamer), engine init, first token. Then cut total time by at least half and document which change mattered most.",
+          "topics": [
+            {
+              "id": "i-cs-where",
+              "title": "Where the Time Goes",
+              "explainer": "Break cold start into phases and time each: node provisioning (cloud can take minutes), image pull (CUDA images are often 10+ GB), weight download and load into GPU memory (model bytes ÷ bandwidth), engine initialization (KV cache allocation, CUDA graph capture, kernel compilation such as torch.compile), and warmup requests. Without measurement, teams optimize the wrong phase. Log timestamps for each phase on every start and keep the distribution, not just one run.",
+              "subtopics": [
+                {
+                  "id": "i-cs-where-s1",
+                  "title": "Node provisioning"
+                },
+                {
+                  "id": "i-cs-where-s2",
+                  "title": "Image pull"
+                },
+                {
+                  "id": "i-cs-where-s3",
+                  "title": "Weight transfer and load"
+                },
+                {
+                  "id": "i-cs-where-s4",
+                  "title": "Engine init and CUDA graphs"
+                },
+                {
+                  "id": "i-cs-where-s5",
+                  "title": "Phase-level timing"
+                }
+              ]
+            },
+            {
+              "id": "i-cs-fast",
+              "title": "Fast Loading Techniques",
+              "explainer": "Shorten the big phases. Keep weights on node-local NVMe or a shared high-throughput cache rather than object storage. Use safetensors so tensors can be memory-mapped and streamed. Stream tensors concurrently straight to GPU memory. Pre-shard checkpoints to your tensor-parallel layout so each GPU reads only its slice. Keep images slim and pre-pulled on nodes; use lazy-loading image formats. Cache compiled artifacts (CUDA graphs, compile caches) where your engine supports it.",
+              "subtopics": [
+                {
+                  "id": "i-cs-fast-s1",
+                  "title": "Local NVMe and caches"
+                },
+                {
+                  "id": "i-cs-fast-s2",
+                  "title": "safetensors and mmap"
+                },
+                {
+                  "id": "i-cs-fast-s3",
+                  "title": "Parallel streaming to GPU"
+                },
+                {
+                  "id": "i-cs-fast-s4",
+                  "title": "Pre-sharded checkpoints"
+                },
+                {
+                  "id": "i-cs-fast-s5",
+                  "title": "Image slimming and pre-pull"
+                }
+              ]
+            },
+            {
+              "id": "i-cs-policy",
+              "title": "Scale-to-Zero vs Warm Pools",
+              "explainer": "Every model needs a readiness policy. Hot models stay always-on with headroom. Warm models keep a small pool of ready replicas and scale out from there. Cold models scale to zero and accept a first-request delay, shown honestly in the UI. Scale on leading signals (queue depth, request rate trends) and pre-scale for known peaks. For multi-model platforms, multiplex many rarely used models or LoRA adapters on shared replicas instead of dedicating GPUs to each.",
+              "subtopics": [
+                {
+                  "id": "i-cs-policy-s1",
+                  "title": "Hot / warm / cold tiers"
+                },
+                {
+                  "id": "i-cs-policy-s2",
+                  "title": "Leading autoscale signals"
+                },
+                {
+                  "id": "i-cs-policy-s3",
+                  "title": "Scheduled pre-scaling"
+                },
+                {
+                  "id": "i-cs-policy-s4",
+                  "title": "Model multiplexing"
+                },
+                {
+                  "id": "i-cs-policy-s5",
+                  "title": "User-facing loading states"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Time to load 140 GB of weights at 7 GB/s is about…",
+              "choices": [
+                "20 s",
+                "200 s",
+                "2,000 s",
+                "2 s"
+              ],
+              "answer": 0,
+              "why": "140 ÷ 7 = 20 seconds."
+            },
+            {
+              "q": "Pre-sharding checkpoints to the TP layout helps because…",
+              "choices": [
+                "It shrinks the model",
+                "It improves accuracy",
+                "Each GPU reads only its slice",
+                "It removes CUDA"
+              ],
+              "answer": 2,
+              "why": "Less data per GPU, loaded in parallel."
+            },
+            {
+              "q": "Scale-to-zero is a good fit for…",
+              "choices": [
+                "Rarely used models where a first-request delay is acceptable",
+                "Your busiest model",
+                "Training",
+                "Strict-SLO chat"
+              ],
+              "answer": 0,
+              "why": "Savings outweigh occasional cold starts."
+            },
+            {
+              "q": "Why is safetensors faster to load than pickle checkpoints?",
+              "choices": [
+                "It is compressed",
+                "It skips weights",
+                "It uses CPUs",
+                "It can be memory-mapped without code execution"
+              ],
+              "answer": 3,
+              "why": "Raw tensor layout enables zero-copy mapping."
+            }
+          ],
+          "conceptIds": [
+            "cold-start"
+          ]
+        },
+        {
+          "id": "i-gateway",
+          "title": "LLM Gateways & Inference Routing",
+          "why": "Routing decides cost, latency and resilience before a single token is generated.",
+          "explainer": "Gateways give every app one endpoint with keys, budgets, policy and traces, and route across providers, models and replicas. Inside a self-hosted fleet, KV- and prefix-aware routing can cut prefill work dramatically. This subject covers gateway functions, endpoint picking, and multi-model policies.\n\nCommon mistakes: round-robin across LLM replicas; fallbacks to models never evaluated with your prompts; gateways without per-tenant budgets.",
+          "resources": [
+            {
+              "title": "Gateway API Inference Extension",
+              "url": "https://gateway-api-inference-extension.sigs.k8s.io/"
+            },
+            {
+              "title": "LiteLLM docs",
+              "url": "https://docs.litellm.ai/docs/"
+            },
+            {
+              "title": "Envoy AI Gateway",
+              "url": "https://aigateway.envoyproxy.io/"
+            },
+            {
+              "title": "llm-d",
+              "url": "https://llm-d.ai/"
+            },
+            {
+              "title": "NVIDIA Dynamo (GitHub)",
+              "url": "https://github.com/ai-dynamo/dynamo"
+            }
+          ],
+          "project": "Put LiteLLM or Envoy AI Gateway in front of two self-hosted replicas and one external provider. Add per-team budgets and a fallback. Then compare round-robin against prefix-aware routing on a workload with a shared 4k-token system prompt, measuring TTFT and GPU prefill time.",
+          "topics": [
+            {
+              "id": "i-gw-func",
+              "title": "Gateway Functions",
+              "explainer": "A production gateway terminates auth, maps virtual keys to provider keys, enforces rate limits and budgets per team, normalizes request formats, runs policy hooks (PII redaction, injection screening, content rules), applies retries, fallbacks and hedging, and emits traces with tokens and cost. It is also where you implement model aliases ('support-default' points to a specific model version) so apps never hard-code model names.",
+              "subtopics": [
+                {
+                  "id": "i-gw-func-s1",
+                  "title": "Virtual keys and budgets"
+                },
+                {
+                  "id": "i-gw-func-s2",
+                  "title": "Format normalization"
+                },
+                {
+                  "id": "i-gw-func-s3",
+                  "title": "Policy hooks"
+                },
+                {
+                  "id": "i-gw-func-s4",
+                  "title": "Retries, fallbacks, hedging"
+                },
+                {
+                  "id": "i-gw-func-s5",
+                  "title": "Model aliases"
+                }
+              ]
+            },
+            {
+              "id": "i-gw-route",
+              "title": "KV- and Prefix-Aware Routing",
+              "explainer": "LLM replicas are stateful: each holds a KV cache. A smart endpoint picker scores replicas on queue length, KV utilization, loaded LoRA adapters and prefix-cache affinity, sending requests that share a prefix to the replica that already cached it. This avoids recomputing long system prompts and documents. Balance affinity with load to avoid hot spots. The Kubernetes Gateway API Inference Extension standardizes this pattern; llm-d and Dynamo implement it with cache-aware schedulers.",
+              "subtopics": [
+                {
+                  "id": "i-gw-route-s1",
+                  "title": "Why round-robin fails"
+                },
+                {
+                  "id": "i-gw-route-s2",
+                  "title": "Queue and KV-based scoring"
+                },
+                {
+                  "id": "i-gw-route-s3",
+                  "title": "Prefix-cache affinity"
+                },
+                {
+                  "id": "i-gw-route-s4",
+                  "title": "LoRA-aware routing"
+                },
+                {
+                  "id": "i-gw-route-s5",
+                  "title": "Hot-spot balancing"
+                }
+              ]
+            },
+            {
+              "id": "i-gw-policy",
+              "title": "Multi-Model & Multi-Provider Policy",
+              "explainer": "Routing policy decides which model serves a request: by tier, task, cost budget, region or a learned difficulty score. Fallback chains handle provider outages and rate limits. Every target in a chain must be evaluated with your prompts, or failover silently lowers quality. Log the routing decision with each request so cost and quality can be attributed. Review policies regularly as prices and models change.",
+              "subtopics": [
+                {
+                  "id": "i-gw-policy-s1",
+                  "title": "Tier and task routing"
+                },
+                {
+                  "id": "i-gw-policy-s2",
+                  "title": "Fallback chains"
+                },
+                {
+                  "id": "i-gw-policy-s3",
+                  "title": "Eval parity for fallbacks"
+                },
+                {
+                  "id": "i-gw-policy-s4",
+                  "title": "Routing decision logs"
+                },
+                {
+                  "id": "i-gw-policy-s5",
+                  "title": "Policy reviews"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Prefix-aware routing saves mainly…",
+              "choices": [
+                "Disk space",
+                "Network egress",
+                "Output tokens",
+                "Prefill compute for shared prompt prefixes"
+              ],
+              "answer": 3,
+              "why": "Cached KV for the prefix is reused."
+            },
+            {
+              "q": "Model aliases in a gateway let you…",
+              "choices": [
+                "Skip auth",
+                "Hide costs",
+                "Swap the underlying model without app changes",
+                "Train models"
+              ],
+              "answer": 2,
+              "why": "Apps call a stable name."
+            },
+            {
+              "q": "A fallback model that was never evaluated with your prompts risks…",
+              "choices": [
+                "Silent quality drops during failover",
+                "Lower cost always",
+                "Nothing",
+                "Higher uptime"
+              ],
+              "answer": 0,
+              "why": "Prompts tuned for one model may fail on another."
+            },
+            {
+              "q": "Why is round-robin a poor fit for LLM replicas?",
+              "choices": [
+                "It ignores KV state, queue depth and cached prefixes",
+                "It is too complex",
+                "It needs GPUs",
+                "It breaks TLS"
+              ],
+              "answer": 0,
+              "why": "Replicas are stateful and unevenly loaded."
+            }
+          ],
+          "conceptIds": [
+            "llm-gateway-routing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "i-l4",
+      "name": "L4 Expert",
+      "subjects": [
+        {
+          "id": "i-kernel",
+          "title": "GPU Kernels & Attention Impls",
+          "why": "Profiles and sometimes Triton.",
+          "explainer": "FlashAttention IO-aware algorithm, GQA/MQA paths, paged kernels, MLA variants. Nsight, Triton, CUDA graphs, torch.compile.\n\nCommon mistake: 'faster' kernels ignoring numerics. Another: microbenchmarks that vanish under continuous batching.\n\nRead the profile first.",
+          "resources": [
+            {
+              "title": "FlashAttention",
+              "url": "https://arxiv.org/abs/2205.14135"
+            },
+            {
+              "title": "FlashAttention-2",
+              "url": "https://arxiv.org/abs/2307.08691"
+            },
+            {
+              "title": "FlashAttention GitHub",
+              "url": "https://github.com/Dao-AILab/flash-attention"
+            },
+            {
+              "title": "Triton language",
+              "url": "https://triton-lang.org/"
+            },
+            {
+              "title": "CUDA docs",
+              "url": "https://docs.nvidia.com/cuda/"
+            }
+          ],
+          "project": "Profile attention; write small Triton fused op; compare to PyTorch.",
+          "topics": [
+            {
+              "id": "i-kern-attn",
+              "title": "Attention Kernels",
+              "subtopics": [
+                {
+                  "id": "i-kern-attn-s1",
+                  "title": "FlashAttention IO awareness"
+                },
+                {
+                  "id": "i-kern-attn-s2",
+                  "title": "GQA/MQA paths"
+                },
+                {
+                  "id": "i-kern-attn-s3",
+                  "title": "Paged kernels"
+                },
+                {
+                  "id": "i-kern-attn-s4",
+                  "title": "MLA variants"
+                },
+                {
+                  "id": "i-kern-attn-s5",
+                  "title": "Numeric modes"
+                }
+              ],
+              "explainer": "FlashAttention computes attention in tiles that stay in fast on-chip SRAM, avoiding writing the huge score matrix to HBM; it is exact, just IO-aware. GQA and MQA kernels exploit shared KV heads. Paged attention kernels read KV from scattered blocks. MLA variants decompress latent KV on the fly. Numeric modes (BF16, FP8) change speed and accuracy, and newer GPUs add special instructions for them."
+            },
+            {
+              "id": "i-kern-tool",
+              "title": "Tooling",
+              "subtopics": [
+                {
+                  "id": "i-kern-tool-s1",
+                  "title": "Nsight"
+                },
+                {
+                  "id": "i-kern-tool-s2",
+                  "title": "Triton"
+                },
+                {
+                  "id": "i-kern-tool-s3",
+                  "title": "CUDA graphs"
+                },
+                {
+                  "id": "i-kern-tool-s4",
+                  "title": "torch.compile"
+                },
+                {
+                  "id": "i-kern-tool-s5",
+                  "title": "Roofline"
+                }
+              ],
+              "explainer": "Profile before optimizing. Nsight Systems shows the timeline of kernels, copies and gaps; Nsight Compute digs into one kernel. Triton lets you write custom GPU kernels in Python. CUDA graphs remove CPU launch overhead, which matters a lot in decode. torch.compile fuses operations automatically. The roofline model tells you whether a kernel is limited by compute or memory bandwidth, and therefore which optimization can help."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "FlashAttention mainly reduces…",
+              "choices": [
+                "HBM traffic for attention",
+                "Need for positions",
+                "Dataset size",
+                "HTTP codes"
+              ],
+              "answer": 0,
+              "why": "IO-aware tiling cuts HBM trips."
+            },
+            {
+              "q": "CUDA graphs mainly reduce…",
+              "choices": [
+                "CPU kernel-launch overhead",
+                "Network latency",
+                "Model size",
+                "HBM usage"
+              ],
+              "answer": 0,
+              "why": "Replaying captured graphs avoids per-kernel launch cost, important in decode."
+            },
+            {
+              "q": "The roofline model tells you whether a kernel is…",
+              "choices": [
+                "Deterministic",
+                "Compute-bound or memory-bound",
+                "Licensed",
+                "Correct"
+              ],
+              "answer": 1,
+              "why": "That decides which optimizations can help."
+            }
+          ],
+          "conceptIds": [
+            "flash-attn"
+          ]
+        },
+        {
+          "id": "i-slo",
+          "title": "Capacity Planning & SLO Engineering",
+          "why": "Inference is SRE with GPUs.",
+          "explainer": "Load shapes, concurrency vs batch, autoscale signals, warm pools, admission control, shedding, fallbacks, priority lanes.\n\nCommon mistake: autoscaling on CPU while GPUs bottleneck. Another: no overload playbook.\n\nWrite runbooks while calm.",
+          "resources": [
+            {
+              "title": "Google SRE Book",
+              "url": "https://sre.google/sre-book/table-of-contents/"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "vLLM disaggregated serving guide",
+              "url": "https://blog.vllm.ai/2026/09/29/disaggregated-serving-guide.html"
+            }
+          ],
+          "project": "Size GPUs for a latency SLO with headroom; write overload runbook.",
+          "topics": [
+            {
+              "id": "i-slo-plan",
+              "title": "Planning",
+              "subtopics": [
+                {
+                  "id": "i-slo-plan-s1",
+                  "title": "Load shapes"
+                },
+                {
+                  "id": "i-slo-plan-s2",
+                  "title": "Concurrency vs batch"
+                },
+                {
+                  "id": "i-slo-plan-s3",
+                  "title": "Autoscale signals"
+                },
+                {
+                  "id": "i-slo-plan-s4",
+                  "title": "Warm pools"
+                },
+                {
+                  "id": "i-slo-plan-s5",
+                  "title": "Headroom"
+                }
+              ],
+              "explainer": "Capacity planning starts with load shape: requests per second, input and output lengths, and how bursty traffic is. Concurrency is not batch size; many concurrent users can be served by continuous batching on few GPUs until KV memory runs out. Autoscale on queue depth or tokens in flight, not CPU. Keep warm pools because cold starts on GPUs take minutes. Hold headroom for spikes and failures."
+            },
+            {
+              "id": "i-slo-deg",
+              "title": "Degradation",
+              "subtopics": [
+                {
+                  "id": "i-slo-deg-s1",
+                  "title": "Admission control"
+                },
+                {
+                  "id": "i-slo-deg-s2",
+                  "title": "Shed non-critical"
+                },
+                {
+                  "id": "i-slo-deg-s3",
+                  "title": "Fallback model"
+                },
+                {
+                  "id": "i-slo-deg-s4",
+                  "title": "Priority lanes"
+                },
+                {
+                  "id": "i-slo-deg-s5",
+                  "title": "Incident comms"
+                }
+              ],
+              "explainer": "When demand exceeds capacity, degrade on purpose. Admission control rejects or queues requests before they hurt everyone. Shed non-critical traffic such as batch jobs first. Fall back to a smaller model for some tiers. Use priority lanes so paying or interactive users keep their SLOs. Communicate clearly during incidents, including status pages, because silent slowness erodes trust faster than an honest message."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Goodput emphasizes…",
+              "choices": [
+                "Useful successful tokens under SLO",
+                "Only peak FLOPs",
+                "Only disk IOPS",
+                "Only marketing QPS"
+              ],
+              "answer": 0,
+              "why": "SLO-compliant useful work."
+            },
+            {
+              "q": "GPU serving should autoscale on…",
+              "choices": [
+                "CPU utilization",
+                "Queue depth or tokens in flight",
+                "Time of day only",
+                "Disk IO"
+              ],
+              "answer": 1,
+              "why": "CPU barely moves when GPUs saturate."
+            },
+            {
+              "q": "Warm pools exist because…",
+              "choices": [
+                "They improve accuracy",
+                "GPUs are free",
+                "GPU cold starts (node + image + weights) take minutes",
+                "Regulations"
+              ],
+              "answer": 2,
+              "why": "Spikes cannot wait for cold capacity."
+            }
+          ],
+          "conceptIds": [
+            "cost-model",
+            "cost-per-token",
+            "cold-start"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "i-l5",
+      "name": "L5 Frontier",
+      "subjects": [
+        {
+          "id": "i-hw",
+          "title": "Next-Gen Hardware & Memory Systems",
+          "why": "GB200-class and offload change designs.",
+          "explainer": "Blackwell/GB200, AMD MI300/ROCm, hybrid CPU+GPU, other accelerators, HBM limits, KV offload, CXL, multi-host KV.\n\nCommon mistake: interconnect-light hardware for heavy TP/EP. Another: ignoring power/cooling in BOM.\n\nBriefs tied to traffic mix.",
+          "resources": [
+            {
+              "title": "CUDA docs",
+              "url": "https://docs.nvidia.com/cuda/"
+            },
+            {
+              "title": "NCCL user guide",
+              "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html"
+            },
+            {
+              "title": "TensorRT-LLM docs",
+              "url": "https://nvidia.github.io/TensorRT-LLM/"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            }
+          ],
+          "project": "Design brief: NVLink-heavy vs many smaller GPUs for your ISL/OSL mix.",
+          "topics": [
+            {
+              "id": "i-hw-plat",
+              "title": "Platforms",
+              "subtopics": [
+                {
+                  "id": "i-hw-plat-s1",
+                  "title": "Blackwell/GB200 class"
+                },
+                {
+                  "id": "i-hw-plat-s2",
+                  "title": "AMD ROCm"
+                },
+                {
+                  "id": "i-hw-plat-s3",
+                  "title": "CPU+GPU hybrid"
+                },
+                {
+                  "id": "i-hw-plat-s4",
+                  "title": "Other accelerators"
+                },
+                {
+                  "id": "i-hw-plat-s5",
+                  "title": "Power envelopes"
+                }
+              ],
+              "explainer": "Hardware sets serving economics. NVIDIA Blackwell and GB200 NVL72 racks connect 72 GPUs in one NVLink domain, ideal for big MoE models. AMD Instinct GPUs with ROCm offer large HBM and are supported by major engines. CPU-plus-GPU superchips share memory coherently. Other accelerators (TPUs, Trainium, Gaudi, inference ASICs) can be cheaper for supported models. Power per rack is now a first-class constraint."
+            },
+            {
+              "id": "i-hw-mem",
+              "title": "Memory",
+              "subtopics": [
+                {
+                  "id": "i-hw-mem-s1",
+                  "title": "HBM capacity/bandwidth"
+                },
+                {
+                  "id": "i-hw-mem-s2",
+                  "title": "KV offload"
+                },
+                {
+                  "id": "i-hw-mem-s3",
+                  "title": "CXL pools"
+                },
+                {
+                  "id": "i-hw-mem-s4",
+                  "title": "Multi-host KV"
+                },
+                {
+                  "id": "i-hw-mem-s5",
+                  "title": "Failure domains"
+                }
+              ],
+              "explainer": "HBM capacity decides how many sequences and how much context fit; HBM bandwidth decides decode speed. KV offload to CPU or NVMe and CXL memory pools extend capacity. Multi-host KV stores let any server reuse cached prefixes. Each extra tier adds latency and new failure domains, so measure hit rates before adding complexity. Try it: compute how many 8k-token sequences fit in the KV budget of your GPU, then compare with what the engine logs at startup."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Heavy TP across nodes needs…",
+              "choices": [
+                "High-bandwidth low-latency interconnect",
+                "Only cheap gigabit always",
+                "No NCCL",
+                "No evaluation"
+              ],
+              "answer": 0,
+              "why": "Collectives demand fabric."
+            },
+            {
+              "q": "HBM bandwidth mostly determines…",
+              "choices": [
+                "Tokenizer speed",
+                "Decode tokens per second",
+                "Training data size",
+                "Disk throughput"
+              ],
+              "answer": 1,
+              "why": "Decode re-reads weights each step."
+            },
+            {
+              "q": "A GB200 NVL72 rack is notable for…",
+              "choices": [
+                "72 GPUs in one NVLink domain",
+                "Air cooling only",
+                "No HBM",
+                "CPU-only inference"
+              ],
+              "answer": 0,
+              "why": "Large NVLink domains suit big TP and MoE."
+            }
+          ],
+          "conceptIds": [
+            "nvlink-ib"
+          ]
+        },
+        {
+          "id": "i-research",
+          "title": "Inference Research Watchlist",
+          "why": "Papers become engine features fast.",
+          "explainer": "Better speculation, learned schedulers, cross-request memory, energy-aware serving, MoE placement. Follow MLSys and engine roadmaps.\n\nCommon mistake: adopting a paper before the bottleneck matches. Another: never revisiting quarterly.\n\nTag reading: try/watch/ignore.",
+          "resources": [
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "SGLang documentation",
+              "url": "https://docs.sglang.io/"
+            },
+            {
+              "title": "PagedAttention / Efficient LLM Serving",
+              "url": "https://arxiv.org/abs/2309.06180"
+            },
+            {
+              "title": "DistServe Prefill/Decode Disaggregation",
+              "url": "https://arxiv.org/abs/2401.09670"
+            },
+            {
+              "title": "Speculative Decoding (Leviathan et al.)",
+              "url": "https://arxiv.org/abs/2211.17192"
+            }
+          ],
+          "project": "Pick one recent inference paper; reproduce a figure or toy the idea.",
+          "topics": [
+            {
+              "id": "i-res-topics",
+              "title": "Active Topics",
+              "subtopics": [
+                {
+                  "id": "i-res-topics-s1",
+                  "title": "Better speculation"
+                },
+                {
+                  "id": "i-res-topics-s2",
+                  "title": "Learned schedulers"
+                },
+                {
+                  "id": "i-res-topics-s3",
+                  "title": "Cross-request KV"
+                },
+                {
+                  "id": "i-res-topics-s4",
+                  "title": "Energy-aware serving"
+                },
+                {
+                  "id": "i-res-topics-s5",
+                  "title": "MoE placement"
+                },
+                {
+                  "id": "i-res-topics-s6",
+                  "title": "Disagg variants"
+                }
+              ],
+              "explainer": "Inference research moves monthly. Watch better speculation methods, learned schedulers that predict output length, cross-request KV sharing at cluster scale, energy-aware serving that trades a little latency for power, smarter MoE expert placement, and new variants of disaggregation. Before adopting a paper, check whether the gains hold at your batch sizes, models and hardware, and whether a maintained engine already implements it."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Before adopting a paper…",
+              "choices": [
+                "Confirm it targets your measured bottleneck",
+                "Always rewrite CUDA",
+                "Delete evals",
+                "Ignore ISL/OSL"
+              ],
+              "answer": 0,
+              "why": "Bottleneck fit first."
+            },
+            {
+              "q": "A paper's speedup may not transfer if…",
+              "choices": [
+                "It is recent",
+                "Your batch sizes, models or hardware differ",
+                "It used your exact setup",
+                "It has code"
+              ],
+              "answer": 1,
+              "why": "Gains are often regime-specific."
+            },
+            {
+              "q": "Learned schedulers try to predict…",
+              "choices": [
+                "Output length or cost of requests",
+                "Token prices",
+                "User names",
+                "GPU temperatures"
+              ],
+              "answer": 0,
+              "why": "Better length estimates improve batching and fairness."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    }
+  ]
+}

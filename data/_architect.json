@@ -1,0 +1,1902 @@
+{
+  "id": "architect",
+  "name": "AI Architect",
+  "role": "Owns system shape: requirements to reference architecture, build/buy, governance, cost and risk. Day to day: ADRs, vendor bake-offs, security reviews, capacity models. Differs from AI Engineer (ships the app) and Infra (runs GPUs): you decide what gets built and why it survives a year.",
+  "icon": "compass",
+  "levels": [
+    {
+      "id": "a-l1",
+      "name": "L1 Foundations",
+      "subjects": [
+        {
+          "id": "a-sys",
+          "title": "Systems Thinking for AI Products",
+          "why": "AI is a probabilistic subsystem; architecture must absorb that.",
+          "explainer": "Classical architecture assumes deterministic services. AI features return distributions, burn tokens, and fail semantically even when HTTP is 200. Your job is to place bounds: SLOs for latency and quality, human-in-the-loop where irreversible actions live, and clear ownership of model versus product metrics.\n\nDecompose around bounded contexts, not around the newest framework. Prefer sync paths for user-facing chat and async workers for long agents. Design degraded modes (smaller model, cached answers, keyword search) the same way you design for AZ loss.\n\nCommon mistake: a single mega-agent diagram with no failure domains. Another: copying a Big Tech reference architecture that assumes their data platform.\n\nWrite ADRs that record the probabilistic assumptions — future you will need them when the model changes.",
+          "resources": [
+            {
+              "title": "Designing Data-Intensive Applications",
+              "url": "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/"
+            },
+            {
+              "title": "Google SRE Book",
+              "url": "https://sre.google/sre-book/table-of-contents/"
+            },
+            {
+              "title": "Azure AI architecture",
+              "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/"
+            },
+            {
+              "title": "Designing Machine Learning Systems",
+              "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+            }
+          ],
+          "project": "Write an ADR for customer-support AI: workflow vs agent, retrieval vs fine-tune, rollback plan.",
+          "topics": [
+            {
+              "id": "a-sys-req",
+              "title": "Requirements",
+              "subtopics": [
+                {
+                  "id": "a-sys-req-s1",
+                  "title": "Functional vs NFR"
+                },
+                {
+                  "id": "a-sys-req-s2",
+                  "title": "Latency / accuracy / cost SLOs"
+                },
+                {
+                  "id": "a-sys-req-s3",
+                  "title": "Data residency and tenancy"
+                },
+                {
+                  "id": "a-sys-req-s4",
+                  "title": "Human-in-the-loop needs"
+                },
+                {
+                  "id": "a-sys-req-s5",
+                  "title": "Abuse and misuse cases"
+                }
+              ],
+              "explainer": "AI requirements need numbers on more axes than usual. Besides features, pin down latency (time to first token and total), quality (task success on an eval set), cost per request or per user per month, and availability. Ask where data may be processed and stored, and whether tenants must be isolated. Decide where humans review or approve. Write abuse cases alongside use cases: what happens when someone tries to jailbreak it, scrape it, or run up the bill? Requirements that skip these show up later as surprise invoices, compliance blockers, or a security incident."
+            },
+            {
+              "id": "a-sys-decomp",
+              "title": "Decomposition",
+              "subtopics": [
+                {
+                  "id": "a-sys-decomp-s1",
+                  "title": "Bounded contexts"
+                },
+                {
+                  "id": "a-sys-decomp-s2",
+                  "title": "Sync vs async paths"
+                },
+                {
+                  "id": "a-sys-decomp-s3",
+                  "title": "Failure domains"
+                },
+                {
+                  "id": "a-sys-decomp-s4",
+                  "title": "Strangler patterns"
+                },
+                {
+                  "id": "a-sys-decomp-s5",
+                  "title": "Degraded modes"
+                }
+              ],
+              "explainer": "Break the system along boundaries that fail and scale differently. Keep the synchronous user path thin and push slow work (enrichment, indexing, long agent runs) to async queues. Separate failure domains so a model provider outage degrades one feature instead of the whole product. Use strangler patterns to replace legacy flows incrementally rather than in a big bang. Design degraded modes up front: cached answers, a smaller fallback model, or a \"we're busy, here's a form\" path. A good decomposition makes it obvious which team owns which latency and cost budget."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A 200 OK from an LLM API guarantees…",
+              "choices": [
+                "Bytes returned, not semantic correctness",
+                "Grounded truth",
+                "Compliance",
+                "Zero cost"
+              ],
+              "answer": 0,
+              "why": "Transport success is not task success."
+            },
+            {
+              "q": "Which is a non-functional requirement for an AI feature?",
+              "choices": [
+                "p95 time to first token under 1 second",
+                "Show a button",
+                "Support PDF uploads",
+                "Summarize a document"
+              ],
+              "answer": 0,
+              "why": "Latency targets constrain how, not what, the system does."
+            },
+            {
+              "q": "A degraded mode for an LLM feature could be…",
+              "choices": [
+                "Returning a stack trace",
+                "Serving a cached answer or a smaller fallback model",
+                "Retrying forever",
+                "Disabling logging"
+              ],
+              "answer": 1,
+              "why": "Planned degradation keeps users served when the main path fails."
+            }
+          ],
+          "conceptIds": [
+            "ref-arch"
+          ]
+        },
+        {
+          "id": "a-mlsys",
+          "title": "ML / LLM System Lifecycle",
+          "why": "Know data to production so you do not design dead ends.",
+          "explainer": "Hidden Technical Debt in ML Systems still applies — only now prompts, tools, and indexes are also config. Map data, train or adapt, eval, serve, monitor, feedback. Offline versus online features matter for classical ML; for LLMs the analogs are frozen corpora versus live retrieval and tool results.\n\nDrift is not only statistical: prompt drift, schema drift, and harness drift break agents. Shadow and canary deployments need quality gates, not only error-rate gates.\n\nCommon mistake: treating the prompt store as tribal knowledge in Slack. Another: no owner for evaluation when the model vendor ships a silent upgrade.\n\nArchitects insist on lineage: which prompt, which index build, which model revision produced this answer.",
+          "resources": [
+            {
+              "title": "Designing Machine Learning Systems",
+              "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+            },
+            {
+              "title": "Chip Huyen ML Systems Design",
+              "url": "https://github.com/chiphuyen/machine-learning-systems-design"
+            },
+            {
+              "title": "Full Stack Deep Learning",
+              "url": "https://fullstackdeeplearning.com/"
+            },
+            {
+              "title": "ml-ops.org",
+              "url": "https://ml-ops.org/"
+            },
+            {
+              "title": "GCP MLOps",
+              "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning"
+            }
+          ],
+          "project": "Map a past project onto the lifecycle; list every place drift can hide.",
+          "topics": [
+            {
+              "id": "a-mlsys-pipe",
+              "title": "Pipeline",
+              "subtopics": [
+                {
+                  "id": "a-mlsys-pipe-s1",
+                  "title": "Data to adapt to eval to serve to monitor"
+                },
+                {
+                  "id": "a-mlsys-pipe-s2",
+                  "title": "Offline vs online signals"
+                },
+                {
+                  "id": "a-mlsys-pipe-s3",
+                  "title": "Feedback loops"
+                },
+                {
+                  "id": "a-mlsys-pipe-s4",
+                  "title": "Shadow / canary / blue-green"
+                },
+                {
+                  "id": "a-mlsys-pipe-s5",
+                  "title": "Artifact lineage"
+                }
+              ],
+              "explainer": "An AI system is a pipeline, not a model: data flows into adaptation (prompts, RAG indexes, fine-tunes), into evaluation, into serving, and into monitoring that feeds back into data. Offline signals (eval scores) and online signals (user behavior) must both exist. Release with shadow, canary or blue-green deployments, exactly as with code. Track lineage so every response can be traced to a prompt version, model version, index snapshot and config. Without lineage you cannot answer the most common incident question: what changed?"
+            },
+            {
+              "id": "a-mlsys-debt",
+              "title": "Debt and Drift",
+              "subtopics": [
+                {
+                  "id": "a-mlsys-debt-s1",
+                  "title": "Data / concept drift"
+                },
+                {
+                  "id": "a-mlsys-debt-s2",
+                  "title": "Prompt and config drift"
+                },
+                {
+                  "id": "a-mlsys-debt-s3",
+                  "title": "Harness drift"
+                },
+                {
+                  "id": "a-mlsys-debt-s4",
+                  "title": "Glue-code jungles"
+                },
+                {
+                  "id": "a-mlsys-debt-s5",
+                  "title": "Metric ownership"
+                }
+              ],
+              "explainer": "AI systems accumulate unusual debt. Data drift shifts inputs; concept drift changes what the right answer is. Prompts and configs drift as people tweak them in production without review. Harness drift happens when the agent framework changes behavior underneath you. Glue code between models, retrievers and tools grows into a jungle with no tests. The fix is boring discipline: version prompts and configs like code, monitor input distributions, assign an owner to every metric, and schedule regular eval refreshes so the golden set still reflects real traffic."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Prompt changes should be…",
+              "choices": [
+                "Versioned and eval-gated like code",
+                "Edited live in prod only",
+                "Stored only in chat history",
+                "Ignored if the demo works"
+              ],
+              "answer": 0,
+              "why": "Prompts are production config."
+            },
+            {
+              "q": "Lineage lets you answer…",
+              "choices": [
+                "Which font to use",
+                "What prompt, model, index and config produced this response",
+                "How many users signed up",
+                "Which GPU vendor is cheapest"
+              ],
+              "answer": 1,
+              "why": "Lineage links outputs to every versioned input."
+            },
+            {
+              "q": "Concept drift means…",
+              "choices": [
+                "Inputs change format",
+                "Logs rotate",
+                "The correct answer for the same input changes over time",
+                "The model file corrupts"
+              ],
+              "answer": 2,
+              "why": "For example, policy or price changes make old answers wrong."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "a-llm-arch",
+          "title": "Model Landscape Literacy for Architects",
+          "why": "You cannot choose platforms without knowing model shapes.",
+          "explainer": "Frontier APIs, open-weight dense models, MoE, small on-device models, and VLMs are different animals for cost, control, and failure modes. Licensing (open weights versus open source versus proprietary API) constrains commercialization. Context length, tool-calling quality, and multilingual fertility change the architecture more than brand names.\n\nCommon mistake: picking a model from a leaderboard without matching the client's data residency and latency envelope. Another: ignoring tokenizer and chat-template lock-in when planning multi-vendor routing.\n\nKeep a living scorecard: capability, controllability, cost, compliance, community.",
+          "resources": [
+            {
+              "title": "Hugging Face LLM Course",
+              "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+            },
+            {
+              "title": "Stanford CS336",
+              "url": "https://cs336.stanford.edu/"
+            },
+            {
+              "title": "Chinchilla scaling laws",
+              "url": "https://arxiv.org/abs/2203.15556"
+            },
+            {
+              "title": "Mixture of Experts (Shazeer et al.)",
+              "url": "https://arxiv.org/abs/1701.06538"
+            }
+          ],
+          "project": "Build a one-page scorecard comparing one frontier API, one open 70B, and one small edge model for a fixed use case.",
+          "topics": [
+            {
+              "id": "a-llm-types",
+              "title": "Model Types",
+              "subtopics": [
+                {
+                  "id": "a-llm-types-s1",
+                  "title": "Frontier APIs"
+                },
+                {
+                  "id": "a-llm-types-s2",
+                  "title": "Open-weight dense"
+                },
+                {
+                  "id": "a-llm-types-s3",
+                  "title": "MoE serving implications"
+                },
+                {
+                  "id": "a-llm-types-s4",
+                  "title": "SLMs / on-device"
+                },
+                {
+                  "id": "a-llm-types-s5",
+                  "title": "VLMs and speech"
+                }
+              ],
+              "explainer": "Know the categories. Frontier APIs give top capability with no ops burden but less control over data, versions and cost. Open-weight dense models can be self-hosted and tuned, at the cost of running GPUs. MoE models give big-model quality with smaller compute per token but large memory footprints. Small language models run cheaply on CPUs, phones and edge boxes for narrow tasks. Vision-language and speech models add modalities with their own latency and cost profiles. Most real architectures mix several of these behind one gateway."
+            },
+            {
+              "id": "a-llm-select",
+              "title": "Selection",
+              "subtopics": [
+                {
+                  "id": "a-llm-select-s1",
+                  "title": "Leaderboard skepticism"
+                },
+                {
+                  "id": "a-llm-select-s2",
+                  "title": "Licensing and use rights"
+                },
+                {
+                  "id": "a-llm-select-s3",
+                  "title": "Tokenizer / template lock-in"
+                },
+                {
+                  "id": "a-llm-select-s4",
+                  "title": "Tool-calling maturity"
+                },
+                {
+                  "id": "a-llm-select-s5",
+                  "title": "Eval on YOUR data"
+                }
+              ],
+              "explainer": "Leaderboards are a starting filter, not an answer: benchmarks leak into training data and rarely match your domain. Read licenses carefully, since \"open weights\" may still restrict commercial use or user counts. Tokenizer and chat template choices create quiet lock-in in prompts and fine-tunes. Check tool-calling and structured output maturity if you are building agents. The only reliable selection method is running two or three candidates on your own golden set and comparing quality, latency and cost per successful task."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Open weights always means…",
+              "choices": [
+                "Not automatically OSI open source or unlimited commercial rights",
+                "Free for any military use",
+                "No safety risk",
+                "Identical to the API twin"
+              ],
+              "answer": 0,
+              "why": "Weights, license, and API product are distinct."
+            },
+            {
+              "q": "The most reliable way to choose a model for a client is…",
+              "choices": [
+                "Picking the cheapest",
+                "Picking the newest",
+                "Top leaderboard rank",
+                "Running candidates on the client's own golden set"
+              ],
+              "answer": 3,
+              "why": "Your data and tasks decide; benchmarks are only a filter."
+            },
+            {
+              "q": "Small language models are a good fit for…",
+              "choices": [
+                "Frontier reasoning",
+                "Nothing",
+                "Narrow, high-volume or on-device tasks",
+                "Training other frontier models"
+              ],
+              "answer": 2,
+              "why": "They trade breadth for cost, latency and privacy."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    },
+    {
+      "id": "a-l2",
+      "name": "L2 Practitioner",
+      "subjects": [
+        {
+          "id": "a-ref",
+          "title": "Reference Architectures",
+          "why": "Reuse proven shapes; do not invent a snowflake per client.",
+          "explainer": "Most enterprise AI systems are compositions of a few patterns: request/response LLM API, RAG with citations, batch enrichment, event-driven agent workers, and human review queues. Layer edge, API, orchestration, model gateway, and data carefully. Separate control plane (prompts, policies, evals) from data plane (tokens, embeddings, tool I/O).\n\nMulti-region and multi-tenant designs need sticky considerations for prefix caches and per-tenant keys.\n\nCommon mistake: drawing microservices everywhere when a modular monolith with a model gateway would ship sooner. Another: no shared observability layer, so every squad invents tracing.\n\nYour deliverable is a one-pager engineers can build from — not a slide museum.",
+          "resources": [
+            {
+              "title": "Azure AI architecture",
+              "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/"
+            },
+            {
+              "title": "GCP MLOps",
+              "url": "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning"
+            },
+            {
+              "title": "AWS Bedrock",
+              "url": "https://docs.aws.amazon.com/bedrock/"
+            },
+            {
+              "title": "Google SRE Book",
+              "url": "https://sre.google/sre-book/table-of-contents/"
+            }
+          ],
+          "project": "Produce a one-page reference for multi-tenant RAG SaaS with auth, quotas, and audit.",
+          "topics": [
+            {
+              "id": "a-ref-pat",
+              "title": "Patterns",
+              "subtopics": [
+                {
+                  "id": "a-ref-pat-s1",
+                  "title": "LLM API facade"
+                },
+                {
+                  "id": "a-ref-pat-s2",
+                  "title": "RAG plus citations"
+                },
+                {
+                  "id": "a-ref-pat-s3",
+                  "title": "Batch enrichment"
+                },
+                {
+                  "id": "a-ref-pat-s4",
+                  "title": "Agent workers"
+                },
+                {
+                  "id": "a-ref-pat-s5",
+                  "title": "Human review queues"
+                }
+              ],
+              "explainer": "A handful of patterns cover most AI products. An LLM API facade wraps providers behind your own interface. RAG with citations grounds answers in your documents. Batch enrichment runs models over large datasets offline for classification or extraction. Agent workers execute multi-step tasks from a queue with tools and budgets. Human review queues route low-confidence or high-risk outputs to people. Knowing these lets you sketch a credible architecture in a first client meeting and then adjust for their constraints."
+            },
+            {
+              "id": "a-ref-layers",
+              "title": "Layering",
+              "subtopics": [
+                {
+                  "id": "a-ref-layers-s1",
+                  "title": "Edge / API / orchestration / model / data"
+                },
+                {
+                  "id": "a-ref-layers-s2",
+                  "title": "Control vs data plane"
+                },
+                {
+                  "id": "a-ref-layers-s3",
+                  "title": "Multi-region failover"
+                },
+                {
+                  "id": "a-ref-layers-s4",
+                  "title": "Shared services (auth, billing, obs)"
+                }
+              ],
+              "explainer": "Draw AI systems in layers: edge (auth, rate limits), API, orchestration (prompts, agents, workflows), model (gateway, serving), and data (indexes, stores). Separate the control plane, where policies, routing rules, prompt versions and budgets live, from the data plane that handles requests. Plan multi-region failover for both models and indexes. Shared services such as identity, billing, observability and secrets should be reused, not rebuilt per feature. Clear layers make it easy to swap a model or vendor without rewriting the product."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Control plane for AI usually includes…",
+              "choices": [
+                "Prompt registry, policies, evals, routing config",
+                "Only GPU drivers",
+                "Only the vector DB",
+                "Customer PII tables"
+              ],
+              "answer": 0,
+              "why": "Control plane governs how models are used."
+            },
+            {
+              "q": "Separating control plane from data plane means…",
+              "choices": [
+                "Splitting frontend and backend",
+                "Policies and configs are managed apart from request handling",
+                "Using two clouds",
+                "Duplicating databases"
+              ],
+              "answer": 1,
+              "why": "Policy changes then do not require redeploying request paths."
+            },
+            {
+              "q": "Which pattern best fits classifying 10 million records overnight?",
+              "choices": [
+                "Realtime chat",
+                "Browser agent",
+                "Semantic cache",
+                "Batch enrichment"
+              ],
+              "answer": 3,
+              "why": "Batch APIs and offline pipelines are cheaper and simpler for bulk work."
+            }
+          ],
+          "conceptIds": [
+            "ref-arch"
+          ]
+        },
+        {
+          "id": "a-bb",
+          "title": "Build vs Buy vs Host",
+          "why": "Wrong call here burns months of runway.",
+          "explainer": "Decision dimensions: capability ceiling, latency and region, data control and sovereignty, unit economics, lock-in and exit. Options: frontier APIs, cloud managed (Bedrock, Azure AI Foundry, Vertex), open-weight self-host, and hybrid routing (cheap model with escalation).\n\nGateways like LiteLLM or custom routers buy portability but add an ops surface. Self-hosting shifts spend from tokens to GPUs, people, and reliability engineering.\n\nCommon mistake: self-hosting for 'savings' at low volume where APIs would be cheaper. Another: all-in on one vendor with no export path for prompts, evals, and traces.\n\nScore options with explicit weights tied to the client's constraints — not your favorite stack.",
+          "resources": [
+            {
+              "title": "AWS Bedrock",
+              "url": "https://docs.aws.amazon.com/bedrock/"
+            },
+            {
+              "title": "Azure AI Foundry",
+              "url": "https://learn.microsoft.com/en-us/azure/ai-foundry/"
+            },
+            {
+              "title": "Vertex AI",
+              "url": "https://cloud.google.com/vertex-ai/docs"
+            },
+            {
+              "title": "LiteLLM",
+              "url": "https://docs.litellm.ai/"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            }
+          ],
+          "project": "Scored decision matrix: Bedrock vs Azure AI Foundry vs self-hosted vLLM for a mid-market client.",
+          "topics": [
+            {
+              "id": "a-bb-dim",
+              "title": "Dimensions",
+              "subtopics": [
+                {
+                  "id": "a-bb-dim-s1",
+                  "title": "Capability ceiling"
+                },
+                {
+                  "id": "a-bb-dim-s2",
+                  "title": "Latency and region"
+                },
+                {
+                  "id": "a-bb-dim-s3",
+                  "title": "Sovereignty"
+                },
+                {
+                  "id": "a-bb-dim-s4",
+                  "title": "Unit economics"
+                },
+                {
+                  "id": "a-bb-dim-s5",
+                  "title": "Lock-in / exit"
+                }
+              ],
+              "explainer": "Compare options on five axes. Capability ceiling: can anything but a frontier model do the task? Latency and region: where must inference run? Sovereignty: can data or weights leave the boundary? Unit economics: what is the cost per successful task at expected volume? Lock-in and exit: how hard is it to switch providers? Score each option against these explicitly with the client so the decision survives a change of leadership or a price change."
+            },
+            {
+              "id": "a-bb-opt",
+              "title": "Options",
+              "subtopics": [
+                {
+                  "id": "a-bb-opt-s1",
+                  "title": "Frontier APIs"
+                },
+                {
+                  "id": "a-bb-opt-s2",
+                  "title": "Cloud managed platforms"
+                },
+                {
+                  "id": "a-bb-opt-s3",
+                  "title": "Open-weight self-host"
+                },
+                {
+                  "id": "a-bb-opt-s4",
+                  "title": "Hybrid routing"
+                },
+                {
+                  "id": "a-bb-opt-s5",
+                  "title": "Gateway layers (LiteLLM etc.)"
+                }
+              ],
+              "explainer": "The realistic menu is: frontier APIs, cloud-managed platforms (Bedrock, Vertex, Azure AI Foundry), self-hosted open weights on your GPUs, or a hybrid with routing. Hybrid is common: cheap or private traffic goes to a self-hosted model, hard queries go to a frontier API. A gateway layer (LiteLLM, Envoy AI Gateway, Kong, or a cloud gateway) gives one API, keys, budgets and fallbacks across all of them. Self-hosting only pays off above a utilization threshold, so do the math first."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Hybrid routing primarily optimizes…",
+              "choices": [
+                "Cost/quality by sending easy work to cheaper models",
+                "GPU thermals only",
+                "Tokenizer fertility",
+                "EU AI Act automatically"
+              ],
+              "answer": 0,
+              "why": "Route by difficulty/risk to control spend."
+            },
+            {
+              "q": "Self-hosting open weights usually pays off when…",
+              "choices": [
+                "You need the best frontier model",
+                "Utilization is high and steady",
+                "Traffic is tiny and spiky",
+                "You have no GPU skills"
+              ],
+              "answer": 1,
+              "why": "GPU cost is fixed per hour; high utilization drives down cost per token."
+            },
+            {
+              "q": "A gateway layer gives you…",
+              "choices": [
+                "Faster GPUs",
+                "Free tokens",
+                "Model training",
+                "One API, central keys, budgets and fallbacks across providers"
+              ],
+              "answer": 3,
+              "why": "It decouples apps from providers."
+            }
+          ],
+          "conceptIds": [
+            "cost-model"
+          ]
+        },
+        {
+          "id": "a-data",
+          "title": "Enterprise Data Platforms for AI",
+          "why": "Most AI projects fail on data access, quality, and rights.",
+          "explainer": "Lakehouse/warehouse, vector and keyword indexes, catalogs, lineage, and quality monitors are the substrate. Rights (training versus inference use), PII/PHI, and freshness SLAs constrain design. Chunking and metadata standards are architectural decisions, not afterthoughts.\n\nCommon mistake: a pilot on a CSV export that cannot be refreshed in production. Another: embeddings of secrets that now live forever in a vector store.\n\nDefine data contracts for each retrieval slice before model selection.",
+          "resources": [
+            {
+              "title": "Databricks ML",
+              "url": "https://www.databricks.com/product/machine-learning"
+            },
+            {
+              "title": "Designing Machine Learning Systems",
+              "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+            },
+            {
+              "title": "Designing Data-Intensive Applications",
+              "url": "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/"
+            }
+          ],
+          "project": "Design a data contract and retrieval slice for one domain including PII handling.",
+          "topics": [
+            {
+              "id": "a-data-plat",
+              "title": "Platform",
+              "subtopics": [
+                {
+                  "id": "a-data-plat-s1",
+                  "title": "Lakehouse / warehouse"
+                },
+                {
+                  "id": "a-data-plat-s2",
+                  "title": "Vector + keyword indexes"
+                },
+                {
+                  "id": "a-data-plat-s3",
+                  "title": "Catalog, lineage, quality"
+                },
+                {
+                  "id": "a-data-plat-s4",
+                  "title": "Embedding stores"
+                },
+                {
+                  "id": "a-data-plat-s5",
+                  "title": "Access patterns"
+                }
+              ],
+              "explainer": "AI rides on the data platform. A lakehouse or warehouse holds governed source data. Retrieval needs both vector and keyword indexes, ideally fed from the same pipeline. A catalog with lineage and quality checks tells you where each chunk came from and whether it is fresh. Embedding stores must be versioned with the embedding model, because changing models means re-embedding everything. Think about access patterns early: per-user ACL filtering at query time is far easier if permissions are stored as chunk metadata from day one."
+            },
+            {
+              "id": "a-data-gov",
+              "title": "Rights and Quality",
+              "subtopics": [
+                {
+                  "id": "a-data-gov-s1",
+                  "title": "Licensing / training rights"
+                },
+                {
+                  "id": "a-data-gov-s2",
+                  "title": "PII/PHI/secrets scanning"
+                },
+                {
+                  "id": "a-data-gov-s3",
+                  "title": "Freshness SLAs"
+                },
+                {
+                  "id": "a-data-gov-s4",
+                  "title": "Chunking and metadata standards"
+                },
+                {
+                  "id": "a-data-gov-s5",
+                  "title": "Retention and deletion"
+                }
+              ],
+              "explainer": "Before data feeds a model, know whether you have the right to use it for that purpose, especially for training. Scan for PII, PHI and secrets before indexing. Set freshness SLAs so stale documents do not produce confident wrong answers. Standardize chunking and metadata (source, owner, ACL, timestamp) across teams. Plan deletion end to end: removing a source document must also remove its chunks, embeddings, cache entries and any derived summaries, or you will fail a right-to-erasure request."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Deleting a source document requires…",
+              "choices": [
+                "Also deleting or regenerating derived embeddings/chunks",
+                "Only removing the UI link",
+                "Retraining the foundation model",
+                "Nothing — vectors expire automatically"
+              ],
+              "answer": 0,
+              "why": "Derived indexes retain content unless purged."
+            },
+            {
+              "q": "Switching embedding models requires…",
+              "choices": [
+                "Re-embedding the corpus",
+                "A new tokenizer for users",
+                "Nothing",
+                "Deleting the warehouse"
+              ],
+              "answer": 0,
+              "why": "Vectors from different models are not comparable."
+            },
+            {
+              "q": "Per-user permission filtering in RAG is easiest when…",
+              "choices": [
+                "You disable search",
+                "The prompt says \"respect permissions\"",
+                "ACLs are stored as chunk metadata",
+                "Embeddings are larger"
+              ],
+              "answer": 2,
+              "why": "Filter at retrieval time using metadata, not in the prompt."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "a-gateway",
+          "title": "Model Gateways, Semantic Cache & Routing",
+          "why": "The gateway is where cost, policy, and portability meet.",
+          "explainer": "A model gateway centralizes auth, budgets, routing, fallbacks, and observability across providers. Semantic caching (embedding-similar prompt reuse) can slash cost for FAQs but risks stale or cross-tenant leaks if keyed poorly. Structured rate limits and circuit breakers protect both wallet and upstream SLAs.\n\nCommon mistake: caching on raw prompt strings only, missing near-duplicates — or worse, caching across tenants. Another: a gateway that rewrites prompts silently and breaks eval baselines.\n\nTreat the gateway as a product with its own SLOs and audit log.",
+          "resources": [
+            {
+              "title": "LiteLLM",
+              "url": "https://docs.litellm.ai/"
+            },
+            {
+              "title": "OpenTelemetry",
+              "url": "https://opentelemetry.io/docs/"
+            },
+            {
+              "title": "AWS Bedrock",
+              "url": "https://docs.aws.amazon.com/bedrock/"
+            }
+          ],
+          "project": "Sketch a gateway: routes, cache key design, tenant isolation, and fallback chain.",
+          "topics": [
+            {
+              "id": "a-gw-feat",
+              "title": "Gateway Features",
+              "subtopics": [
+                {
+                  "id": "a-gw-feat-s1",
+                  "title": "Multi-provider adapters"
+                },
+                {
+                  "id": "a-gw-feat-s2",
+                  "title": "Auth and budgets"
+                },
+                {
+                  "id": "a-gw-feat-s3",
+                  "title": "Fallbacks and hedges"
+                },
+                {
+                  "id": "a-gw-feat-s4",
+                  "title": "Policy hooks"
+                },
+                {
+                  "id": "a-gw-feat-s5",
+                  "title": "Unified traces"
+                }
+              ],
+              "explainer": "A model gateway sits between apps and model providers. It normalizes APIs so apps call one interface, holds provider keys so apps never see them, and enforces per-team budgets and rate limits. It adds fallbacks (switch provider on errors) and hedging (send a second request if the first is slow). Policy hooks run PII redaction, prompt-injection screening or content filters on the way in and out. Every call emits a unified trace with tokens, cost and latency, which makes it the natural place to measure and govern AI usage."
+            },
+            {
+              "id": "a-gw-cache",
+              "title": "Semantic Cache",
+              "subtopics": [
+                {
+                  "id": "a-gw-cache-s1",
+                  "title": "Embedding similarity keys"
+                },
+                {
+                  "id": "a-gw-cache-s2",
+                  "title": "TTL and invalidation"
+                },
+                {
+                  "id": "a-gw-cache-s3",
+                  "title": "Tenant isolation"
+                },
+                {
+                  "id": "a-gw-cache-s4",
+                  "title": "Stale answer risk"
+                },
+                {
+                  "id": "a-gw-cache-s5",
+                  "title": "Bypass rules"
+                }
+              ],
+              "explainer": "A semantic cache returns a stored answer when a new prompt is close enough in embedding space to an old one. It can cut cost and latency sharply for FAQ-like traffic. The risks are wrong hits and leaks: the similarity threshold must be tuned on real pairs, keys must include tenant, model and prompt version, and TTLs must respect how fast the truth changes. Never share cache entries across tenants or permission levels. Provide bypass rules for personalized, time-sensitive or tool-using requests."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Semantic cache keys should…",
+              "choices": [
+                "Include tenant and policy scope, not only text similarity",
+                "Be a global hash of the prompt alone",
+                "Ignore safety tier",
+                "Store raw secrets for speed"
+              ],
+              "answer": 0,
+              "why": "Isolation and policy beat naive similarity."
+            },
+            {
+              "q": "Hedging in a gateway means…",
+              "choices": [
+                "Sending a backup request if the first is slow",
+                "Buying GPU futures",
+                "Blocking requests",
+                "Caching everything"
+              ],
+              "answer": 0,
+              "why": "Hedging trades some extra cost for lower tail latency."
+            },
+            {
+              "q": "Semantic cache entries must never be shared across…",
+              "choices": [
+                "Models of the same family",
+                "Regions",
+                "Days",
+                "Tenants or permission levels"
+              ],
+              "answer": 3,
+              "why": "Cross-tenant hits leak data."
+            }
+          ],
+          "conceptIds": [
+            "llm-gateway-routing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a-l3",
+      "name": "L3 Advanced",
+      "subjects": [
+        {
+          "id": "a-secarch",
+          "title": "Security Architecture & Threat Modeling",
+          "why": "Own the threat model before engineers write the loop.",
+          "explainer": "Assets include models, data, tools, and keys. Attack paths include indirect injection via retrieval, confused-deputy tool abuse, and supply-chain tampering of MCP servers. Map STRIDE-like analysis onto LLM apps; align with OWASP LLM Top 10 and ATLAS techniques.\n\nArchitectural controls: network isolation, sandboxes, tool allowlists, approval gates, vaulted secrets, immutable audits.\n\nCommon mistake: bolting a content filter on outputs while tools can still wire money. Another: shared service accounts for all agents.\n\nThreat models are living documents — update when tools expand.",
+          "resources": [
+            {
+              "title": "OWASP Top 10 for LLM Apps",
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+            },
+            {
+              "title": "MITRE ATLAS",
+              "url": "https://atlas.mitre.org/"
+            },
+            {
+              "title": "NIST AI RMF",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            },
+            {
+              "title": "Securing MCP (InfoQ)",
+              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/"
+            }
+          ],
+          "project": "STRIDE-style threat model for an agent with email-read and ticket-write tools.",
+          "topics": [
+            {
+              "id": "a-sec-tm",
+              "title": "Threat Modeling",
+              "subtopics": [
+                {
+                  "id": "a-sec-tm-s1",
+                  "title": "Assets: models, data, tools, keys"
+                },
+                {
+                  "id": "a-sec-tm-s2",
+                  "title": "Indirect injection paths"
+                },
+                {
+                  "id": "a-sec-tm-s3",
+                  "title": "Confused deputy / tool abuse"
+                },
+                {
+                  "id": "a-sec-tm-s4",
+                  "title": "Supply chain"
+                },
+                {
+                  "id": "a-sec-tm-s5",
+                  "title": "Abuse at scale"
+                }
+              ],
+              "explainer": "Start by listing assets: model weights, system prompts, training and retrieval data, tool credentials, user data. Then trace how untrusted text reaches the model, including indirect paths through documents, web pages, emails and tool outputs. The confused deputy is the key agent risk: the agent has permissions the attacker lacks and can be talked into using them. Add supply chain (models, packages, MCP servers) and abuse at scale (scraping, cost attacks). STRIDE still works; extend it with MITRE ATLAS and the OWASP LLM Top 10."
+            },
+            {
+              "id": "a-sec-ctrl",
+              "title": "Controls",
+              "subtopics": [
+                {
+                  "id": "a-sec-ctrl-s1",
+                  "title": "Network isolation and sandboxes"
+                },
+                {
+                  "id": "a-sec-ctrl-s2",
+                  "title": "Tool allowlists / approvals"
+                },
+                {
+                  "id": "a-sec-ctrl-s3",
+                  "title": "Secrets vaulting"
+                },
+                {
+                  "id": "a-sec-ctrl-s4",
+                  "title": "Immutable audit logs"
+                },
+                {
+                  "id": "a-sec-ctrl-s5",
+                  "title": "Red-team cadence"
+                }
+              ],
+              "explainer": "Controls that work regardless of model behavior: put tools and code execution in network-isolated sandboxes; use allowlists and human approvals for sensitive actions; keep secrets in a vault and inject short-lived, scoped tokens per call; log every prompt, tool call and approval in immutable storage; and schedule red-team exercises on a cadence, not once. Prefer architectural limits (the agent literally cannot reach the payments API) over prompt instructions (please don't touch payments)."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A confused deputy in agent systems is often…",
+              "choices": [
+                "A powerful tool identity abused via malicious instructions",
+                "A misnamed Kubernetes pod",
+                "A cold GPU",
+                "A tokenizer bug only"
+              ],
+              "answer": 0,
+              "why": "Over-privileged tools act on injected instructions."
+            },
+            {
+              "q": "Which control is architectural rather than prompt-based?",
+              "choices": [
+                "Temperature 0",
+                "\"Never reveal secrets\" in the system prompt",
+                "Network policy that blocks the agent from the payments API",
+                "A polite refusal"
+              ],
+              "answer": 2,
+              "why": "Architectural limits hold even when the model is tricked."
+            },
+            {
+              "q": "Which framework catalogs adversarial tactics against ML systems?",
+              "choices": [
+                "ITIL",
+                "MITRE ATLAS",
+                "TOGAF",
+                "PCI DSS"
+              ],
+              "answer": 1,
+              "why": "ATLAS extends ATT&CK-style tactics to AI systems."
+            }
+          ],
+          "conceptIds": [
+            "threat-model",
+            "prompt-injection-defense"
+          ]
+        },
+        {
+          "id": "a-gov",
+          "title": "Governance, Risk & Compliance",
+          "why": "Enterprise deals die on GRC, not demos.",
+          "explainer": "EU AI Act risk tiers, NIST AI RMF functions, ISO 42001 AIMS, and sector rules (HIPAA, SOC2, FedRAMP) define the operating theater. Model cards, system cards, DPIAs, and human oversight roles are deliverables, not paperwork theater.\n\nCommon mistake: claiming 'we use OpenAI so we are compliant.' Another: no incident response playbook for model hallucinations that caused customer harm.\n\nArchitects translate legal tiers into technical controls and evidence packs.",
+          "resources": [
+            {
+              "title": "EU AI Act",
+              "url": "https://artificialintelligenceact.eu/"
+            },
+            {
+              "title": "NIST AI RMF",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            },
+            {
+              "title": "ISO/IEC 42001",
+              "url": "https://www.iso.org/standard/81230.html"
+            },
+            {
+              "title": "OWASP Top 10 for LLM Apps",
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+            }
+          ],
+          "project": "Classify a proposed system under EU AI Act tiers; draft a conformity checklist.",
+          "topics": [
+            {
+              "id": "a-gov-fw",
+              "title": "Frameworks",
+              "subtopics": [
+                {
+                  "id": "a-gov-fw-s1",
+                  "title": "EU AI Act tiers"
+                },
+                {
+                  "id": "a-gov-fw-s2",
+                  "title": "NIST AI RMF"
+                },
+                {
+                  "id": "a-gov-fw-s3",
+                  "title": "ISO 42001"
+                },
+                {
+                  "id": "a-gov-fw-s4",
+                  "title": "Sector regimes"
+                },
+                {
+                  "id": "a-gov-fw-s5",
+                  "title": "Contractual flow-downs"
+                }
+              ],
+              "explainer": "The EU AI Act sorts systems into risk tiers, with heavy obligations for high-risk uses and transparency duties for general-purpose models. NIST AI RMF gives a voluntary govern-map-measure-manage structure widely used in the US. ISO/IEC 42001 is a certifiable AI management system standard, similar in spirit to ISO 27001. Sector rules (HIPAA, financial model risk guidance such as SR 11-7, and others) still apply. Contracts flow obligations down to vendors, so your model provider's terms become part of your compliance story."
+            },
+            {
+              "id": "a-gov-ops",
+              "title": "Operating Model",
+              "subtopics": [
+                {
+                  "id": "a-gov-ops-s1",
+                  "title": "Model / system cards"
+                },
+                {
+                  "id": "a-gov-ops-s2",
+                  "title": "DPIA / AI impact assessments"
+                },
+                {
+                  "id": "a-gov-ops-s3",
+                  "title": "Human oversight roles"
+                },
+                {
+                  "id": "a-gov-ops-s4",
+                  "title": "Incident response"
+                },
+                {
+                  "id": "a-gov-ops-s5",
+                  "title": "Evidence for auditors"
+                }
+              ],
+              "explainer": "Governance becomes real through artifacts and roles. Model and system cards document purpose, data, evals and limitations. AI impact assessments (often alongside DPIAs) record risks and mitigations before launch. Name who provides human oversight and what they can override. Extend incident response to cover AI failures such as harmful outputs, data leaks, or agent misbehavior. Keep evidence (eval results, approvals, change logs) organized so an auditor can follow it without a week of archaeology."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "ISO 42001 is best described as…",
+              "choices": [
+                "An AI management system standard",
+                "A GPU benchmark",
+                "A tokenizer",
+                "An agent protocol"
+              ],
+              "answer": 0,
+              "why": "42001 is AIMS — management system for AI."
+            },
+            {
+              "q": "The EU AI Act primarily classifies systems by…",
+              "choices": [
+                "Model size",
+                "Risk tier of the use case",
+                "Token price",
+                "Vendor nationality"
+              ],
+              "answer": 1,
+              "why": "Obligations scale with risk of the application."
+            },
+            {
+              "q": "NIST AI RMF's four functions are…",
+              "choices": [
+                "Govern, Map, Measure, Manage",
+                "Train, Tune, Serve, Retire",
+                "Identify, Protect, Detect, Respond",
+                "Plan, Build, Test, Ship"
+              ],
+              "answer": 0,
+              "why": "These structure AI risk work across the lifecycle."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "a-cost",
+          "title": "Cost Modeling & AI FinOps",
+          "why": "Unit economics decide whether the architecture is viable.",
+          "explainer": "Model cost as dollars per million tokens in and out, cache hit savings, tool-call overhead, and GPU-hour TCO for self-host. Add egress, storage for indexes, and eval spend. Quotas, routing tiers, and batch versus realtime are architectural levers.\n\nCommon mistake: ignoring output tokens (often more expensive) or tool loops that multiply calls. Another: no chargeback, so every team treats the LLM budget as infinite.\n\nBuild a spreadsheet the CFO can read and the engineer can update.",
+          "resources": [
+            {
+              "title": "FinOps Foundation",
+              "url": "https://www.finops.org/"
+            },
+            {
+              "title": "AWS Bedrock",
+              "url": "https://docs.aws.amazon.com/bedrock/"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            }
+          ],
+          "project": "Spreadsheet: tokens in/out, cache hit rate, tool calls, GPU-hour alternative; find break-even.",
+          "topics": [
+            {
+              "id": "a-cost-units",
+              "title": "Unit Economics",
+              "subtopics": [
+                {
+                  "id": "a-cost-units-s1",
+                  "title": "$/1M tokens in vs out"
+                },
+                {
+                  "id": "a-cost-units-s2",
+                  "title": "Cache / prefix savings"
+                },
+                {
+                  "id": "a-cost-units-s3",
+                  "title": "GPU-hour TCO"
+                },
+                {
+                  "id": "a-cost-units-s4",
+                  "title": "Egress and storage"
+                },
+                {
+                  "id": "a-cost-units-s5",
+                  "title": "Eval and human review cost"
+                }
+              ],
+              "explainer": "Learn to compute cost per request: input tokens times input price plus output tokens times output price, with output typically 3 to 5 times more expensive. Prompt or prefix caching discounts repeated input heavily. For self-hosting, convert GPU-hour cost and measured throughput into dollars per million tokens. Do not forget egress, storage for logs and indexes, eval runs, and human review time, which can exceed model spend. The useful metric is cost per successful task, not cost per call."
+            },
+            {
+              "id": "a-cost-ctrl",
+              "title": "Controls",
+              "subtopics": [
+                {
+                  "id": "a-cost-ctrl-s1",
+                  "title": "Per-tenant budgets"
+                },
+                {
+                  "id": "a-cost-ctrl-s2",
+                  "title": "Model routing tiers"
+                },
+                {
+                  "id": "a-cost-ctrl-s3",
+                  "title": "Batch vs realtime"
+                },
+                {
+                  "id": "a-cost-ctrl-s4",
+                  "title": "Chargeback / showback"
+                },
+                {
+                  "id": "a-cost-ctrl-s5",
+                  "title": "Anomaly alerts"
+                }
+              ],
+              "explainer": "Cost control is mostly architecture. Set per-tenant and per-feature budgets enforced at the gateway. Route easy queries to small models and escalate only when needed. Move anything that is not interactive to batch APIs, often half price. Show teams their spend (showback) or charge it back so incentives line up. Alert on anomalies such as a sudden jump in tokens per request, which usually means a prompt bug, a loop, or abuse."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Prefix caching helps most when…",
+              "choices": [
+                "Many requests share a long stable prompt prefix",
+                "Every prompt is unique",
+                "You only use CPU",
+                "You disable TLS"
+              ],
+              "answer": 0,
+              "why": "Shared prefixes make KV reuse pay off."
+            },
+            {
+              "q": "1,000 input tokens at $3/M plus 500 output tokens at $15/M costs…",
+              "choices": [
+                "$0.018",
+                "$1.05",
+                "$0.0105",
+                "$0.105"
+              ],
+              "answer": 2,
+              "why": "0.001M×$3 = $0.003; 0.0005M×$15 = $0.0075; total $0.0105."
+            },
+            {
+              "q": "The best unit metric for AI cost is usually…",
+              "choices": [
+                "Total monthly bill",
+                "Cost per successful task",
+                "GPU count",
+                "Cost per API call"
+              ],
+              "answer": 1,
+              "why": "Failed or retried tasks hide in per-call numbers."
+            }
+          ],
+          "conceptIds": [
+            "cost-model",
+            "cost-per-token"
+          ]
+        },
+        {
+          "id": "a-privacy",
+          "title": "Privacy, PII & Data Minimization",
+          "why": "Privacy failures end deals and careers.",
+          "explainer": "Minimize what enters prompts and logs. Redact PII before tracing vendors. Prefer retrieval filters and field-level encryption over stuffing whole records. Understand training-use opt-outs on APIs versus self-host. Retention and right-to-be-forgotten must include vector indexes.\n\nCommon mistake: pasting production rows into a consumer ChatGPT account during debugging. Another: indefinite retention of session transcripts 'for quality.'\n\nPrivacy is an architecture constraint equal to latency.",
+          "resources": [
+            {
+              "title": "NIST AI RMF",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            },
+            {
+              "title": "EU AI Act",
+              "url": "https://artificialintelligenceact.eu/"
+            },
+            {
+              "title": "OWASP Top 10 for LLM Apps",
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+            }
+          ],
+          "project": "Design a PII redaction path for prompts, tools, logs, and embeddings with deletion workflow.",
+          "topics": [
+            {
+              "id": "a-priv-min",
+              "title": "Minimization",
+              "subtopics": [
+                {
+                  "id": "a-priv-min-s1",
+                  "title": "Prompt data minimization"
+                },
+                {
+                  "id": "a-priv-min-s2",
+                  "title": "Log redaction"
+                },
+                {
+                  "id": "a-priv-min-s3",
+                  "title": "Field-level controls"
+                },
+                {
+                  "id": "a-priv-min-s4",
+                  "title": "Vendor DPA review"
+                },
+                {
+                  "id": "a-priv-min-s5",
+                  "title": "Training-use opt-out"
+                }
+              ],
+              "explainer": "The cheapest data to protect is data you never send. Strip or mask identifiers before prompts leave your boundary. Redact logs and traces by default. Apply field-level controls so the model sees only fields needed for the task. Review vendor data processing agreements for retention, training use and subprocessors, and turn off training-on-your-data where offered. Minimization reduces breach impact, regulatory scope and vendor risk all at once."
+            },
+            {
+              "id": "a-priv-ops",
+              "title": "Operations",
+              "subtopics": [
+                {
+                  "id": "a-priv-ops-s1",
+                  "title": "Retention schedules"
+                },
+                {
+                  "id": "a-priv-ops-s2",
+                  "title": "Index purge on delete"
+                },
+                {
+                  "id": "a-priv-ops-s3",
+                  "title": "Access reviews"
+                },
+                {
+                  "id": "a-priv-ops-s4",
+                  "title": "Breach playbooks"
+                },
+                {
+                  "id": "a-priv-ops-s5",
+                  "title": "Regional processing"
+                }
+              ],
+              "explainer": "Privacy is an ongoing operation. Set retention schedules for prompts, outputs and traces. When a user or document is deleted, purge it from indexes, caches and memories too. Review who can read raw logs and traces. Have a breach playbook that covers AI-specific leaks such as a model repeating another user's data. Respect data residency by pinning processing regions, including for embeddings and evals, not just the main model call."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Right-to-be-forgotten for RAG requires…",
+              "choices": [
+                "Purging derived chunks/embeddings, not only the source row",
+                "Deleting the foundation model",
+                "Turning off GPUs",
+                "Clearing browser cookies only"
+              ],
+              "answer": 0,
+              "why": "Derived artifacts retain personal data."
+            },
+            {
+              "q": "Data minimization reduces…",
+              "choices": [
+                "Only latency",
+                "Model accuracy always",
+                "GPU heat",
+                "Breach impact, regulatory scope and vendor risk"
+              ],
+              "answer": 3,
+              "why": "Data never sent cannot leak."
+            },
+            {
+              "q": "Residency compliance must include…",
+              "choices": [
+                "Only the UI",
+                "Embeddings, logs and evals as well",
+                "Only backups",
+                "Only the main model call"
+              ],
+              "answer": 1,
+              "why": "Any processing step can move data out of region."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    },
+    {
+      "id": "a-l4",
+      "name": "L4 Expert",
+      "subjects": [
+        {
+          "id": "a-scale",
+          "title": "Multi-Region, Multi-Tenant, HA",
+          "why": "Production AI must survive AZ loss and noisy neighbors.",
+          "explainer": "Tenancy isolation (keys, quotas, data partitions) prevents noisy-neighbor and leak disasters. HA needs RPO/RTO for model artifacts and indexes, traffic shifting, and degraded modes. Prefix-cache affinity can conflict with naive load balancing — design sticky or replicated caches deliberately.\n\nCommon mistake: active-active without index consistency story. Another: one GPU pool for all tenants with no fair-share.\n\nRunbooks beat diagrams when pages fire at 3am.",
+          "resources": [
+            {
+              "title": "Google SRE Book",
+              "url": "https://sre.google/sre-book/table-of-contents/"
+            },
+            {
+              "title": "Azure AI architecture",
+              "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/"
+            },
+            {
+              "title": "K8s scheduling",
+              "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/"
+            }
+          ],
+          "project": "Design active-active inference across two regions with failover runbook and degraded mode.",
+          "topics": [
+            {
+              "id": "a-scale-ten",
+              "title": "Tenancy",
+              "subtopics": [
+                {
+                  "id": "a-scale-ten-s1",
+                  "title": "Noisy-neighbor isolation"
+                },
+                {
+                  "id": "a-scale-ten-s2",
+                  "title": "Per-tenant keys and quotas"
+                },
+                {
+                  "id": "a-scale-ten-s3",
+                  "title": "Data partitioning"
+                },
+                {
+                  "id": "a-scale-ten-s4",
+                  "title": "Fairness in queues"
+                },
+                {
+                  "id": "a-scale-ten-s5",
+                  "title": "Cross-tenant cache risk"
+                }
+              ],
+              "explainer": "Multi-tenant AI systems need isolation in places classic SaaS does not. One heavy tenant can saturate shared GPUs, so use quotas, fair queuing and priority classes. Give each tenant its own keys, budgets and rate limits. Partition data so retrieval filters by tenant at the index level, not in the prompt. Watch for cross-tenant leakage through shared semantic caches, shared memories or fine-tunes trained on mixed data."
+            },
+            {
+              "id": "a-scale-ha",
+              "title": "HA/DR",
+              "subtopics": [
+                {
+                  "id": "a-scale-ha-s1",
+                  "title": "RPO/RTO for model and index"
+                },
+                {
+                  "id": "a-scale-ha-s2",
+                  "title": "Artifact replication"
+                },
+                {
+                  "id": "a-scale-ha-s3",
+                  "title": "Traffic shifting"
+                },
+                {
+                  "id": "a-scale-ha-s4",
+                  "title": "Degraded modes"
+                },
+                {
+                  "id": "a-scale-ha-s5",
+                  "title": "Game days"
+                }
+              ],
+              "explainer": "Set RPO and RTO for every stateful part: model artifacts, vector indexes, prompt registries, conversation state. Replicate artifacts across regions ahead of time, since pulling 100+ GB of weights during an outage is slow. Use the gateway to shift traffic between regions and providers. Define degraded modes and practice failover in game days. A secondary provider with a different model also needs prompt and eval compatibility, or failover will quietly drop quality."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Sticky routing is sometimes needed to…",
+              "choices": [
+                "Preserve KV/prefix cache locality",
+                "Avoid TLS",
+                "Skip auth",
+                "Disable evals"
+              ],
+              "answer": 0,
+              "why": "Cache locality can dominate latency and cost."
+            },
+            {
+              "q": "Noisy-neighbor protection on shared GPUs uses…",
+              "choices": [
+                "Turning off batching",
+                "More logging",
+                "Quotas, fair queuing and priority classes",
+                "Bigger prompts"
+              ],
+              "answer": 2,
+              "why": "These keep one tenant from starving others."
+            },
+            {
+              "q": "Why pre-replicate model weights to a DR region?",
+              "choices": [
+                "Licensing requires it",
+                "It improves accuracy",
+                "Weights are tiny",
+                "Pulling 100+ GB during an outage is slow"
+              ],
+              "answer": 3,
+              "why": "Recovery time depends on artifacts already being there."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "a-plat",
+          "title": "Internal AI Platforms",
+          "why": "Scale the company by productizing plumbing once.",
+          "explainer": "An internal platform offers model gateway, prompt registry, shared evals, sandbox tool runtime, and cost dashboards as golden paths. Developer experience matters: templates, guardrail defaults, observability out of the box, clear chargeback.\n\nCommon mistake: a platform so rigid that squads shadow-IT another vendor. Another: a platform with no product owner — just tickets.\n\nMeasure adoption and time-to-first-eval, not only GPU utilization.",
+          "resources": [
+            {
+              "title": "Full Stack Deep Learning",
+              "url": "https://fullstackdeeplearning.com/"
+            },
+            {
+              "title": "ml-ops.org",
+              "url": "https://ml-ops.org/"
+            },
+            {
+              "title": "Team Topologies",
+              "url": "https://teamtopologies.com/"
+            },
+            {
+              "title": "LiteLLM",
+              "url": "https://docs.litellm.ai/"
+            }
+          ],
+          "project": "Sketch an internal AI platform: registry, eval harness, gateway, sandbox, cost view.",
+          "topics": [
+            {
+              "id": "a-plat-cap",
+              "title": "Capabilities",
+              "subtopics": [
+                {
+                  "id": "a-plat-cap-s1",
+                  "title": "Gateway and routing"
+                },
+                {
+                  "id": "a-plat-cap-s2",
+                  "title": "Prompt/version registry"
+                },
+                {
+                  "id": "a-plat-cap-s3",
+                  "title": "Shared eval service"
+                },
+                {
+                  "id": "a-plat-cap-s4",
+                  "title": "Sandbox tool runtime"
+                },
+                {
+                  "id": "a-plat-cap-s5",
+                  "title": "Cost dashboards"
+                }
+              ],
+              "explainer": "An internal AI platform bundles the things every team would otherwise rebuild: a gateway with routing and budgets, a prompt and configuration registry with versions, a shared evaluation service, a sandboxed tool runtime for agents, and cost dashboards. The goal is that a product team can ship a safe, observable AI feature in days without becoming experts in GPUs or security."
+            },
+            {
+              "id": "a-plat-dx",
+              "title": "Developer Experience",
+              "subtopics": [
+                {
+                  "id": "a-plat-dx-s1",
+                  "title": "Golden paths"
+                },
+                {
+                  "id": "a-plat-dx-s2",
+                  "title": "Guardrail defaults"
+                },
+                {
+                  "id": "a-plat-dx-s3",
+                  "title": "Obs by default"
+                },
+                {
+                  "id": "a-plat-dx-s4",
+                  "title": "Chargeback clarity"
+                },
+                {
+                  "id": "a-plat-dx-s5",
+                  "title": "Self-serve vs ticketed"
+                }
+              ],
+              "explainer": "Platforms succeed through developer experience. Offer golden paths: templates that come with auth, tracing, evals and guardrails already wired. Make safe defaults the easy path. Turn on observability automatically. Make costs visible per team. Prefer self-service with policy guardrails over ticket queues, because teams route around slow platforms and that is how shadow AI starts. Try it: time how long a new team takes from \"we want an AI feature\" to a traced, budgeted endpoint in staging. If it is weeks, that number is your platform roadmap."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A healthy AI platform optimizes for…",
+              "choices": [
+                "Squad time-to-safe-production",
+                "Maximum number of frameworks",
+                "Hiding all costs",
+                "Forbidding APIs entirely"
+              ],
+              "answer": 0,
+              "why": "Enable safe speed."
+            },
+            {
+              "q": "A golden path is…",
+              "choices": [
+                "A pricing plan",
+                "A template with auth, tracing, evals and guardrails pre-wired",
+                "A premium support tier",
+                "The fastest GPU"
+              ],
+              "answer": 1,
+              "why": "It makes the safe way the easy way."
+            },
+            {
+              "q": "Shadow AI usually grows when…",
+              "choices": [
+                "The official platform is slow or ticket-driven",
+                "Gateways exist",
+                "Budgets are visible",
+                "Evals exist"
+              ],
+              "answer": 0,
+              "why": "Teams route around friction."
+            }
+          ],
+          "conceptIds": [
+            "ref-arch"
+          ]
+        },
+        {
+          "id": "a-cards",
+          "title": "Model Cards, Licensing & Procurement",
+          "why": "Paperwork is part of the architecture in regulated deals.",
+          "explainer": "Model cards and system cards communicate intended use, limits, and eval summaries. Licensing distinguishes API ToS, open weights, copyleft, and training-data provenance claims. Procurement needs security questionnaires, subprocessors, and exit clauses.\n\nCommon mistake: assuming Hugging Face hosting implies a particular license. Another: no plan to extract prompts and evals when switching vendors.\n\nKeep a contract checklist next to the reference architecture.",
+          "resources": [
+            {
+              "title": "EU AI Act",
+              "url": "https://artificialintelligenceact.eu/"
+            },
+            {
+              "title": "NIST AI RMF",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            },
+            {
+              "title": "Hugging Face LLM Course",
+              "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+            }
+          ],
+          "project": "Fill a model/system card for a client-facing RAG assistant; list license and exit risks.",
+          "topics": [
+            {
+              "id": "a-cards-doc",
+              "title": "Documentation",
+              "subtopics": [
+                {
+                  "id": "a-cards-doc-s1",
+                  "title": "Model cards"
+                },
+                {
+                  "id": "a-cards-doc-s2",
+                  "title": "System cards"
+                },
+                {
+                  "id": "a-cards-doc-s3",
+                  "title": "Eval summaries"
+                },
+                {
+                  "id": "a-cards-doc-s4",
+                  "title": "Known limitations"
+                },
+                {
+                  "id": "a-cards-doc-s5",
+                  "title": "Change logs"
+                }
+              ],
+              "explainer": "Documentation is how trust scales. Model cards describe what a model is, how it was trained and evaluated, and where it fails. System cards describe the whole application, including prompts, tools, guardrails and human oversight. Publish eval summaries and known limitations honestly. Keep a change log of model and prompt versions so users and auditors can match behavior to releases."
+            },
+            {
+              "id": "a-cards-buy",
+              "title": "Procurement",
+              "subtopics": [
+                {
+                  "id": "a-cards-buy-s1",
+                  "title": "ToS vs weight licenses"
+                },
+                {
+                  "id": "a-cards-buy-s2",
+                  "title": "Subprocessors"
+                },
+                {
+                  "id": "a-cards-buy-s3",
+                  "title": "Security questionnaires"
+                },
+                {
+                  "id": "a-cards-buy-s4",
+                  "title": "Exit and data return"
+                },
+                {
+                  "id": "a-cards-buy-s5",
+                  "title": "Insurance / liability notes"
+                }
+              ],
+              "explainer": "Procurement for AI has new details. API terms of service and open-weight licenses differ: check commercial use, user thresholds, and output ownership. List subprocessors and data locations. Prepare for security questionnaires that ask about training on customer data, retention, and isolation. Negotiate exit terms, including data return and deletion. Ask about indemnity for IP claims on outputs, and check whether your insurance covers AI-related incidents."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A model card should include…",
+              "choices": [
+                "Intended use, limits, and evaluation notes",
+                "Only marketing screenshots",
+                "Root passwords",
+                "GPU serial numbers"
+              ],
+              "answer": 0,
+              "why": "Cards communicate safe use boundaries."
+            },
+            {
+              "q": "A system card differs from a model card by covering…",
+              "choices": [
+                "Only training data",
+                "The whole application: prompts, tools, guardrails and oversight",
+                "Only weights",
+                "Only pricing"
+              ],
+              "answer": 1,
+              "why": "Behavior depends on the system, not just the model."
+            },
+            {
+              "q": "\"Open weights\" licenses may still…",
+              "choices": [
+                "Never restrict anything",
+                "Ban fine-tuning always",
+                "Restrict commercial use or user counts",
+                "Require GPUs from one vendor"
+              ],
+              "answer": 2,
+              "why": "Read each license; terms vary widely."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    },
+    {
+      "id": "a-l5",
+      "name": "L5 Frontier",
+      "subjects": [
+        {
+          "id": "a-sov",
+          "title": "Sovereign & Regulated Architectures",
+          "why": "Governments and banks pay for in-boundary designs.",
+          "explainer": "Sovereign AI keeps weights, logs, and often embeddings inside a boundary. Confidential GPUs/TEEs, air-gapped MLOps, signed supply chains, and offline red-team processes appear. Update channels become sneakernet or heavily controlled mirrors.\n\nCommon mistake: 'private VPC endpoint to a public model' sold as sovereign. Another: no patch story for CVEs in the serving stack.\n\nDesign evidence packs auditors can consume without a live demo.",
+          "resources": [
+            {
+              "title": "EU AI Act",
+              "url": "https://artificialintelligenceact.eu/"
+            },
+            {
+              "title": "NIST AI RMF",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            },
+            {
+              "title": "vLLM documentation",
+              "url": "https://docs.vllm.ai/en/latest/"
+            },
+            {
+              "title": "CUDA docs",
+              "url": "https://docs.nvidia.com/cuda/"
+            }
+          ],
+          "project": "Design an air-gapped inference plus RAG stack with signed update channel.",
+          "topics": [
+            {
+              "id": "a-sov-ctrl",
+              "title": "Controls",
+              "subtopics": [
+                {
+                  "id": "a-sov-ctrl-s1",
+                  "title": "In-boundary weights and logs"
+                },
+                {
+                  "id": "a-sov-ctrl-s2",
+                  "title": "Confidential computing / TEEs"
+                },
+                {
+                  "id": "a-sov-ctrl-s3",
+                  "title": "Offline eval and red-team"
+                },
+                {
+                  "id": "a-sov-ctrl-s4",
+                  "title": "Signed model supply chain"
+                },
+                {
+                  "id": "a-sov-ctrl-s5",
+                  "title": "Local embedding/search"
+                }
+              ],
+              "explainer": "Sovereign and regulated deployments keep weights, prompts, logs and embeddings inside a legal and physical boundary. Confidential computing and GPU TEEs protect data in use from the cloud operator. Evals and red-teaming run inside the boundary too. Models arrive through a signed supply chain with verified hashes. Embedding and search run locally so documents never leave. A private network link to a public model API does not satisfy these requirements on its own."
+            },
+            {
+              "id": "a-sov-ops",
+              "title": "Operations",
+              "subtopics": [
+                {
+                  "id": "a-sov-ops-s1",
+                  "title": "Signed updates / sneakernet"
+                },
+                {
+                  "id": "a-sov-ops-s2",
+                  "title": "Break-glass access"
+                },
+                {
+                  "id": "a-sov-ops-s3",
+                  "title": "Telemetry without exfil"
+                },
+                {
+                  "id": "a-sov-ops-s4",
+                  "title": "Auditor evidence packs"
+                },
+                {
+                  "id": "a-sov-ops-s5",
+                  "title": "Field support model"
+                }
+              ],
+              "explainer": "Operating inside a boundary changes daily work. Updates arrive as signed bundles, sometimes physically carried in. Break-glass access for emergencies is logged and time-limited. Telemetry must be designed so metrics leave but data does not. Auditors expect evidence packs. Field support may require cleared staff on site, so the support model is part of the architecture, not an afterthought. Try it: write the runbook for a model update that must cross an air gap, from vendor release to signed bundle to production."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A public-model Private Link alone…",
+              "choices": [
+                "Does not make processing fully sovereign",
+                "Deletes all logs",
+                "Removes prompt injection",
+                "Guarantees ISO 42001"
+              ],
+              "answer": 0,
+              "why": "Data still leaves the boundary to the provider."
+            },
+            {
+              "q": "Confidential computing on GPUs protects data…",
+              "choices": [
+                "In use, even from the host operator",
+                "Only in logs",
+                "Only in transit",
+                "At rest only"
+              ],
+              "answer": 0,
+              "why": "TEEs encrypt memory and attest the environment."
+            },
+            {
+              "q": "In an air-gapped site, model updates typically arrive as…",
+              "choices": [
+                "Email attachments",
+                "Unsigned downloads",
+                "Live API calls",
+                "Signed bundles verified before install"
+              ],
+              "answer": 3,
+              "why": "Signatures and hashes protect the offline supply chain."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "a-org",
+          "title": "Org Design & AI Transformation",
+          "why": "Architecture without operating model fails at handoff.",
+          "explainer": "CoE versus federated versus hub-spoke, platform versus product teams, RACI for model incidents, and hiring skills matrices determine whether designs live. Pilots need explicit scale criteria; vendor sprawl needs governance; executives need metrics beyond demo wow.\n\nCommon mistake: centralizing all AI in a team that becomes a bottleneck. Another: federating with zero shared eval standards.\n\nTeam Topologies-style thinking maps cleanly onto AI platforms.",
+          "resources": [
+            {
+              "title": "Team Topologies",
+              "url": "https://teamtopologies.com/"
+            },
+            {
+              "title": "Full Stack Deep Learning",
+              "url": "https://fullstackdeeplearning.com/"
+            },
+            {
+              "title": "NIST AI RMF",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            }
+          ],
+          "project": "Propose CoE plus federated squads for a 2,000-person company adopting agents.",
+          "topics": [
+            {
+              "id": "a-org-model",
+              "title": "Operating Models",
+              "subtopics": [
+                {
+                  "id": "a-org-model-s1",
+                  "title": "CoE vs federated vs hub-spoke"
+                },
+                {
+                  "id": "a-org-model-s2",
+                  "title": "Platform vs product"
+                },
+                {
+                  "id": "a-org-model-s3",
+                  "title": "RACI for incidents"
+                },
+                {
+                  "id": "a-org-model-s4",
+                  "title": "Skills matrix"
+                },
+                {
+                  "id": "a-org-model-s5",
+                  "title": "Vendor management"
+                }
+              ],
+              "explainer": "Organizations typically pick a Center of Excellence (central experts), a federated model (each business unit builds), or hub-and-spoke (central platform plus embedded builders). Separate the platform team, which provides paved roads, from product teams, which ship features. Write a RACI for AI incidents. Keep a skills matrix so you know who can do evals, infra, security and domain review. Manage vendors centrally to avoid twenty contracts with the same provider."
+            },
+            {
+              "id": "a-org-change",
+              "title": "Change",
+              "subtopics": [
+                {
+                  "id": "a-org-change-s1",
+                  "title": "Pilot to scale criteria"
+                },
+                {
+                  "id": "a-org-change-s2",
+                  "title": "Shadow IT risk"
+                },
+                {
+                  "id": "a-org-change-s3",
+                  "title": "Sprawl control"
+                },
+                {
+                  "id": "a-org-change-s4",
+                  "title": "Executive metrics"
+                },
+                {
+                  "id": "a-org-change-s5",
+                  "title": "Training plans"
+                }
+              ],
+              "explainer": "Pilots are easy; scaling is hard. Define criteria to graduate a pilot: measured quality, cost per task, security review, owner on call. Watch for shadow AI, where teams use unapproved tools because the official path is slow. Control sprawl by consolidating gateways and prompt stores. Report executive metrics in business terms such as hours saved or resolution rate, and invest in training so staff know what the tools can and cannot do."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A platform team should…",
+              "choices": [
+                "Provide golden paths and reduce cognitive load",
+                "Approve every prompt manually forever",
+                "Own all product UX",
+                "Ban external APIs always"
+              ],
+              "answer": 0,
+              "why": "Platforms enable; they do not bottleneck forever."
+            },
+            {
+              "q": "Hub-and-spoke AI organizations combine…",
+              "choices": [
+                "Only a central team",
+                "Only outsourcing",
+                "A central platform with builders embedded in business units",
+                "No platform"
+              ],
+              "answer": 2,
+              "why": "The hub provides paved roads; spokes ship domain features."
+            },
+            {
+              "q": "A good criterion to graduate a pilot is…",
+              "choices": [
+                "The demo impressed executives",
+                "It has a logo",
+                "It used the newest model",
+                "Measured quality, cost per task, security review and an on-call owner"
+              ],
+              "answer": 3,
+              "why": "Scale needs evidence and ownership."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    }
+  ]
+}

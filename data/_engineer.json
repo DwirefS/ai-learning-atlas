@@ -1,0 +1,2123 @@
+{
+  "id": "engineer",
+  "name": "AI Engineer",
+  "icon": "wrench",
+  "role": "Ships AI-powered products: prompts, tools, RAG, evals, APIs, hardening. Day to day: features, golden sets, traces, cost/latency. Differs from Architect (system shape) and Inference (engines): you own the application that calls the model.",
+  "levels": [
+    {
+      "id": "e-l1",
+      "name": "L1 Foundations",
+      "subjects": [
+        {
+          "id": "e-api",
+          "title": "LLM Application Fundamentals",
+          "why": "Every product starts as messages, tokens, and a reliable client.",
+          "explainer": "Production LLM apps are distributed systems that speak chat APIs. Master streaming SSE, retries with jitter, deadlines, cancellation, and token accounting. Know the difference between chat, completions, and newer responses-style APIs. Structured JSON mode and schema adherence prevent brittle string parsing.\n\nMessage design (system/user/assistant/tool) and chat templates are part of the contract with the model. Context budgets are product decisions: what stays, what summarizes, what retrieves.\n\nCommon mistake: unbounded retries that amplify outages and bills. Another: blocking the request thread on a 60s model call with no timeout.\n\nWrap the vendor SDK behind your own client so you can swap providers and add telemetry once.",
+          "resources": [
+            {
+              "title": "OpenAI prompt engineering",
+              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering"
+            },
+            {
+              "title": "Anthropic prompt engineering",
+              "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+            },
+            {
+              "title": "PyTorch tutorials",
+              "url": "https://docs.pytorch.org/tutorials/"
+            },
+            {
+              "title": "Twelve-Factor App",
+              "url": "https://12factor.net/"
+            },
+            {
+              "title": "Docker docs",
+              "url": "https://docs.docker.com/"
+            }
+          ],
+          "project": "FastAPI service with streaming chat, retries, timeouts, token accounting, JSON schema mode.",
+          "topics": [
+            {
+              "id": "e-api-client",
+              "title": "Client Craft",
+              "subtopics": [
+                {
+                  "id": "e-api-client-s1",
+                  "title": "Chat vs completions vs responses APIs"
+                },
+                {
+                  "id": "e-api-client-s2",
+                  "title": "Streaming SSE"
+                },
+                {
+                  "id": "e-api-client-s3",
+                  "title": "Idempotency and retries"
+                },
+                {
+                  "id": "e-api-client-s4",
+                  "title": "Timeouts and cancellation"
+                },
+                {
+                  "id": "e-api-client-s5",
+                  "title": "Token and cost accounting"
+                }
+              ],
+              "explainer": "A solid LLM client handles the boring failures. Know the API shapes: chat completions, newer responses-style APIs with built-in tools and state, and legacy completions. Streaming uses server-sent events; parse incrementally and handle disconnects. Retry 429 and 5xx with exponential backoff and jitter, and use idempotency keys when the call triggers side effects. Set connect and total timeouts and propagate user cancellation so you stop paying for tokens nobody will read. Log input, output and cached token counts on every call so cost is measurable per feature."
+            },
+            {
+              "id": "e-api-msg",
+              "title": "Message Design",
+              "subtopics": [
+                {
+                  "id": "e-api-msg-s1",
+                  "title": "Roles and chat templates"
+                },
+                {
+                  "id": "e-api-msg-s2",
+                  "title": "Few-shot packing"
+                },
+                {
+                  "id": "e-api-msg-s3",
+                  "title": "Context budgets"
+                },
+                {
+                  "id": "e-api-msg-s4",
+                  "title": "Multi-turn state"
+                },
+                {
+                  "id": "e-api-msg-s5",
+                  "title": "Provider quirks"
+                }
+              ],
+              "explainer": "Messages carry roles (system, user, assistant, tool) that the provider turns into a chat template. Put durable instructions in the system message and task data in user turns. Few-shot examples help most for format and edge cases; keep them short and representative. Budget context explicitly: instructions, retrieved data, history and room for the answer must fit. For multi-turn apps, decide what state you keep server-side versus resend each turn. Providers differ in tool-call formats, max output limits and how they treat system prompts, so wrap them in an adapter."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Streaming primarily improves…",
+              "choices": [
+                "Time-to-first-token UX",
+                "Final answer accuracy always",
+                "GPU utilization to 100%",
+                "Compliance automatically"
+              ],
+              "answer": 0,
+              "why": "Users see tokens sooner; quality unchanged."
+            },
+            {
+              "q": "Which errors should a client usually retry with backoff?",
+              "choices": [
+                "404 Not Found",
+                "429 and 5xx",
+                "400 Bad Request",
+                "401 Unauthorized"
+              ],
+              "answer": 1,
+              "why": "Rate limits and transient server errors are retryable; client errors are not."
+            },
+            {
+              "q": "Propagating user cancellation to the model call mainly saves…",
+              "choices": [
+                "DNS lookups",
+                "Tokens and money spent on output nobody reads",
+                "Disk space",
+                "Embeddings"
+              ],
+              "answer": 1,
+              "why": "Generation keeps billing until the request stops."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "e-prompt",
+          "title": "Prompt & Context Engineering",
+          "why": "Most quality gains before fine-tuning live here.",
+          "explainer": "Prompting is specifying behavior under uncertainty. Clear instructions, constraints, schemas, and carefully chosen examples beat purple prose. Context engineering decides what enters the window: system policy, retrieved evidence, tool results, memory summaries — and in what order.\n\nLost-in-the-middle, recency bias, and compaction loss are practical failure modes. Prefer explicit refusal rules over hoping the model abstains.\n\nCommon mistake: a 4,000-word system prompt nobody diffs. Another: stuffing retrieval without citations or overlap checks.\n\nTreat prompts as versioned code with evals on every change.",
+          "resources": [
+            {
+              "title": "OpenAI prompt engineering",
+              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering"
+            },
+            {
+              "title": "Anthropic prompt engineering",
+              "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+            },
+            {
+              "title": "Prompting Guide",
+              "url": "https://www.promptingguide.ai/"
+            },
+            {
+              "title": "Stanford CS224N",
+              "url": "https://web.stanford.edu/class/cs224n/"
+            }
+          ],
+          "project": "Take a flaky prompt; add schema, examples, failure modes; measure on 30 cases before/after.",
+          "topics": [
+            {
+              "id": "e-prompt-tech",
+              "title": "Techniques",
+              "subtopics": [
+                {
+                  "id": "e-prompt-tech-s1",
+                  "title": "Instructions and constraints"
+                },
+                {
+                  "id": "e-prompt-tech-s2",
+                  "title": "CoT vs no-CoT"
+                },
+                {
+                  "id": "e-prompt-tech-s3",
+                  "title": "Self-consistency"
+                },
+                {
+                  "id": "e-prompt-tech-s4",
+                  "title": "Structured output / JSON schema"
+                },
+                {
+                  "id": "e-prompt-tech-s5",
+                  "title": "Delimiter and role hygiene"
+                }
+              ],
+              "explainer": "Clear prompts state the task, the audience, constraints and the output format, and include an example when format matters. Chain-of-thought helps on multi-step reasoning but costs tokens; reasoning models do it internally, so explicit CoT prompts matter less there. Self-consistency samples several answers and takes the majority, trading cost for accuracy. Use JSON schema or structured output modes instead of begging for JSON. Wrap untrusted content in clear delimiters and tell the model it is data, which helps but does not stop determined injection."
+            },
+            {
+              "id": "e-prompt-ctx",
+              "title": "Context Engineering",
+              "subtopics": [
+                {
+                  "id": "e-prompt-ctx-s1",
+                  "title": "System vs retrieved vs memory"
+                },
+                {
+                  "id": "e-prompt-ctx-s2",
+                  "title": "Ordering and recency"
+                },
+                {
+                  "id": "e-prompt-ctx-s3",
+                  "title": "Compaction / summarization"
+                },
+                {
+                  "id": "e-prompt-ctx-s4",
+                  "title": "Lost-in-the-middle"
+                },
+                {
+                  "id": "e-prompt-ctx-s5",
+                  "title": "Citation requirements"
+                }
+              ],
+              "explainer": "Context engineering means choosing what goes into the window and in what order. Sources include the system prompt, retrieved documents, memory, tool results and conversation history. Models attend best to the start and end, so put key instructions and the most relevant evidence there. When history grows, compact it by summarizing older turns while pinning facts that must survive. Require citations to retrieved chunks so answers can be verified. Most quality problems in production apps are context problems, not model problems."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Context engineering is mainly about…",
+              "choices": [
+                "What enters the window and in what form",
+                "Only temperature",
+                "Only GPU choice",
+                "Only EU AI Act text"
+              ],
+              "answer": 0,
+              "why": "Selection and arrangement of context dominate quality."
+            },
+            {
+              "q": "Untrusted content in a prompt should be…",
+              "choices": [
+                "Put in the system prompt",
+                "Deleted always",
+                "Mixed into instructions",
+                "Delimited and labeled as data"
+              ],
+              "answer": 3,
+              "why": "Clear boundaries help, though they do not fully stop injection."
+            },
+            {
+              "q": "Models tend to use information best when it is placed…",
+              "choices": [
+                "At the start or end of the context",
+                "In metadata only",
+                "In the exact middle",
+                "Randomly"
+              ],
+              "answer": 0,
+              "why": "\"Lost in the middle\" degrades recall for centered content."
+            }
+          ],
+          "conceptIds": [
+            "context-eng"
+          ]
+        },
+        {
+          "id": "e-tok",
+          "title": "Tokenizer & Embedding Internals for App Devs",
+          "why": "Token and embedding choices silently set cost and recall.",
+          "explainer": "You rarely train a tokenizer, but you must know fertility, multilingual blowups, and how embedding models differ from the chat model. Chunk boundaries that split sentences kill retrieval. Dimension, MRL, and similarity metrics affect index design.\n\nCommon mistake: embedding with model A and assuming chat model B 'understands' the same vectors. Another: giant chunks to 'save' embeddings that then exceed useful context.\n\nMeasure tokens per page of your real corpus before pricing the product.",
+          "resources": [
+            {
+              "title": "minbpe",
+              "url": "https://github.com/karpathy/minbpe"
+            },
+            {
+              "title": "Hugging Face LLM Course",
+              "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+            },
+            {
+              "title": "Retrieval-Augmented Generation",
+              "url": "https://arxiv.org/abs/2005.11401"
+            }
+          ],
+          "project": "Tokenize 20 real docs; report fertility; chunk three ways and compare retrieval hit rate.",
+          "topics": [
+            {
+              "id": "e-tok-bpe",
+              "title": "Tokenizers",
+              "subtopics": [
+                {
+                  "id": "e-tok-bpe-s1",
+                  "title": "Fertility by domain"
+                },
+                {
+                  "id": "e-tok-bpe-s2",
+                  "title": "Multilingual cost"
+                },
+                {
+                  "id": "e-tok-bpe-s3",
+                  "title": "Special tokens"
+                },
+                {
+                  "id": "e-tok-bpe-s4",
+                  "title": "Truncation strategies"
+                },
+                {
+                  "id": "e-tok-bpe-s5",
+                  "title": "Counting before send"
+                }
+              ],
+              "explainer": "Token counts drive cost, latency and truncation. Measure fertility on your real data: JSON, code, logs and non-English text often tokenize poorly. Special tokens such as end-of-turn markers must never appear in user content unescaped. When text is too long, choose a truncation strategy deliberately (keep the head and tail, summarize the middle, or retrieve) instead of chopping silently. Count tokens with the provider's tokenizer before sending so you can reject or compact oversized requests early."
+            },
+            {
+              "id": "e-emb",
+              "title": "Embeddings",
+              "subtopics": [
+                {
+                  "id": "e-emb-s1",
+                  "title": "Bi-encoders vs cross-encoders"
+                },
+                {
+                  "id": "e-emb-s2",
+                  "title": "Dimension and MRL"
+                },
+                {
+                  "id": "e-emb-s3",
+                  "title": "Similarity metrics"
+                },
+                {
+                  "id": "e-emb-s4",
+                  "title": "Domain drift"
+                },
+                {
+                  "id": "e-emb-s5",
+                  "title": "Asymmetric query/doc models"
+                }
+              ],
+              "explainer": "Embeddings turn text into vectors for search. Bi-encoders embed queries and documents separately, which is fast and indexable; cross-encoders read the pair together and are more accurate, so use them to rerank a shortlist. Matryoshka (MRL) models let you truncate vectors to fewer dimensions with modest quality loss, saving memory. Cosine similarity is standard; normalize vectors so dot product equals cosine. Some models use different prefixes or encoders for queries and documents. Re-evaluate when your domain drifts, and remember that changing embedding models means re-indexing."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A bi-encoder is typically used to…",
+              "choices": [
+                "Embed queries/docs for ANN search",
+                "Generate the final answer tokens",
+                "Train the GPU driver",
+                "Replace HTTPS"
+              ],
+              "answer": 0,
+              "why": "Bi-encoders enable fast retrieval."
+            },
+            {
+              "q": "Matryoshka (MRL) embeddings let you…",
+              "choices": [
+                "Encrypt vectors",
+                "Train without data",
+                "Truncate vectors to fewer dimensions with modest quality loss",
+                "Skip tokenization"
+              ],
+              "answer": 2,
+              "why": "Prefixes of the vector remain useful embeddings."
+            },
+            {
+              "q": "After L2-normalizing vectors, dot product equals…",
+              "choices": [
+                "Hamming distance",
+                "Jaccard index",
+                "Euclidean distance",
+                "Cosine similarity"
+              ],
+              "answer": 3,
+              "why": "Normalization removes magnitude, leaving the cosine."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    },
+    {
+      "id": "e-l2",
+      "name": "L2 Practitioner",
+      "subjects": [
+        {
+          "id": "e-tools",
+          "title": "Tool Calling & Structured I/O",
+          "why": "Tools turn chat into software; schemas keep it sane.",
+          "explainer": "Design task-oriented tools with strict schemas and server-side validation. Parallel tool calls, repair turns, max iterations, and human confirmation for irreversible side effects are part of the loop. Error messages back to the model should be actionable, not stack traces with secrets.\n\nCommon mistake: exposing 80 CRUD endpoints and wondering why tool selection flails. Another: trusting model-produced SQL without a permission layer.\n\nFewer, sharper tools beat a mirror of your REST API.",
+          "resources": [
+            {
+              "title": "OpenAI prompt engineering",
+              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering"
+            },
+            {
+              "title": "Anthropic Building Effective Agents",
+              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+            },
+            {
+              "title": "Model Context Protocol",
+              "url": "https://modelcontextprotocol.io/"
+            }
+          ],
+          "project": "Implement 5 tools with strict schemas, validation, and safe errors back to the model.",
+          "topics": [
+            {
+              "id": "e-tools-des",
+              "title": "Design",
+              "subtopics": [
+                {
+                  "id": "e-tools-des-s1",
+                  "title": "Task-oriented vs CRUD"
+                },
+                {
+                  "id": "e-tools-des-s2",
+                  "title": "Descriptions models can use"
+                },
+                {
+                  "id": "e-tools-des-s3",
+                  "title": "Argument schemas"
+                },
+                {
+                  "id": "e-tools-des-s4",
+                  "title": "Idempotent side effects"
+                },
+                {
+                  "id": "e-tools-des-s5",
+                  "title": "Side-effect classes"
+                }
+              ],
+              "explainer": "Design tools around tasks the model needs, not around your database tables: \"refund_order(order_id, reason)\" beats generic CRUD. Descriptions are prompts, so write them for the model, with when-to-use guidance and examples. Use strict argument schemas with enums and required fields. Classify side effects as read, reversible write or irreversible write, and make writes idempotent with keys so retries do not double-charge. Return compact, structured results and clear error messages the model can act on."
+            },
+            {
+              "id": "e-tools-loop",
+              "title": "Loop",
+              "subtopics": [
+                {
+                  "id": "e-tools-loop-s1",
+                  "title": "Parallel tool calls"
+                },
+                {
+                  "id": "e-tools-loop-s2",
+                  "title": "Error repair turns"
+                },
+                {
+                  "id": "e-tools-loop-s3",
+                  "title": "Max iterations"
+                },
+                {
+                  "id": "e-tools-loop-s4",
+                  "title": "Human confirmation"
+                },
+                {
+                  "id": "e-tools-loop-s5",
+                  "title": "Timeouts per tool"
+                }
+              ],
+              "explainer": "The tool loop is: model proposes calls, harness executes, results go back, repeat until the model answers. Run independent calls in parallel. When a tool fails, return a useful error so the model can repair arguments on the next turn rather than crashing. Cap iterations and total tokens so loops cannot run forever. Insert human confirmation before irreversible actions. Give each tool its own timeout so one slow API does not stall the whole run."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Tool results should be treated as…",
+              "choices": [
+                "Untrusted input that can inject instructions",
+                "Trusted system prompts",
+                "GPU telemetry only",
+                "Always empty"
+              ],
+              "answer": 0,
+              "why": "Tool outputs are an injection channel."
+            },
+            {
+              "q": "Idempotency keys on write tools prevent…",
+              "choices": [
+                "Long prompts",
+                "Slow responses",
+                "Schema errors",
+                "Duplicate side effects on retries"
+              ],
+              "answer": 3,
+              "why": "A retried call with the same key is a no-op."
+            },
+            {
+              "q": "When a tool fails, the harness should…",
+              "choices": [
+                "Return a clear error so the model can repair its call",
+                "Crash the run",
+                "Retry forever",
+                "Hide the failure"
+              ],
+              "answer": 0,
+              "why": "Actionable errors enable self-correction within budgets."
+            }
+          ],
+          "conceptIds": [
+            "tool-calling"
+          ]
+        },
+        {
+          "id": "e-rag",
+          "title": "RAG Systems Deep Dive",
+          "why": "Retrieval is the default enterprise grounding path.",
+          "explainer": "Indexing (chunking, embeddings, metadata), hybrid BM25+dense, reranking, query rewrite, multi-hop, and citation grounding form the pipeline. Failures: wrong chunk, split fact, stale index, injection via docs, over-retrieval noise. GraphRAG and knowledge-graph hybrids help when relations matter more than similarity.\n\nEvaluate retrieval and generation separately. Refuse when unsupported.\n\nCommon mistake: one-size chunking for policies, tables, and code. Another: no ACL filters on the index in a multi-tenant app.",
+          "resources": [
+            {
+              "title": "Retrieval-Augmented Generation",
+              "url": "https://arxiv.org/abs/2005.11401"
+            },
+            {
+              "title": "LlamaIndex",
+              "url": "https://developers.llamaindex.ai/python/framework/"
+            },
+            {
+              "title": "LangChain",
+              "url": "https://docs.langchain.com/oss/python/langchain/overview"
+            },
+            {
+              "title": "Ragas",
+              "url": "https://docs.ragas.io/en/stable/"
+            }
+          ],
+          "project": "Hybrid BM25+vector RAG with citations, refusal, ACL filters, and a Ragas-style report.",
+          "topics": [
+            {
+              "id": "e-rag-index",
+              "title": "Indexing",
+              "subtopics": [
+                {
+                  "id": "e-rag-index-s1",
+                  "title": "Chunking strategies"
+                },
+                {
+                  "id": "e-rag-index-s2",
+                  "title": "Embeddings choice"
+                },
+                {
+                  "id": "e-rag-index-s3",
+                  "title": "Metadata and ACLs"
+                },
+                {
+                  "id": "e-rag-index-s4",
+                  "title": "Hybrid BM25+dense"
+                },
+                {
+                  "id": "e-rag-index-s5",
+                  "title": "Graph / hierarchical indexes"
+                }
+              ],
+              "explainer": "Indexing quality sets the ceiling for RAG. Chunk on structure (headings, sections) rather than fixed character counts, with modest overlap. Pick embeddings by testing retrieval on your data. Attach metadata (source, date, ACL, section) to every chunk so you can filter and cite. Combine BM25 keyword search with dense vectors, since each catches what the other misses. For complex corpora, hierarchical or graph indexes capture relationships that flat chunks lose."
+            },
+            {
+              "id": "e-rag-query",
+              "title": "Query Path",
+              "subtopics": [
+                {
+                  "id": "e-rag-query-s1",
+                  "title": "Query rewrite / HyDE"
+                },
+                {
+                  "id": "e-rag-query-s2",
+                  "title": "Multi-hop"
+                },
+                {
+                  "id": "e-rag-query-s3",
+                  "title": "Reranking"
+                },
+                {
+                  "id": "e-rag-query-s4",
+                  "title": "Citation grounding"
+                },
+                {
+                  "id": "e-rag-query-s5",
+                  "title": "Refusal and coverage"
+                }
+              ],
+              "explainer": "At query time, rewrite vague or conversational questions into standalone searches; HyDE generates a hypothetical answer and searches with it. Multi-hop questions need iterative retrieval where each step informs the next. Retrieve broadly (say 50 candidates) then rerank with a cross-encoder down to the best 5 to 10. Force the model to cite chunk ids and to say when the evidence does not cover the question. Good refusals are a feature, not a failure."
+            },
+            {
+              "id": "e-rag-fail",
+              "title": "Failure Modes",
+              "subtopics": [
+                {
+                  "id": "e-rag-fail-s1",
+                  "title": "Wrong chunk / split fact"
+                },
+                {
+                  "id": "e-rag-fail-s2",
+                  "title": "Stale index"
+                },
+                {
+                  "id": "e-rag-fail-s3",
+                  "title": "Doc-based injection"
+                },
+                {
+                  "id": "e-rag-fail-s4",
+                  "title": "Over-retrieval noise"
+                },
+                {
+                  "id": "e-rag-fail-s5",
+                  "title": "Eval blind spots"
+                }
+              ],
+              "explainer": "RAG fails in recognizable ways. The answer was split across two chunks and neither alone is enough. The index is stale. A document contains injected instructions that the model follows. Too many weak chunks drown the relevant one. Evals only test easy questions so problems stay hidden. Diagnose by logging retrieved chunks with every answer and labeling failures as retrieval misses versus generation errors; the fixes are completely different."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Hybrid search combines…",
+              "choices": [
+                "Lexical (e.g. BM25) and dense vectors",
+                "Two GPUs only",
+                "HTTP and FTP",
+                "Training and inference licenses"
+              ],
+              "answer": 0,
+              "why": "Lexical+dense covers complementary failures."
+            },
+            {
+              "q": "Reranking with a cross-encoder is typically applied to…",
+              "choices": [
+                "The entire corpus",
+                "The final answer",
+                "Only the query",
+                "A shortlist of retrieved candidates"
+              ],
+              "answer": 3,
+              "why": "Cross-encoders are accurate but too slow for full-corpus search."
+            },
+            {
+              "q": "To diagnose a bad RAG answer first check…",
+              "choices": [
+                "The tokenizer license",
+                "GPU temperature",
+                "Which chunks were retrieved",
+                "The font"
+              ],
+              "answer": 2,
+              "why": "Separate retrieval misses from generation errors."
+            }
+          ],
+          "conceptIds": [
+            "rag-pipeline",
+            "hnsw",
+            "graphrag"
+          ]
+        },
+        {
+          "id": "e-cache",
+          "title": "Semantic Caching & Gateway Clients",
+          "why": "Repeat traffic should not always pay full token price.",
+          "explainer": "Application-level semantic caches and gateway features (LiteLLM and friends) reduce spend on FAQs and repeated agent prefixes. Keys must include tenant, tool policy version, and model identity. Bypass on freshness-critical or personalized paths.\n\nCommon mistake: caching answers that include time-varying inventory. Another: sharing cache across permission tiers.\n\nInstrument hit rate next to quality — a high hit rate with wrong answers is a silent outage.",
+          "resources": [
+            {
+              "title": "LiteLLM",
+              "url": "https://docs.litellm.ai/"
+            },
+            {
+              "title": "OpenTelemetry",
+              "url": "https://opentelemetry.io/docs/"
+            },
+            {
+              "title": "Ragas",
+              "url": "https://docs.ragas.io/en/stable/"
+            }
+          ],
+          "project": "Add a semantic cache with tenant keys; measure hit rate and quality on 100 repeated queries.",
+          "topics": [
+            {
+              "id": "e-cache-des",
+              "title": "Design",
+              "subtopics": [
+                {
+                  "id": "e-cache-des-s1",
+                  "title": "Similarity thresholds"
+                },
+                {
+                  "id": "e-cache-des-s2",
+                  "title": "Key composition"
+                },
+                {
+                  "id": "e-cache-des-s3",
+                  "title": "TTL and invalidation"
+                },
+                {
+                  "id": "e-cache-des-s4",
+                  "title": "Bypass rules"
+                },
+                {
+                  "id": "e-cache-des-s5",
+                  "title": "Cold-start behavior"
+                }
+              ],
+              "explainer": "Semantic caching stores responses keyed by prompt embeddings and returns a hit when a new prompt is similar enough. The similarity threshold is the main knob: too low and users get wrong answers, too high and nothing hits. Build keys from the embedding plus tenant, model, prompt version and relevant parameters. Use TTLs and event-based invalidation when source data changes. Bypass the cache for personalized or tool-using requests. Expect a cold start with no hits until traffic builds the cache."
+            },
+            {
+              "id": "e-cache-ops",
+              "title": "Ops",
+              "subtopics": [
+                {
+                  "id": "e-cache-ops-s1",
+                  "title": "Hit rate dashboards"
+                },
+                {
+                  "id": "e-cache-ops-s2",
+                  "title": "Poisoned cache incidents"
+                },
+                {
+                  "id": "e-cache-ops-s3",
+                  "title": "Versioned policy in keys"
+                },
+                {
+                  "id": "e-cache-ops-s4",
+                  "title": "Multi-region cache"
+                },
+                {
+                  "id": "e-cache-ops-s5",
+                  "title": "Cost attribution"
+                }
+              ],
+              "explainer": "Track hit rate, false-hit rate (sampled and reviewed), latency saved and dollars saved. A poisoned cache, where one bad answer gets served thousands of times, is the classic incident, so keep a way to purge by key pattern instantly. Put the policy version in the key so changes invalidate old entries automatically. In multi-region deployments decide whether caches are regional or replicated. Attribute savings to teams so the value is visible."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Cache keys should change when…",
+              "choices": [
+                "Model, prompt version, or permission scope changes",
+                "Only the wall clock changes by 1s",
+                "The GPU UUID changes",
+                "The user scrolls"
+              ],
+              "answer": 0,
+              "why": "Semantic identity includes policy and model."
+            },
+            {
+              "q": "The classic semantic-cache incident is…",
+              "choices": [
+                "A cache miss",
+                "Low disk usage",
+                "One wrong answer served thousands of times",
+                "High TTL on images"
+              ],
+              "answer": 2,
+              "why": "Keep the ability to purge entries instantly."
+            },
+            {
+              "q": "Personalized or tool-using requests should usually…",
+              "choices": [
+                "Always hit the cache",
+                "Bypass the semantic cache",
+                "Be cached forever",
+                "Be cached across tenants"
+              ],
+              "answer": 1,
+              "why": "Their correct answers depend on user-specific state."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "e-eval",
+          "title": "Product Evals & Quality Loops",
+          "why": "Ship with a gate, not a vibe check.",
+          "explainer": "Suites need capability, safety, and style slices; golden plus adversarial cases; process metrics for tools; cost and latency budgets. Put evals in CI. Calibrate judges. Sample production for new failures.\n\nCommon mistake: only happy-path demos in the suite. Another: changing model and prompt simultaneously without a factorial eval.\n\nMake failing evals block merges for critical paths.",
+          "resources": [
+            {
+              "title": "OpenAI Evals",
+              "url": "https://github.com/openai/evals"
+            },
+            {
+              "title": "Ragas",
+              "url": "https://docs.ragas.io/en/stable/"
+            },
+            {
+              "title": "Stanford HELM",
+              "url": "https://crfm.stanford.edu/helm/"
+            },
+            {
+              "title": "Judging LLM-as-a-Judge",
+              "url": "https://arxiv.org/abs/2306.05685"
+            },
+            {
+              "title": "lm-evaluation-harness",
+              "url": "https://github.com/EleutherAI/lm-evaluation-harness"
+            }
+          ],
+          "project": "CI evals: 40 golden cases; fail PR on >3% quality drop or cost/latency regress.",
+          "topics": [
+            {
+              "id": "e-eval-suite",
+              "title": "Suite Design",
+              "subtopics": [
+                {
+                  "id": "e-eval-suite-s1",
+                  "title": "Capability / safety / style"
+                },
+                {
+                  "id": "e-eval-suite-s2",
+                  "title": "Golden + adversarial"
+                },
+                {
+                  "id": "e-eval-suite-s3",
+                  "title": "Process metrics"
+                },
+                {
+                  "id": "e-eval-suite-s4",
+                  "title": "Cost and latency budgets"
+                },
+                {
+                  "id": "e-eval-suite-s5",
+                  "title": "Slice by user cohort"
+                }
+              ],
+              "explainer": "A product eval suite covers capability (does it solve tasks), safety (refusals, leaks, harmful content) and style (tone, format). Mix golden examples from real traffic with adversarial cases. For agents, add process metrics such as steps taken and tool errors. Track cost and latency per case alongside quality so trade-offs are explicit. Slice results by user cohort, language and task type, because averages hide the segment that is failing."
+            },
+            {
+              "id": "e-eval-ops",
+              "title": "Ops",
+              "subtopics": [
+                {
+                  "id": "e-eval-ops-s1",
+                  "title": "Versioned prompts in evals"
+                },
+                {
+                  "id": "e-eval-ops-s2",
+                  "title": "Judge calibration"
+                },
+                {
+                  "id": "e-eval-ops-s3",
+                  "title": "Production sampling"
+                },
+                {
+                  "id": "e-eval-ops-s4",
+                  "title": "Regression dashboards"
+                },
+                {
+                  "id": "e-eval-ops-s5",
+                  "title": "Flaky eval hygiene"
+                }
+              ],
+              "explainer": "Treat evals as code. Version prompts, models and judge configs together so results are reproducible. Calibrate LLM judges against human labels periodically. Sample production traffic into review queues to find new failure types and feed them back into the golden set. Show regression dashboards per release. Quarantine flaky cases and fix their nondeterminism rather than ignoring red results. Try it: run the same eval twice with no changes. Any case that flips is flaky and needs fixing before it can gate a release."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Process metrics for agents include…",
+              "choices": [
+                "Whether the correct tool and args were chosen",
+                "Only BLEU",
+                "Only GPU temp",
+                "Only NPS"
+              ],
+              "answer": 0,
+              "why": "Trajectory correctness matters."
+            },
+            {
+              "q": "Why slice eval results by cohort?",
+              "choices": [
+                "To use fewer cases",
+                "To reduce cost",
+                "Judges require it",
+                "Averages hide segments that fail"
+              ],
+              "answer": 3,
+              "why": "A 90% average can hide a 50% language or task slice."
+            },
+            {
+              "q": "A case that flips pass/fail with no changes is…",
+              "choices": [
+                "Flaky and should be fixed before gating releases",
+                "Proof of improvement",
+                "A great signal",
+                "A judge upgrade"
+              ],
+              "answer": 0,
+              "why": "Flaky cases erode trust in the eval gate."
+            }
+          ],
+          "conceptIds": [
+            "evals"
+          ]
+        },
+        {
+          "id": "e-vector",
+          "title": "Vector Search Internals",
+          "why": "Retrieval quality and cost depend on how the index actually finds neighbors.",
+          "explainer": "Vector databases use approximate nearest neighbor (ANN) indexes such as HNSW, IVF and product quantization. Understanding their knobs lets you trade recall, latency and memory deliberately, size infrastructure, and avoid pitfalls such as filters that destroy recall.\n\nCommon mistakes: never measuring recall against exact search; post-filtering ANN results by tenant; re-embedding without re-indexing; choosing a vector DB before knowing data size and filter needs.",
+          "resources": [
+            {
+              "title": "HNSW paper (Malkov & Yashunin)",
+              "url": "https://arxiv.org/abs/1603.09320"
+            },
+            {
+              "title": "Faiss wiki",
+              "url": "https://github.com/facebookresearch/faiss/wiki"
+            },
+            {
+              "title": "pgvector",
+              "url": "https://github.com/pgvector/pgvector"
+            }
+          ],
+          "project": "Index 1M vectors with HNSW and IVF-PQ in Faiss. Plot recall@10 vs latency for several efSearch and nprobe values, measure memory, then add a tenant filter and observe recall with pre- vs post-filtering.",
+          "topics": [
+            {
+              "id": "e-vec-ann",
+              "title": "ANN Algorithms",
+              "explainer": "Exact search is linear in corpus size. HNSW navigates a layered proximity graph and offers excellent recall and latency at the cost of memory (vectors plus links). IVF partitions vectors into clusters and searches only the closest nprobe lists, which is cheaper in memory and easy to shard. Product quantization compresses vectors into compact codes, enabling billions of vectors in RAM, usually with a full-precision rerank of top candidates. DiskANN-style indexes keep most data on SSD.",
+              "subtopics": [
+                {
+                  "id": "e-vec-ann-s1",
+                  "title": "Exact vs approximate search"
+                },
+                {
+                  "id": "e-vec-ann-s2",
+                  "title": "HNSW graphs (M, ef)"
+                },
+                {
+                  "id": "e-vec-ann-s3",
+                  "title": "IVF lists and nprobe"
+                },
+                {
+                  "id": "e-vec-ann-s4",
+                  "title": "Product quantization"
+                },
+                {
+                  "id": "e-vec-ann-s5",
+                  "title": "Disk-based indexes"
+                }
+              ]
+            },
+            {
+              "id": "e-vec-ops",
+              "title": "Operating Vector Indexes",
+              "explainer": "Measure recall@k against exact search on a sample whenever you change parameters or data. Size memory as vectors plus index overhead. Filters by tenant or ACL should be applied during search (filtered HNSW, partitioned indexes) rather than after, or results can come back nearly empty. Plan re-indexing when embedding models change and handle deletes, which some graph indexes support poorly. Hybrid keyword plus vector search is often the best default.",
+              "subtopics": [
+                {
+                  "id": "e-vec-ops-s1",
+                  "title": "Recall measurement"
+                },
+                {
+                  "id": "e-vec-ops-s2",
+                  "title": "Memory sizing"
+                },
+                {
+                  "id": "e-vec-ops-s3",
+                  "title": "Filtered search strategies"
+                },
+                {
+                  "id": "e-vec-ops-s4",
+                  "title": "Re-indexing and deletes"
+                },
+                {
+                  "id": "e-vec-ops-s5",
+                  "title": "Hybrid search"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Increasing HNSW efSearch generally…",
+              "choices": [
+                "Deletes vectors",
+                "Lowers recall",
+                "Raises recall and latency",
+                "Reduces memory"
+              ],
+              "answer": 2,
+              "why": "A wider search explores more candidates."
+            },
+            {
+              "q": "Product quantization mainly reduces…",
+              "choices": [
+                "Dimensions of queries only",
+                "Query count",
+                "Memory per vector",
+                "Recall to zero"
+              ],
+              "answer": 2,
+              "why": "Vectors become compact codes."
+            },
+            {
+              "q": "Post-filtering ANN results by tenant can cause…",
+              "choices": [
+                "Better recall",
+                "Lower memory",
+                "Faster indexing",
+                "Few or no results when the tenant is small"
+              ],
+              "answer": 3,
+              "why": "Most top candidates may belong to other tenants."
+            },
+            {
+              "q": "10M float32 vectors of 768 dims take about…",
+              "choices": [
+                "30.7 GB",
+                "307 GB",
+                "3 GB",
+                "768 MB"
+              ],
+              "answer": 0,
+              "why": "10M × 768 × 4 bytes ≈ 30.7 GB."
+            }
+          ],
+          "conceptIds": [
+            "hnsw",
+            "graphrag"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e-l3",
+      "name": "L3 Advanced",
+      "subjects": [
+        {
+          "id": "e-agents",
+          "title": "Application-Level Agents",
+          "why": "When the next step depends on the last result — and only then.",
+          "explainer": "Start with workflows and state machines. Promote to a single tool-using agent when branching is truly model-driven. Use plan-act-observe loops with budgets. Subagents need clear contracts. Deterministic wrappers around brittle steps reduce variance.\n\nCommon mistake: a swarm for a form-fill. Another: no stop condition beyond 'model says done.'\n\nCompare agent versus workflow on evals and cost before celebrating autonomy.",
+          "resources": [
+            {
+              "title": "Anthropic Building Effective Agents",
+              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+            },
+            {
+              "title": "LangChain",
+              "url": "https://docs.langchain.com/oss/python/langchain/overview"
+            },
+            {
+              "title": "Model Context Protocol",
+              "url": "https://modelcontextprotocol.io/"
+            }
+          ],
+          "project": "Replace a brittle chain with one agent plus tools and stop conditions; compare evals and cost.",
+          "topics": [
+            {
+              "id": "e-agents-when",
+              "title": "When to Agent",
+              "subtopics": [
+                {
+                  "id": "e-agents-when-s1",
+                  "title": "Workflow vs agent tree"
+                },
+                {
+                  "id": "e-agents-when-s2",
+                  "title": "State machines first"
+                },
+                {
+                  "id": "e-agents-when-s3",
+                  "title": "Single agent before swarm"
+                },
+                {
+                  "id": "e-agents-when-s4",
+                  "title": "Human escalation"
+                },
+                {
+                  "id": "e-agents-when-s5",
+                  "title": "Budgeting"
+                }
+              ],
+              "explainer": "Most problems that look like agent problems are workflows: a fixed sequence of steps with an LLM inside some of them. Workflows are cheaper, faster and easier to test. Model the task as a state machine first. Use a single tool-using agent when steps genuinely depend on intermediate results. Only reach for multiple agents when tasks are parallel or need very different contexts. Always define human escalation and step, token and dollar budgets."
+            },
+            {
+              "id": "e-agents-impl",
+              "title": "Implementation",
+              "subtopics": [
+                {
+                  "id": "e-agents-impl-s1",
+                  "title": "Plan-Act-Observe"
+                },
+                {
+                  "id": "e-agents-impl-s2",
+                  "title": "Scratchpads"
+                },
+                {
+                  "id": "e-agents-impl-s3",
+                  "title": "Subagents"
+                },
+                {
+                  "id": "e-agents-impl-s4",
+                  "title": "Deterministic wrappers"
+                },
+                {
+                  "id": "e-agents-impl-s5",
+                  "title": "Idempotency"
+                }
+              ],
+              "explainer": "A practical agent runs plan, act, observe in a loop. A scratchpad or todo list keeps the plan visible across turns. Subagents can handle isolated subtasks with fresh context and return summaries. Wrap fragile operations in deterministic code rather than asking the model to do them. Make every side-effecting tool idempotent so a retry after a crash does not repeat work. Log the full trajectory for debugging and evals."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Prefer a workflow when…",
+              "choices": [
+                "Steps are known and stable",
+                "Every step needs creative tool choice",
+                "You have infinite budget",
+                "Evals are impossible"
+              ],
+              "answer": 0,
+              "why": "Deterministic pipelines beat agents when known."
+            },
+            {
+              "q": "Before building multiple agents you should…",
+              "choices": [
+                "Add more agents",
+                "Skip evals",
+                "Try a workflow, then a single tool-using agent",
+                "Remove budgets"
+              ],
+              "answer": 2,
+              "why": "Complexity should be earned by evidence."
+            },
+            {
+              "q": "A visible todo list or scratchpad in an agent helps…",
+              "choices": [
+                "Keep the plan coherent across many turns",
+                "Avoid tool calls",
+                "Encrypt data",
+                "Lower GPU temperature"
+              ],
+              "answer": 0,
+              "why": "Explicit plans reduce drift."
+            }
+          ],
+          "conceptIds": [
+            "agent-loop"
+          ]
+        },
+        {
+          "id": "e-prod",
+          "title": "Production Hardening",
+          "why": "Demos are not products.",
+          "explainer": "Timeouts, circuit breakers, fallback models, queues, backpressure, and idempotent writes keep systems alive. Observability needs structured traces of prompts, tools, tokens, and dollars — with PII redaction. AuthN/Z on tools, output filters, dependency pinning, and spend caps are mandatory.\n\nCommon mistake: logging raw prompts to a multi-tenant sink. Another: no kill switch when a prompt change loops tools.\n\nOn-call for AI includes quality pages, not only 5xx.",
+          "resources": [
+            {
+              "title": "Twelve-Factor App",
+              "url": "https://12factor.net/"
+            },
+            {
+              "title": "OpenTelemetry",
+              "url": "https://opentelemetry.io/docs/"
+            },
+            {
+              "title": "OWASP Top 10 for LLM Apps",
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+            },
+            {
+              "title": "Docker docs",
+              "url": "https://docs.docker.com/"
+            },
+            {
+              "title": "Google SRE Book",
+              "url": "https://sre.google/sre-book/table-of-contents/"
+            }
+          ],
+          "project": "Add tracing, rate limits, spend caps, and a kill switch to your LLM API app.",
+          "topics": [
+            {
+              "id": "e-prod-rel",
+              "title": "Reliability",
+              "subtopics": [
+                {
+                  "id": "e-prod-rel-s1",
+                  "title": "Timeouts / breakers"
+                },
+                {
+                  "id": "e-prod-rel-s2",
+                  "title": "Fallback models"
+                },
+                {
+                  "id": "e-prod-rel-s3",
+                  "title": "Queues and backpressure"
+                },
+                {
+                  "id": "e-prod-rel-s4",
+                  "title": "Idempotent writes"
+                },
+                {
+                  "id": "e-prod-rel-s5",
+                  "title": "Load shedding"
+                }
+              ],
+              "explainer": "Production LLM features need the reliability patterns of any distributed system. Set timeouts and circuit breakers on model calls. Configure fallback models or providers. Put async work on queues with backpressure so spikes do not cascade. Make writes idempotent. Shed low-priority load when capacity is short. Test these paths deliberately, because a provider outage is a matter of when, not if."
+            },
+            {
+              "id": "e-prod-obs",
+              "title": "Observability",
+              "subtopics": [
+                {
+                  "id": "e-prod-obs-s1",
+                  "title": "Structured traces"
+                },
+                {
+                  "id": "e-prod-obs-s2",
+                  "title": "Token and $ metrics"
+                },
+                {
+                  "id": "e-prod-obs-s3",
+                  "title": "Quality sampling"
+                },
+                {
+                  "id": "e-prod-obs-s4",
+                  "title": "Alerting on drift"
+                },
+                {
+                  "id": "e-prod-obs-s5",
+                  "title": "Redacted logs"
+                }
+              ],
+              "explainer": "Trace every request across retrieval, model calls and tools with structured spans (OpenTelemetry GenAI conventions help). Record tokens, cost, latency and model version per span. Sample outputs for quality review. Alert on drift in quality scores, refusal rates or tokens per request, not only on errors. Redact secrets and personal data before traces are stored, since traces are a common source of leaks."
+            },
+            {
+              "id": "e-prod-sec",
+              "title": "App Security",
+              "subtopics": [
+                {
+                  "id": "e-prod-sec-s1",
+                  "title": "AuthN/Z on tools"
+                },
+                {
+                  "id": "e-prod-sec-s2",
+                  "title": "Output filters"
+                },
+                {
+                  "id": "e-prod-sec-s3",
+                  "title": "PII redaction"
+                },
+                {
+                  "id": "e-prod-sec-s4",
+                  "title": "Dependency pinning"
+                },
+                {
+                  "id": "e-prod-sec-s5",
+                  "title": "Spend caps"
+                }
+              ],
+              "explainer": "Authorize every tool call against the end user's permissions, not the app's service account. Filter outputs for sensitive data and unsafe content before display or action. Redact PII before sending to third-party models where possible. Pin dependency and model versions to avoid supply-chain surprises. Enforce spend caps per user and per key so an abuser or a runaway loop cannot generate a five-figure bill overnight."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A kill switch should be able to…",
+              "choices": [
+                "Disable tools or force safe mode quickly",
+                "Only restart Nginx",
+                "Wipe the model weights",
+                "Ignore audits"
+              ],
+              "answer": 0,
+              "why": "Operational safety needs fast containment."
+            },
+            {
+              "q": "Spend caps per user mainly guard against…",
+              "choices": [
+                "Abuse and runaway loops creating huge bills",
+                "Slow DNS",
+                "UI bugs",
+                "Low accuracy"
+              ],
+              "answer": 0,
+              "why": "Hard limits contain the blast radius."
+            },
+            {
+              "q": "Tool calls should be authorized against…",
+              "choices": [
+                "The app's admin account",
+                "The end user's permissions",
+                "The model's preference",
+                "Nobody"
+              ],
+              "answer": 1,
+              "why": "Otherwise the agent becomes a confused deputy."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "e-ft",
+          "title": "Fine-Tuning & Adaptation",
+          "why": "Fine-tune when prompting and retrieval hit a ceiling.",
+          "explainer": "SFT for format and style, LoRA/QLoRA for efficient adaptation, DPO-style preference methods when ranked feedback exists. Data quality beats quantity. Watch for catastrophic forgetting and eval before merge. Synthetic data helps if validated against held-out human gold.\n\nCommon mistake: fine-tuning to fix retrieval failures. Another: no license review on training data.\n\nKeep a decision record: why fine-tune beat better prompts.",
+          "resources": [
+            {
+              "title": "LoRA: Low-Rank Adaptation",
+              "url": "https://arxiv.org/abs/2106.09685"
+            },
+            {
+              "title": "QLoRA",
+              "url": "https://arxiv.org/abs/2305.14314"
+            },
+            {
+              "title": "Direct Preference Optimization",
+              "url": "https://arxiv.org/abs/2305.18290"
+            },
+            {
+              "title": "Hugging Face PEFT docs",
+              "url": "https://huggingface.co/docs/peft/index"
+            },
+            {
+              "title": "Hugging Face TRL docs",
+              "url": "https://huggingface.co/docs/trl/index"
+            }
+          ],
+          "project": "LoRA-tune a small open model on 500 curated examples; compare to prompt+RAG on the same eval.",
+          "topics": [
+            {
+              "id": "e-ft-when",
+              "title": "Decision",
+              "subtopics": [
+                {
+                  "id": "e-ft-when-s1",
+                  "title": "Prompt/RAG ceiling tests"
+                },
+                {
+                  "id": "e-ft-when-s2",
+                  "title": "Style / format / domain gaps"
+                },
+                {
+                  "id": "e-ft-when-s3",
+                  "title": "Data volume and quality"
+                },
+                {
+                  "id": "e-ft-when-s4",
+                  "title": "Forgetting risk"
+                },
+                {
+                  "id": "e-ft-when-s5",
+                  "title": "License constraints"
+                }
+              ],
+              "explainer": "Fine-tune only after prompts and retrieval hit a ceiling you can measure. Fine-tuning is good at style, format, narrow skills and making smaller models act like bigger ones; it is bad at teaching fresh facts, which RAG handles better. You need clean, representative data, usually hundreds to thousands of examples. Watch for catastrophic forgetting of general skills. Check that the base model's license allows tuning and your use."
+            },
+            {
+              "id": "e-ft-how",
+              "title": "Methods",
+              "subtopics": [
+                {
+                  "id": "e-ft-how-s1",
+                  "title": "SFT"
+                },
+                {
+                  "id": "e-ft-how-s2",
+                  "title": "LoRA / QLoRA / DoRA family"
+                },
+                {
+                  "id": "e-ft-how-s3",
+                  "title": "DPO / ORPO / KTO"
+                },
+                {
+                  "id": "e-ft-how-s4",
+                  "title": "Synthetic data with validation"
+                },
+                {
+                  "id": "e-ft-how-s5",
+                  "title": "Eval before merge"
+                }
+              ],
+              "explainer": "Supervised fine-tuning (SFT) trains on input-output pairs. LoRA freezes the base model and learns small low-rank matrices, cutting memory and producing swappable adapters; QLoRA does this on a 4-bit base. Preference methods such as DPO, ORPO and KTO learn from chosen-versus-rejected pairs without a separate reward model. Synthetic data can bootstrap training but must be filtered and validated. Always compare the tuned model to the base on your eval suite before merging."
+            },
+            {
+              "id": "e-ft-ops",
+              "title": "Ops",
+              "subtopics": [
+                {
+                  "id": "e-ft-ops-s1",
+                  "title": "Dataset versioning"
+                },
+                {
+                  "id": "e-ft-ops-s2",
+                  "title": "Checkpoint selection"
+                },
+                {
+                  "id": "e-ft-ops-s3",
+                  "title": "Regression suites"
+                },
+                {
+                  "id": "e-ft-ops-s4",
+                  "title": "Rollback"
+                },
+                {
+                  "id": "e-ft-ops-s5",
+                  "title": "Cost of refresh"
+                }
+              ],
+              "explainer": "Version datasets alongside checkpoints. Pick checkpoints by eval score, not by the lowest training loss. Run regression suites that include general capabilities, not just the target task. Keep the previous adapter ready for instant rollback. Budget for refreshes: when the base model gets a new release, you may need to retrain, so automate the pipeline. Try it: keep a one-line rollback command in the runbook and rehearse it, so reverting an adapter takes seconds instead of a meeting."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "LoRA adapts models by…",
+              "choices": [
+                "Learning low-rank update matrices",
+                "Rewriting all tokenizer rules",
+                "Changing GPU firmware",
+                "Deleting the base weights"
+              ],
+              "answer": 0,
+              "why": "Low-rank adapters are the core idea."
+            },
+            {
+              "q": "Fine-tuning is a poor choice for…",
+              "choices": [
+                "Adjusting tone",
+                "Teaching output format",
+                "Distilling a skill into a smaller model",
+                "Injecting frequently changing facts"
+              ],
+              "answer": 3,
+              "why": "RAG handles fresh facts better; tuning bakes in a snapshot."
+            },
+            {
+              "q": "DPO trains on…",
+              "choices": [
+                "Reward model logits only",
+                "Unlabeled text only",
+                "Images",
+                "Pairs of chosen and rejected responses"
+              ],
+              "answer": 3,
+              "why": "It optimizes preferences directly without an RL loop."
+            }
+          ],
+          "conceptIds": [
+            "lora"
+          ]
+        },
+        {
+          "id": "e-synth",
+          "title": "Synthetic Data & Distillation",
+          "why": "Teacher models can mint training fuel — carefully.",
+          "explainer": "Distillation and synthetic data expand scarce labels. Risks: mirroring teacher blind spots, leaking eval contamination, and mode collapse. Prefer diverse generators, critique/filter pipelines, and human spot checks. On-policy data from your own agent traces often beats generic synthetic chat.\n\nCommon mistake: training on the same scraped web as the teacher without filters. Another: reporting gains only on synthetic tests.\n\nAlways hold out real user-like gold.",
+          "resources": [
+            {
+              "title": "InstructGPT",
+              "url": "https://arxiv.org/abs/2203.02155"
+            },
+            {
+              "title": "Hugging Face TRL docs",
+              "url": "https://huggingface.co/docs/trl/index"
+            },
+            {
+              "title": "Direct Preference Optimization",
+              "url": "https://arxiv.org/abs/2305.18290"
+            }
+          ],
+          "project": "Generate synthetic tool-call traces; filter with a critic; train a small student; eval on human gold.",
+          "topics": [
+            {
+              "id": "e-synth-gen",
+              "title": "Generation",
+              "subtopics": [
+                {
+                  "id": "e-synth-gen-s1",
+                  "title": "Teacher prompting"
+                },
+                {
+                  "id": "e-synth-gen-s2",
+                  "title": "Diversity controls"
+                },
+                {
+                  "id": "e-synth-gen-s3",
+                  "title": "Critique/filter loops"
+                },
+                {
+                  "id": "e-synth-gen-s4",
+                  "title": "On-policy traces"
+                },
+                {
+                  "id": "e-synth-gen-s5",
+                  "title": "Contamination checks"
+                }
+              ],
+              "explainer": "Synthetic data comes from prompting a strong teacher model to produce examples. Control diversity with varied seeds, personas and topics, or you get thousands of near-duplicates. Filter with critique loops, verifiers, or executable checks such as unit tests. On-policy traces from your own model capture its real mistakes. Check that synthetic items do not overlap your evaluation set, or scores become meaningless."
+            },
+            {
+              "id": "e-synth-dist",
+              "title": "Distillation",
+              "subtopics": [
+                {
+                  "id": "e-synth-dist-s1",
+                  "title": "Logit / response distillation"
+                },
+                {
+                  "id": "e-synth-dist-s2",
+                  "title": "Task-specific students"
+                },
+                {
+                  "id": "e-synth-dist-s3",
+                  "title": "Size/latency targets"
+                },
+                {
+                  "id": "e-synth-dist-s4",
+                  "title": "Failure inheritance"
+                },
+                {
+                  "id": "e-synth-dist-s5",
+                  "title": "Refresh cadence"
+                }
+              ],
+              "explainer": "Distillation trains a smaller student to imitate a larger teacher. Logit distillation matches the teacher's full output distribution, which carries more signal than single answers; response distillation trains on teacher outputs only and works with API teachers. Task-specific students can be ten times cheaper with similar quality on that task. Students inherit teacher errors and biases. Plan a refresh cadence as teachers improve."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Synthetic data is safest when…",
+              "choices": [
+                "Filtered and validated against held-out human gold",
+                "Used as the only test set",
+                "Copied from the eval set",
+                "Unlimited and unreviewed"
+              ],
+              "answer": 0,
+              "why": "Human gold keeps you honest."
+            },
+            {
+              "q": "Diversity controls in synthetic data generation prevent…",
+              "choices": [
+                "Fast generation",
+                "Labeling",
+                "Evaluation",
+                "Thousands of near-duplicate examples"
+              ],
+              "answer": 3,
+              "why": "Varied seeds, personas and topics broaden coverage."
+            },
+            {
+              "q": "Logit distillation carries more signal than response distillation because…",
+              "choices": [
+                "It uses images",
+                "It is cheaper",
+                "It needs no teacher",
+                "The student sees the teacher's full probability distribution"
+              ],
+              "answer": 3,
+              "why": "Soft targets show how the teacher ranks alternatives."
+            }
+          ],
+          "conceptIds": [
+            "distillation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e-l4",
+      "name": "L4 Expert",
+      "subjects": [
+        {
+          "id": "e-multi",
+          "title": "Multi-Model Routing & Ensembles",
+          "why": "Route cheap to expensive; specialize by task.",
+          "explainer": "Heuristic or learned routers, confidence/entropy signals, cascades, and verifiers reduce spend. Best-of-N and critique patterns trade cost for quality. Keep A/B assignment honest.\n\nCommon mistake: a router trained on demos that never sees production dialects. Another: cascades without a hard cost ceiling.\n\nMeasure dollars and quality together on the same slices.",
+          "resources": [
+            {
+              "title": "LiteLLM",
+              "url": "https://docs.litellm.ai/"
+            },
+            {
+              "title": "Stanford HELM",
+              "url": "https://crfm.stanford.edu/helm/"
+            },
+            {
+              "title": "Judging LLM-as-a-Judge",
+              "url": "https://arxiv.org/abs/2306.05685"
+            }
+          ],
+          "project": "Build a difficulty router: easy to small model, hard to frontier; report $ and quality.",
+          "topics": [
+            {
+              "id": "e-multi-route",
+              "title": "Routing",
+              "subtopics": [
+                {
+                  "id": "e-multi-route-s1",
+                  "title": "Heuristic vs learned"
+                },
+                {
+                  "id": "e-multi-route-s2",
+                  "title": "Confidence / entropy"
+                },
+                {
+                  "id": "e-multi-route-s3",
+                  "title": "Cascade and deferral"
+                },
+                {
+                  "id": "e-multi-route-s4",
+                  "title": "A/B assignment"
+                },
+                {
+                  "id": "e-multi-route-s5",
+                  "title": "Feature signals"
+                }
+              ],
+              "explainer": "Routing sends each request to the cheapest model likely to handle it. Heuristic routers use rules (length, keywords, user tier); learned routers predict difficulty from features. Confidence signals such as logprob entropy or a verifier score can trigger escalation. Cascades try a small model first and defer to a larger one when unsure. Run A/B assignment to measure the quality and cost effect of every routing change."
+            },
+            {
+              "id": "e-multi-ens",
+              "title": "Ensembles",
+              "subtopics": [
+                {
+                  "id": "e-multi-ens-s1",
+                  "title": "Best-of-N"
+                },
+                {
+                  "id": "e-multi-ens-s2",
+                  "title": "Verifier models"
+                },
+                {
+                  "id": "e-multi-ens-s3",
+                  "title": "Debate / critique"
+                },
+                {
+                  "id": "e-multi-ens-s4",
+                  "title": "Cost caps"
+                },
+                {
+                  "id": "e-multi-ens-s5",
+                  "title": "Latency SLOs"
+                }
+              ],
+              "explainer": "Ensembles spend more compute for quality. Best-of-N samples several answers and picks the best with a scorer. Verifier models check answers, which works especially well when correctness is checkable (code, math). Debate and critique loops have models review each other. Cap cost per request and keep latency inside the SLO, because ensembles multiply both quickly. Try it: on 100 hard cases, compare single-shot accuracy with best-of-5 plus a verifier, and compute the cost per extra correct answer."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A cascade should…",
+              "choices": [
+                "Stop at the first model that meets a confidence policy",
+                "Always call every model",
+                "Ignore latency",
+                "Disable logging"
+              ],
+              "answer": 0,
+              "why": "Early exit is the point."
+            },
+            {
+              "q": "A cascade router escalates to a larger model when…",
+              "choices": [
+                "Always",
+                "The small model is uncertain or fails a check",
+                "At night",
+                "Never"
+              ],
+              "answer": 1,
+              "why": "Confidence signals or verifiers trigger deferral."
+            },
+            {
+              "q": "Best-of-N works best when…",
+              "choices": [
+                "A reliable scorer or verifier exists",
+                "Outputs cannot be scored",
+                "N=1",
+                "Latency budget is tiny"
+              ],
+              "answer": 0,
+              "why": "Picking the best needs a way to recognize it."
+            }
+          ],
+          "conceptIds": [
+            "llm-gateway-routing"
+          ]
+        },
+        {
+          "id": "e-datafly",
+          "title": "Data Flywheels",
+          "why": "Production traffic is training fuel if you instrument it.",
+          "explainer": "Capture consenting, redacted traces; mine failures; queue active learning. Feed eval expansion, SFT, and preference pairs. Close the loop weekly.\n\nCommon mistake: storing everything forever without redaction. Another: never promoting production failures into the golden set.\n\nFlywheels need product and legal buy-in, not only ML enthusiasm.",
+          "resources": [
+            {
+              "title": "Hugging Face TRL docs",
+              "url": "https://huggingface.co/docs/trl/index"
+            },
+            {
+              "title": "OpenAI Evals",
+              "url": "https://github.com/openai/evals"
+            },
+            {
+              "title": "Designing Machine Learning Systems",
+              "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+            }
+          ],
+          "project": "Thumbs and tool-success signals → weekly curated fine-tune and eval delta sets.",
+          "topics": [
+            {
+              "id": "e-fly-cap",
+              "title": "Capture",
+              "subtopics": [
+                {
+                  "id": "e-fly-cap-s1",
+                  "title": "Consent and redaction"
+                },
+                {
+                  "id": "e-fly-cap-s2",
+                  "title": "Session traces"
+                },
+                {
+                  "id": "e-fly-cap-s3",
+                  "title": "Failure mining"
+                },
+                {
+                  "id": "e-fly-cap-s4",
+                  "title": "Active learning queues"
+                },
+                {
+                  "id": "e-fly-cap-s5",
+                  "title": "Sampling bias"
+                }
+              ],
+              "explainer": "A data flywheel turns usage into improvement. Capture traces only with consent and redaction in place. Mine failures from explicit feedback, user edits, retries and escalations. Use active learning to queue the most informative examples for labeling. Watch sampling bias: users who give feedback are not representative, and you will over-fit to them if you are careless. Try it: list every signal your app already emits (edits, retries, copies, thumbs) and rank them by how strongly they indicate failure."
+            },
+            {
+              "id": "e-fly-use",
+              "title": "Use",
+              "subtopics": [
+                {
+                  "id": "e-fly-use-s1",
+                  "title": "Eval expansion"
+                },
+                {
+                  "id": "e-fly-use-s2",
+                  "title": "SFT / preference pairs"
+                },
+                {
+                  "id": "e-fly-use-s3",
+                  "title": "Reward signals"
+                },
+                {
+                  "id": "e-fly-use-s4",
+                  "title": "Prompt regressions"
+                },
+                {
+                  "id": "e-fly-use-s5",
+                  "title": "Quality reports"
+                }
+              ],
+              "explainer": "Captured data feeds several loops: new eval cases, SFT examples, preference pairs from edited or rejected answers, reward signals for RL, and regression tests for prompts. Publish a regular quality report that shows how the flywheel moved key metrics. A flywheel that only collects data without changing the product is just storage cost. Try it: every week, turn the top five new failure clusters into eval cases before anyone changes a prompt. This keeps fixes honest."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A flywheel without redaction…",
+              "choices": [
+                "Creates privacy and compliance risk",
+                "Speeds compliance",
+                "Removes injection",
+                "Fixes MoE load balance"
+              ],
+              "answer": 0,
+              "why": "Traces often contain secrets and PII."
+            },
+            {
+              "q": "User edits to a draft are valuable because they…",
+              "choices": [
+                "Remove the need for evals",
+                "Speed up GPUs",
+                "Cost nothing to store",
+                "Provide natural preference pairs"
+              ],
+              "answer": 3,
+              "why": "Original vs edited is a chosen/rejected pair."
+            },
+            {
+              "q": "The main sampling risk in feedback data is…",
+              "choices": [
+                "Compression",
+                "Too many tokens",
+                "Feedback-givers are not representative",
+                "JSON formatting"
+              ],
+              "answer": 2,
+              "why": "Bias toward vocal users skews training and evals."
+            }
+          ],
+          "conceptIds": []
+        },
+        {
+          "id": "e-edge",
+          "title": "On-Device & Edge Apps",
+          "why": "Local models change latency, privacy, and UX.",
+          "explainer": "GGUF/llama.cpp, MLX, ExecuTorch, NPUs, and hybrid local+cloud patterns matter. Cold start, memory budgets, update channels, and honest privacy UX copy are product work.\n\nCommon mistake: promising fully offline while still shipping telemetry that needs network. Another: a 7B model that jetsams the OS on mid phones.\n\nBenchmark on target devices, not only your MacBook.",
+          "resources": [
+            {
+              "title": "llama.cpp",
+              "url": "https://github.com/ggml-org/llama.cpp"
+            },
+            {
+              "title": "Hugging Face LLM Course",
+              "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+            },
+            {
+              "title": "PyTorch tutorials",
+              "url": "https://docs.pytorch.org/tutorials/"
+            }
+          ],
+          "project": "Local RAG demo with llama.cpp or similar; compare quality/latency to cloud on 20 queries.",
+          "topics": [
+            {
+              "id": "e-edge-stack",
+              "title": "Stack",
+              "subtopics": [
+                {
+                  "id": "e-edge-stack-s1",
+                  "title": "GGUF / quantized runtimes"
+                },
+                {
+                  "id": "e-edge-stack-s2",
+                  "title": "NPU/GPU/CPU backends"
+                },
+                {
+                  "id": "e-edge-stack-s3",
+                  "title": "Memory budgets"
+                },
+                {
+                  "id": "e-edge-stack-s4",
+                  "title": "Hybrid local+cloud"
+                },
+                {
+                  "id": "e-edge-stack-s5",
+                  "title": "Update channels"
+                }
+              ],
+              "explainer": "Edge apps run quantized models (GGUF via llama.cpp, MLX, ONNX Runtime, Core ML, or vendor NPU runtimes) on CPUs, GPUs or NPUs. Memory is the binding constraint: a 7B model at 4-bit is about 4 GB, before KV cache. Hybrid designs keep simple or private tasks local and send hard ones to the cloud. Plan model update channels with signatures and delta downloads, since models are large."
+            },
+            {
+              "id": "e-edge-ux",
+              "title": "UX",
+              "subtopics": [
+                {
+                  "id": "e-edge-ux-s1",
+                  "title": "Cold start"
+                },
+                {
+                  "id": "e-edge-ux-s2",
+                  "title": "Partial offline"
+                },
+                {
+                  "id": "e-edge-ux-s3",
+                  "title": "Privacy copy"
+                },
+                {
+                  "id": "e-edge-ux-s4",
+                  "title": "Degraded modes"
+                },
+                {
+                  "id": "e-edge-ux-s5",
+                  "title": "Battery impact"
+                }
+              ],
+              "explainer": "On-device AI has UX costs. The first load of a model can take seconds. Offline mode should degrade gracefully rather than fail. Tell users plainly what stays on device and what goes to the cloud. Provide degraded modes on low battery or thermal throttling. Measure battery impact; a feature that drains the phone gets uninstalled. Try it: measure cold-start time and battery drain for ten minutes of use on a mid-range phone, not just a flagship."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Edge deployments most improve…",
+              "choices": [
+                "Privacy and latency for suitable workloads",
+                "Unlimited frontier reasoning always",
+                "Cluster NCCL bandwidth",
+                "EU AI Act auto-certification"
+              ],
+              "answer": 0,
+              "why": "Fit the workload to the device."
+            },
+            {
+              "q": "A 7B model quantized to 4 bits needs roughly how much memory for weights?",
+              "choices": [
+                "0.5 GB",
+                "14 GB",
+                "28 GB",
+                "3.5-4 GB"
+              ],
+              "answer": 3,
+              "why": "7B × 0.5 bytes ≈ 3.5 GB plus some overhead."
+            },
+            {
+              "q": "Hybrid edge designs typically…",
+              "choices": [
+                "Never update models",
+                "Disable offline mode",
+                "Send everything to the cloud",
+                "Keep simple or private tasks local and escalate hard ones"
+              ],
+              "answer": 3,
+              "why": "They balance privacy, latency and capability."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    },
+    {
+      "id": "e-l5",
+      "name": "L5 Frontier",
+      "subjects": [
+        {
+          "id": "e-post",
+          "title": "Post-Training Collaboration",
+          "why": "Speak research-engineer when prompting is not enough.",
+          "explainer": "Map SFT to preference to RL (RLHF/RLAIF, DPO, GRPO, env-based RL). Understand harness overfitting, reward hacking, and contamination. Know when to request a training run versus change the product.\n\nCommon mistake: asking for RL to fix a tool schema bug. Another: optimizing a proxy reward that the agent games.\n\nBring clean env definitions and evals to the training conversation.",
+          "resources": [
+            {
+              "title": "InstructGPT",
+              "url": "https://arxiv.org/abs/2203.02155"
+            },
+            {
+              "title": "Direct Preference Optimization",
+              "url": "https://arxiv.org/abs/2305.18290"
+            },
+            {
+              "title": "DeepSeekMath / GRPO",
+              "url": "https://arxiv.org/abs/2402.03300"
+            },
+            {
+              "title": "Hugging Face TRL docs",
+              "url": "https://huggingface.co/docs/trl/index"
+            },
+            {
+              "title": "OpenEnv",
+              "url": "https://github.com/meta-pytorch/openenv"
+            }
+          ],
+          "project": "Read a GRPO/DPO report; write a one-pager on product signals that would improve reward.",
+          "topics": [
+            {
+              "id": "e-post-map",
+              "title": "Methods Map",
+              "subtopics": [
+                {
+                  "id": "e-post-map-s1",
+                  "title": "SFT to preference to RL"
+                },
+                {
+                  "id": "e-post-map-s2",
+                  "title": "RLHF / RLAIF"
+                },
+                {
+                  "id": "e-post-map-s3",
+                  "title": "DPO / ORPO / KTO"
+                },
+                {
+                  "id": "e-post-map-s4",
+                  "title": "GRPO and env RL"
+                },
+                {
+                  "id": "e-post-map-s5",
+                  "title": "Distillation vs RL"
+                }
+              ],
+              "explainer": "Post-training turns a base model into an assistant. SFT teaches format and behavior from demonstrations. Preference learning, via RLHF with a reward model or RLAIF with AI feedback, teaches which answers people prefer. DPO, ORPO and KTO do preference learning directly from pairs without the RL loop. GRPO and environment-based RL reward verifiable success, such as passing tests. Distillation copies a stronger model's behavior, often cheaper than RL for narrow goals."
+            },
+            {
+              "id": "e-post-risk",
+              "title": "Risks",
+              "subtopics": [
+                {
+                  "id": "e-post-risk-s1",
+                  "title": "Harness overfitting"
+                },
+                {
+                  "id": "e-post-risk-s2",
+                  "title": "Reward hacking"
+                },
+                {
+                  "id": "e-post-risk-s3",
+                  "title": "Entropy collapse"
+                },
+                {
+                  "id": "e-post-risk-s4",
+                  "title": "Eval contamination"
+                },
+                {
+                  "id": "e-post-risk-s5",
+                  "title": "When not to train"
+                }
+              ],
+              "explainer": "Training can make things worse. Models over-fit to the harness or eval used in training. Reward hacking finds loopholes, such as editing tests instead of fixing code. Entropy collapse makes outputs repetitive and kills exploration. Contaminated evals hide all of this. Often the right call is not to train at all and instead improve prompts, retrieval or tools. Try it: before approving a training run, write down which prompt, retrieval or tool change you tried first and why it was not enough."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Reward hacking means…",
+              "choices": [
+                "Optimizing the proxy without true task success",
+                "A GPU ECC error",
+                "Tokenizer fertility",
+                "A 404 on docs"
+              ],
+              "answer": 0,
+              "why": "The agent games the metric."
+            },
+            {
+              "q": "GRPO-style RL is especially effective when…",
+              "choices": [
+                "Data is unlabeled images",
+                "The model is frozen",
+                "Rewards are verifiable, like passing tests",
+                "No reward exists"
+              ],
+              "answer": 2,
+              "why": "Verifiable rewards give clean training signals."
+            },
+            {
+              "q": "Entropy collapse in RL shows up as…",
+              "choices": [
+                "Larger vocabularies",
+                "Repetitive outputs and lost exploration",
+                "More creative outputs",
+                "Faster tokenization"
+              ],
+              "answer": 1,
+              "why": "The policy over-concentrates on a few behaviors."
+            }
+          ],
+          "conceptIds": [
+            "rlhf-dpo-grpo",
+            "distillation"
+          ]
+        },
+        {
+          "id": "e-multimodal-app",
+          "title": "Multimodal Product Engineering",
+          "why": "Images, PDFs, and audio change the application contract.",
+          "explainer": "Document AI, screenshot agents, and voice wraps need parsers, size limits, malware scanning, and modality-specific evals. Do not send binaries to a VLM when text extraction suffices.\n\nCommon mistake: no max upload or MIME allowlist. Another: evaluating only on clean digital PDFs when users send photos of pages.\n\nDesign modality gates in the API, not only in the prompt.",
+          "resources": [
+            {
+              "title": "Hugging Face LLM Course",
+              "url": "https://huggingface.co/learn/llm-course/chapter1/1"
+            },
+            {
+              "title": "OWASP Top 10 for LLM Apps",
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+            },
+            {
+              "title": "Anthropic Building Effective Agents",
+              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+            }
+          ],
+          "project": "Build an upload path: MIME allowlist, size cap, text-first extraction, VLM fallback, eval set with photos.",
+          "topics": [
+            {
+              "id": "e-mm-pipe",
+              "title": "Pipelines",
+              "subtopics": [
+                {
+                  "id": "e-mm-pipe-s1",
+                  "title": "PDF/OCR first"
+                },
+                {
+                  "id": "e-mm-pipe-s2",
+                  "title": "VLM fallback"
+                },
+                {
+                  "id": "e-mm-pipe-s3",
+                  "title": "Audio STT"
+                },
+                {
+                  "id": "e-mm-pipe-s4",
+                  "title": "Screenshot understanding"
+                },
+                {
+                  "id": "e-mm-pipe-s5",
+                  "title": "Size and MIME gates"
+                }
+              ],
+              "explainer": "Multimodal pipelines should use the cheapest reliable path first: extract text from PDFs and run OCR, and send page images to a VLM only for charts, handwriting or layout-heavy pages. Speech goes through STT before an LLM unless latency demands a native audio model. Screenshots power UI understanding and computer-use agents. Gate inputs by size and MIME type to control cost and attack surface."
+            },
+            {
+              "id": "e-mm-eval",
+              "title": "Eval and Safety",
+              "subtopics": [
+                {
+                  "id": "e-mm-eval-s1",
+                  "title": "Modality-specific gold"
+                },
+                {
+                  "id": "e-mm-eval-s2",
+                  "title": "Adversarial images"
+                },
+                {
+                  "id": "e-mm-eval-s3",
+                  "title": "Prompt injection in pixels"
+                },
+                {
+                  "id": "e-mm-eval-s4",
+                  "title": "Malware scanning"
+                },
+                {
+                  "id": "e-mm-eval-s5",
+                  "title": "Accessibility"
+                }
+              ],
+              "explainer": "Each modality needs its own gold data: scanned forms, charts, accents, noisy audio. Test adversarial images, including text hidden in pixels that tries to inject instructions. Scan uploaded files for malware before processing. Accessibility matters too: generated alt text and transcripts should be checked for accuracy, since users may rely on them. Try it: build 20 test images that contain hidden text instructions, and check whether your pipeline obeys any of them."
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Prefer text extraction before VLM when…",
+              "choices": [
+                "Digital text PDFs are available and reliable",
+                "Every input is a photo of a whiteboard",
+                "You want maximum cost",
+                "You lack an allowlist"
+              ],
+              "answer": 0,
+              "why": "Cheaper and often more accurate."
+            },
+            {
+              "q": "A cost-aware document pipeline usually starts with…",
+              "choices": [
+                "Audio transcription",
+                "Sending every page as an image",
+                "Manual typing",
+                "Text extraction and OCR, with VLM fallback"
+              ],
+              "answer": 3,
+              "why": "Text paths are cheaper and often more accurate."
+            },
+            {
+              "q": "\"Prompt injection in pixels\" refers to…",
+              "choices": [
+                "Image compression",
+                "Instructions hidden in images that a VLM may follow",
+                "Low-resolution images",
+                "Color profiles"
+              ],
+              "answer": 1,
+              "why": "Vision inputs are another untrusted channel."
+            }
+          ],
+          "conceptIds": []
+        }
+      ]
+    }
+  ]
+}
