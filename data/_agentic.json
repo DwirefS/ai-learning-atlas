@@ -648,6 +648,10 @@
             {
               "title": "Retrieval-Augmented Generation",
               "url": "https://arxiv.org/abs/2005.11401"
+            },
+            {
+              "title": "Generative Agents paper (arXiv)",
+              "url": "https://arxiv.org/abs/2304.03442"
             }
           ],
           "project": "Add working + episodic memory; measure success on a 20-step workflow.",
@@ -705,6 +709,33 @@
                 }
               ],
               "explainer": "Memory needs policies. Decide what is worth writing; saving everything creates noise. Summaries lose detail, so keep links to sources. Retrieval can surface irrelevant or outdated memories. Support deletion for privacy. Evaluate memory by whether it improves task success, not by how much it stores. A memory that is never read is cost, and a memory that is read wrongly is a bug. Try it: delete a user and verify every memory store forgets them, including summaries and embeddings."
+            },
+            {
+              "id": "g-mem-x1",
+              "title": "Three-tier memory with scoring and eviction",
+              "explainer": "Split agent memory into tiers. Working memory is the current context. Episodic memory stores past interactions and events with timestamps. Semantic memory holds distilled facts and preferences. Score each item for retrieval by a mix of relevance, recency and importance. The Generative Agents paper used a weighted sum with exponential recency decay. Evict or summarize low-score items, merge duplicates, and resolve contradictions by preferring newer, confirmed facts. Let users view and delete what is stored.",
+              "subtopics": [
+                {
+                  "id": "g-mem-x1-s1",
+                  "title": "Working, episodic and semantic tiers"
+                },
+                {
+                  "id": "g-mem-x1-s2",
+                  "title": "Relevance, recency and importance scoring"
+                },
+                {
+                  "id": "g-mem-x1-s3",
+                  "title": "Eviction and consolidation"
+                },
+                {
+                  "id": "g-mem-x1-s4",
+                  "title": "Contradiction resolution"
+                },
+                {
+                  "id": "g-mem-x1-s5",
+                  "title": "User-visible memory controls"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -740,6 +771,17 @@
               ],
               "answer": 2,
               "why": "Including summaries and embeddings."
+            },
+            {
+              "q": "With recency decay of 0.99 per hour, what is a memory's recency weight after 100 hours?",
+              "choices": [
+                "0.01",
+                "0.99",
+                "1.0",
+                "About 0.37"
+              ],
+              "answer": 3,
+              "why": "0.99^100 ≈ 0.366."
             }
           ],
           "conceptIds": [
@@ -767,6 +809,14 @@
             {
               "title": "A2A protocol",
               "url": "https://a2aproject.github.io/A2A/"
+            },
+            {
+              "title": "MCP specification",
+              "url": "https://modelcontextprotocol.io/specification/2025-06-18"
+            },
+            {
+              "title": "JSON-RPC 2.0 specification",
+              "url": "https://www.jsonrpc.org/specification"
             }
           ],
           "project": "Expose one internal API as MCP server with OAuth; connect two hosts.",
@@ -851,6 +901,33 @@
                   "title": "Deprecation and versioning"
                 }
               ]
+            },
+            {
+              "id": "g-mcp-x1",
+              "title": "MCP on the wire: raw JSON-RPC without an SDK",
+              "explainer": "MCP messages are JSON-RPC 2.0: a request has jsonrpc, id, method and params; a response echoes the id with result or error; a notification has no id. A session starts with initialize, where client and server exchange protocol version and capabilities, then the client sends notifications/initialized. After that come tools/list, tools/call, resources/read and prompts/get. Over stdio, each message is one newline-delimited JSON line. Streamable HTTP uses POST, with optional SSE streams. Writing a 100-line server by hand teaches you what the SDKs do for you.",
+              "subtopics": [
+                {
+                  "id": "g-mcp-x1-s1",
+                  "title": "JSON-RPC 2.0 requests, responses, notifications"
+                },
+                {
+                  "id": "g-mcp-x1-s2",
+                  "title": "initialize handshake and capability negotiation"
+                },
+                {
+                  "id": "g-mcp-x1-s3",
+                  "title": "tools/list and tools/call payloads"
+                },
+                {
+                  "id": "g-mcp-x1-s4",
+                  "title": "stdio framing vs Streamable HTTP"
+                },
+                {
+                  "id": "g-mcp-x1-s5",
+                  "title": "Error codes and cancellation"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -886,6 +963,28 @@
               ],
               "answer": 2,
               "why": "stdio serves local servers; streamable HTTP serves remote ones."
+            },
+            {
+              "q": "What makes a JSON-RPC notification different from a request?",
+              "choices": [
+                "It has no id and expects no response",
+                "It has a result field",
+                "It must be batched",
+                "It uses XML"
+              ],
+              "answer": 0,
+              "why": "Notifications omit id, so no response is sent."
+            },
+            {
+              "q": "Which message must come first in an MCP session?",
+              "choices": [
+                "resources/read",
+                "tools/call",
+                "ping",
+                "initialize"
+              ],
+              "answer": 3,
+              "why": "Clients start with initialize to negotiate the version and capabilities."
             }
           ],
           "conceptIds": [

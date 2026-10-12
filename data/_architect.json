@@ -29,6 +29,14 @@
             {
               "title": "Designing Machine Learning Systems",
               "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+            },
+            {
+              "title": "ADR GitHub organization",
+              "url": "https://adr.github.io/"
+            },
+            {
+              "title": "Michael Nygard: Documenting architecture decisions",
+              "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"
             }
           ],
           "project": "Write an ADR for customer-support AI: workflow vs agent, retrieval vs fine-tune, rollback plan.",
@@ -86,6 +94,33 @@
                 }
               ],
               "explainer": "Break the system along boundaries that fail and scale differently. Keep the synchronous user path thin and push slow work (enrichment, indexing, long agent runs) to async queues. Separate failure domains so a model provider outage degrades one feature instead of the whole product. Use strangler patterns to replace legacy flows incrementally rather than in a big bang. Design degraded modes up front: cached answers, a smaller fallback model, or a \"we're busy, here's a form\" path. A good decomposition makes it obvious which team owns which latency and cost budget."
+            },
+            {
+              "id": "a-sys-x1",
+              "title": "ADRs, teardowns and public benchmarks",
+              "explainer": "Architecture Decision Records are short documents: context, decision, alternatives considered, and consequences. Each one is numbered and immutable, and a later record supersedes it rather than editing it. Write ADRs for model choice, retrieval design and fallback policy. Public teardowns show a hiring manager how you think: the problem, the architecture, the eval results with numbers, the costs, what failed and what you would change. Publish reproducible benchmarks with the dataset, harness and settings so others can rerun them.",
+              "subtopics": [
+                {
+                  "id": "a-sys-x1-s1",
+                  "title": "ADR template: context, decision, consequences"
+                },
+                {
+                  "id": "a-sys-x1-s2",
+                  "title": "Superseding instead of editing"
+                },
+                {
+                  "id": "a-sys-x1-s3",
+                  "title": "Writing a system teardown"
+                },
+                {
+                  "id": "a-sys-x1-s4",
+                  "title": "Reproducible benchmark write-ups"
+                },
+                {
+                  "id": "a-sys-x1-s5",
+                  "title": "Portfolio as evidence of judgment"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -121,6 +156,28 @@
               ],
               "answer": 1,
               "why": "Planned degradation keeps users served when the main path fails."
+            },
+            {
+              "q": "How is an accepted ADR changed when the decision changes?",
+              "choices": [
+                "Edit it in place",
+                "Write a new ADR that supersedes it",
+                "Rename it",
+                "Delete it"
+              ],
+              "answer": 1,
+              "why": "ADRs are immutable; new records supersede old ones."
+            },
+            {
+              "q": "What makes a public benchmark credible?",
+              "choices": [
+                "A logo",
+                "The dataset, harness and settings are published so others can reproduce it",
+                "High numbers",
+                "Only a chart"
+              ],
+              "answer": 1,
+              "why": "Reproducibility is the bar."
             }
           ],
           "conceptIds": [

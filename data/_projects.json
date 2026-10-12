@@ -385,6 +385,112 @@
     ]
   },
   {
+    "id": "p-context",
+    "emoji": "🧮",
+    "title": "Context budget allocator",
+    "tier": 2,
+    "goal": "Build a library that assembles prompts under a token budget and logs what it compressed or dropped.",
+    "stack": [
+      "Python",
+      "tiktoken or provider token counter",
+      "An LLM API with prompt caching"
+    ],
+    "steps": [
+      "Define buckets: output reserve, fixed, retrieval, history, memory",
+      "Count tokens exactly and allocate by priority",
+      "Compress overflow: summarize turns, prune stale tool output",
+      "Order stable content first for caching",
+      "Log a budget report per call"
+    ],
+    "stretch": [
+      "Learn bucket ratios from eval results",
+      "Cost per task dashboard"
+    ],
+    "done": [
+      "Never exceeds window on 1,000 synthetic conversations",
+      "Cache hit rate ≥ 70% on repeated sessions",
+      "Answer quality on golden set within 2 points of the uncompressed baseline"
+    ],
+    "roles": [
+      "ai-engineer"
+    ],
+    "subjects": [
+      "e-tok",
+      "g-harness"
+    ]
+  },
+  {
+    "id": "p-mcp-raw",
+    "emoji": "🔌",
+    "title": "MCP server with raw JSON-RPC (no SDK)",
+    "tier": 2,
+    "goal": "Implement an MCP server over stdio by hand to learn the wire protocol.",
+    "stack": [
+      "Python or TypeScript standard library",
+      "MCP Inspector for testing"
+    ],
+    "steps": [
+      "Read newline-delimited JSON-RPC from stdin",
+      "Handle initialize and notifications/initialized",
+      "Implement tools/list and tools/call for 2 tools",
+      "Return JSON-RPC errors for bad input",
+      "Test with MCP Inspector and a real client"
+    ],
+    "stretch": [
+      "Streamable HTTP transport",
+      "Cancellation and progress notifications"
+    ],
+    "done": [
+      "Works in at least one MCP client",
+      "Conformance on malformed requests (correct error codes)",
+      "Under 300 lines, no SDK"
+    ],
+    "roles": [
+      "ai-engineer",
+      "platform"
+    ],
+    "subjects": [
+      "g-mcp",
+      "g-tools"
+    ]
+  },
+  {
+    "id": "p-streaming",
+    "emoji": "⚡",
+    "title": "Streaming agent UI",
+    "tier": 2,
+    "goal": "Build a chat UI that streams tokens and tool calls with cancellation and optimistic updates.",
+    "stack": [
+      "FastAPI or Node",
+      "SSE (and WebSockets for voice stretch)",
+      "React or plain JS"
+    ],
+    "steps": [
+      "Stream tokens over SSE",
+      "Show tool calls as they start",
+      "Render partial JSON safely",
+      "Add a cancel button wired to the server",
+      "Reconnect and resume after network drops"
+    ],
+    "stretch": [
+      "Voice with VAD and barge-in",
+      "Optimistic UI for user actions"
+    ],
+    "done": [
+      "Time to first token under 800 ms p50",
+      "Cancel stops generation server-side within 300 ms",
+      "Survives network toggle without losing the transcript"
+    ],
+    "roles": [
+      "ai-engineer",
+      "product"
+    ],
+    "subjects": [
+      "e-prod",
+      "e-voice"
+    ]
+  },
+  {
     "id": "p-lora",
     "emoji": "🎙️",
     "title": "LoRA fine-tune in your voice",
@@ -612,6 +718,76 @@
     ]
   },
   {
+    "id": "p-agentic-rag",
+    "emoji": "🔁",
+    "title": "Self-correcting agentic RAG",
+    "tier": 3,
+    "goal": "Upgrade a RAG app with query rewriting, grading, retries and abstention.",
+    "stack": [
+      "LangGraph or plain Python",
+      "Hybrid search (BM25 + vectors)",
+      "LLM grader"
+    ],
+    "steps": [
+      "Add contextual retrieval when indexing",
+      "Rewrite and decompose queries",
+      "Grade chunks; retry with a new query up to 2 times",
+      "Route to web search when the corpus fails",
+      "Abstain with explanation at the cap"
+    ],
+    "stretch": [
+      "Claim-level support check",
+      "Per-question-type dashboards"
+    ],
+    "done": [
+      "Report first-pass, recovery and abstention rates",
+      "Accuracy on answered questions ≥ baseline + 10 points",
+      "No unbounded loops (cap enforced in tests)"
+    ],
+    "roles": [
+      "ai-engineer",
+      "data-eng"
+    ],
+    "subjects": [
+      "e-rag",
+      "e-eval"
+    ]
+  },
+  {
+    "id": "p-memory",
+    "emoji": "🧠",
+    "title": "Three-tier agent memory",
+    "tier": 3,
+    "goal": "Give an assistant working, episodic and semantic memory with scoring and eviction.",
+    "stack": [
+      "Postgres + pgvector",
+      "An LLM for fact extraction"
+    ],
+    "steps": [
+      "Store episodes with timestamps",
+      "Extract facts into semantic memory",
+      "Score by relevance, recency and importance",
+      "Evict and consolidate on a schedule",
+      "Add a user view and delete UI"
+    ],
+    "stretch": [
+      "Contradiction resolution",
+      "Per-user memory evals"
+    ],
+    "done": [
+      "Recalls planted facts after 50 turns ≥ 90%",
+      "Deleted memories never resurface",
+      "Memory store bounded in size"
+    ],
+    "roles": [
+      "ai-engineer"
+    ],
+    "subjects": [
+      "g-mem",
+      "d-memory"
+    ]
+  },
+  {
     "id": "p-audit",
     "emoji": "📜",
     "title": "Audit trail and EU AI Act evidence pack",
@@ -798,6 +974,79 @@
       "a-fde",
       "a-solarch",
       "a-product"
+    ]
+  },
+  {
+    "id": "p-flywheel",
+    "emoji": "♻️",
+    "title": "DPO feedback flywheel",
+    "tier": 4,
+    "goal": "Turn thumbs-down feedback into preference pairs and a nightly DPO LoRA with eval gates.",
+    "stack": [
+      "Logging store",
+      "Hugging Face TRL (DPOTrainer) + PEFT",
+      "Eval harness",
+      "Scheduler"
+    ],
+    "steps": [
+      "Log responses with versions",
+      "Capture thumbs-down and accepted regenerations as pairs",
+      "Filter, scrub PII, deduplicate",
+      "Train a LoRA with DPO nightly",
+      "Promote only if offline evals and shadow tests win"
+    ],
+    "stretch": [
+      "Online canary with automatic rollback",
+      "Pair quality classifier"
+    ],
+    "done": [
+      "End-to-end run on 1,000 synthetic pairs",
+      "Promotion gate blocks a deliberately worse adapter",
+      "Lineage from each pair to the adapter version"
+    ],
+    "roles": [
+      "ai-engineer",
+      "ml-posttrain"
+    ],
+    "subjects": [
+      "e-datafly",
+      "e-ft",
+      "e-post"
+    ]
+  },
+  {
+    "id": "p-teardown",
+    "emoji": "📝",
+    "title": "Public teardown, ADRs and benchmark",
+    "tier": 4,
+    "goal": "Publish evidence of engineering judgment: ADRs, a system teardown and a reproducible benchmark.",
+    "stack": [
+      "Markdown in a repo",
+      "Your eval harness"
+    ],
+    "steps": [
+      "Write 5 ADRs for one of your ladder projects",
+      "Write a teardown: problem, architecture, evals, costs, failures",
+      "Publish a benchmark with dataset, harness and settings",
+      "Ask a peer to reproduce it",
+      "Revise based on feedback"
+    ],
+    "stretch": [
+      "Teardown of a public product's AI feature",
+      "Talk or blog version"
+    ],
+    "done": [
+      "A peer reproduces your numbers within noise",
+      "Each ADR lists alternatives and consequences",
+      "Teardown includes cost per task"
+    ],
+    "roles": [
+      "ai-engineer",
+      "fde"
+    ],
+    "subjects": [
+      "a-sys",
+      "t-evalfound"
     ]
   }
 ]

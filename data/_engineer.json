@@ -265,6 +265,14 @@
             {
               "title": "Retrieval-Augmented Generation",
               "url": "https://arxiv.org/abs/2005.11401"
+            },
+            {
+              "title": "Anthropic: Effective context engineering for AI agents",
+              "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+            },
+            {
+              "title": "Anthropic prompt caching docs",
+              "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching"
             }
           ],
           "project": "Tokenize 20 real docs; report fertility; chunk three ways and compare retrieval hit rate.",
@@ -322,6 +330,37 @@
                 }
               ],
               "explainer": "Embeddings turn text into vectors for search. Bi-encoders embed queries and documents separately, which is fast and indexable; cross-encoders read the pair together and are more accurate, so use them to rerank a shortlist. Matryoshka (MRL) models let you truncate vectors to fewer dimensions with modest quality loss, saving memory. Cosine similarity is standard; normalize vectors so dot product equals cosine. Some models use different prefixes or encoders for queries and documents. Re-evaluate when your domain drifts, and remember that changing embedding models means re-indexing."
+            },
+            {
+              "id": "e-tok-x1",
+              "title": "Context engineering and token economics",
+              "explainer": "Context engineering decides what goes into each call and in what order. Treat the window as a budget: reserve output tokens, then fixed costs (system prompt, tool schemas), then split the rest among retrieved evidence, conversation history and memory by priority. Put stable content first so prompt caching hits. When history overflows, compress older turns into summaries, drop stale tool outputs, and keep identifiers verbatim. Measure cost per task, not per call, because agents make many calls and input tokens dominate the bill.",
+              "subtopics": [
+                {
+                  "id": "e-tok-x1-s1",
+                  "title": "Context assembly order and prompt caching"
+                },
+                {
+                  "id": "e-tok-x1-s2",
+                  "title": "Token budget allocation by priority"
+                },
+                {
+                  "id": "e-tok-x1-s3",
+                  "title": "Context compression: summaries, pruning stale tool output"
+                },
+                {
+                  "id": "e-tok-x1-s4",
+                  "title": "Output token reservation"
+                },
+                {
+                  "id": "e-tok-x1-s5",
+                  "title": "Cost per task vs cost per call"
+                },
+                {
+                  "id": "e-tok-x1-s6",
+                  "title": "Context rot in long windows"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -357,9 +396,33 @@
               ],
               "answer": 3,
               "why": "Normalization removes magnitude, leaving the cosine."
+            },
+            {
+              "q": "A 32k window reserves 4k for output and 5k for system and tools. Retrieval gets 60% of the rest. How many tokens is that?",
+              "choices": [
+                "19,200",
+                "16,200",
+                "13,800",
+                "23,000"
+              ],
+              "answer": 2,
+              "why": "32,000 − 4,000 − 5,000 = 23,000; 60% of 23,000 = 13,800."
+            },
+            {
+              "q": "Why put the stable system prompt and tool schemas first?",
+              "choices": [
+                "It is required by JSON",
+                "Models ignore the end",
+                "It shortens output",
+                "It maximizes prompt-cache prefix hits"
+              ],
+              "answer": 3,
+              "why": "Caches match on identical prefixes, so stable content goes first."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [
+            "context-budget"
+          ]
         }
       ]
     },
@@ -503,6 +566,22 @@
             {
               "title": "Ragas",
               "url": "https://docs.ragas.io/en/stable/"
+            },
+            {
+              "title": "Anthropic: Introducing contextual retrieval",
+              "url": "https://www.anthropic.com/news/contextual-retrieval"
+            },
+            {
+              "title": "Corrective RAG (CRAG) paper (arXiv)",
+              "url": "https://arxiv.org/abs/2401.15884"
+            },
+            {
+              "title": "Self-RAG paper (arXiv)",
+              "url": "https://arxiv.org/abs/2310.11511"
+            },
+            {
+              "title": "LangGraph agentic RAG tutorial",
+              "url": "https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/"
             }
           ],
           "project": "Hybrid BM25+vector RAG with citations, refusal, ACL filters, and a Ragas-style report.",
@@ -614,6 +693,33 @@
                   "title": "When knowledge graphs pay off"
                 }
               ]
+            },
+            {
+              "id": "e-rag-x2",
+              "title": "Agentic RAG: query rewriting, self-correction and abstention",
+              "explainer": "Agentic RAG puts the model in control of retrieval. Rewrite the query first: expand acronyms, split multi-part questions, or generate a hypothetical answer to embed (HyDE). Use hybrid search (BM25 plus vectors) and contextual retrieval, which prepends a short chunk-specific context before embedding. Then grade the retrieved chunks. Corrective RAG (CRAG) rewrites and re-searches or falls back to web search when the grades are low, and Self-RAG trains the model to critique its own retrieval and support. If evidence stays weak after a capped number of retries, abstain and say what is missing.",
+              "subtopics": [
+                {
+                  "id": "e-rag-x2-s1",
+                  "title": "Query rewriting, decomposition and HyDE"
+                },
+                {
+                  "id": "e-rag-x2-s2",
+                  "title": "Contextual retrieval and hybrid search"
+                },
+                {
+                  "id": "e-rag-x2-s3",
+                  "title": "Relevance grading of retrieved chunks"
+                },
+                {
+                  "id": "e-rag-x2-s4",
+                  "title": "CRAG and Self-RAG self-correction loops"
+                },
+                {
+                  "id": "e-rag-x2-s5",
+                  "title": "Abstention with retry caps"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -649,12 +755,35 @@
               ],
               "answer": 2,
               "why": "Separate retrieval misses from generation errors."
+            },
+            {
+              "q": "First-pass retrieval is relevant 70% of the time, and one rewrite fixes half of the failures. What is the success rate after one retry?",
+              "choices": [
+                "85%",
+                "100%",
+                "70%",
+                "77%"
+              ],
+              "answer": 0,
+              "why": "0.70 + 0.30 × 0.5 = 0.85."
+            },
+            {
+              "q": "What should an agentic RAG system do when evidence is still weak after its retry cap?",
+              "choices": [
+                "Retry forever",
+                "Abstain and state what is missing",
+                "Answer anyway, confidently",
+                "Raise temperature"
+              ],
+              "answer": 1,
+              "why": "Bounded retries followed by abstention prevent unsupported answers."
             }
           ],
           "conceptIds": [
             "rag-pipeline",
             "hnsw",
-            "graphrag"
+            "graphrag",
+            "agentic-rag-loop"
           ]
         },
         {
@@ -1318,6 +1447,18 @@
             {
               "title": "Google SRE Book",
               "url": "https://sre.google/sre-book/table-of-contents/"
+            },
+            {
+              "title": "MDN: Using server-sent events",
+              "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+            },
+            {
+              "title": "MDN: WebSockets API",
+              "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+            },
+            {
+              "title": "OpenAI streaming responses guide",
+              "url": "https://platform.openai.com/docs/guides/streaming-responses"
             }
           ],
           "project": "Add tracing, rate limits, spend caps, and a kill switch to your LLM API app.",
@@ -1402,6 +1543,37 @@
                 }
               ],
               "explainer": "Authorize every tool call against the end user's permissions, not the app's service account. Filter outputs for sensitive data and unsafe content before display or action. Redact PII before sending to third-party models where possible. Pin dependency and model versions to avoid supply-chain surprises. Enforce spend caps per user and per key so an abuser or a runaway loop cannot generate a five-figure bill overnight."
+            },
+            {
+              "id": "e-prod-x1",
+              "title": "Real-time streaming UX: SSE, WebSockets, optimistic UI",
+              "explainer": "Users judge AI apps by time to first token. Server-Sent Events stream tokens one way over HTTP and suit most chat. WebSockets are two-way and suit voice and collaborative apps. For voice, add voice activity detection and barge-in, which cancels TTS and generation when the user speaks. Stream tool calls too: show 'searching…' as soon as the call is emitted, and render partial JSON arguments carefully. Optimistic UI shows the user's action immediately and reconciles later. Always handle reconnects, cancellation and backpressure.",
+              "subtopics": [
+                {
+                  "id": "e-prod-x1-s1",
+                  "title": "SSE vs WebSockets"
+                },
+                {
+                  "id": "e-prod-x1-s2",
+                  "title": "Time to first token and perceived latency"
+                },
+                {
+                  "id": "e-prod-x1-s3",
+                  "title": "Streaming tool calls and partial JSON"
+                },
+                {
+                  "id": "e-prod-x1-s4",
+                  "title": "Barge-in and VAD for voice"
+                },
+                {
+                  "id": "e-prod-x1-s5",
+                  "title": "Optimistic UI and reconciliation"
+                },
+                {
+                  "id": "e-prod-x1-s6",
+                  "title": "Cancellation and reconnects"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -1437,6 +1609,28 @@
               ],
               "answer": 1,
               "why": "Otherwise the agent becomes a confused deputy."
+            },
+            {
+              "q": "A chat app only needs to stream from server to client over HTTP. What is the simplest fit?",
+              "choices": [
+                "gRPC bidirectional",
+                "Server-Sent Events",
+                "Polling every 10 s",
+                "WebSockets"
+              ],
+              "answer": 1,
+              "why": "SSE is a simple one-way HTTP stream."
+            },
+            {
+              "q": "What is barge-in?",
+              "choices": [
+                "Token shuffling",
+                "Batching requests",
+                "Cancelling playback and generation when the user starts speaking",
+                "A caching layer"
+              ],
+              "answer": 2,
+              "why": "Barge-in lets users interrupt a voice agent."
             }
           ],
           "conceptIds": []
@@ -2140,6 +2334,14 @@
             {
               "title": "Designing Machine Learning Systems",
               "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+            },
+            {
+              "title": "DPO paper (arXiv)",
+              "url": "https://arxiv.org/abs/2305.18290"
+            },
+            {
+              "title": "Hugging Face TRL DPO Trainer",
+              "url": "https://huggingface.co/docs/trl/dpo_trainer"
             }
           ],
           "project": "Thumbs and tool-success signals → weekly curated fine-tune and eval delta sets.",
@@ -2197,6 +2399,33 @@
                 }
               ],
               "explainer": "Captured data feeds several loops: new eval cases, SFT examples, preference pairs from edited or rejected answers, reward signals for RL, and regression tests for prompts. Publish a regular quality report that shows how the flywheel moved key metrics. A flywheel that only collects data without changing the product is just storage cost. Try it: every week, turn the top five new failure clusters into eval cases before anyone changes a prompt. This keeps fixes honest."
+            },
+            {
+              "id": "e-datafly-x1",
+              "title": "DPO feedback flywheel end to end",
+              "explainer": "A preference flywheel turns user feedback into training data. Log every response with the prompt, context and model version. When a user gives a thumbs-down and then accepts an edited or regenerated answer, that pair becomes a chosen and rejected example. Filter the pairs for PII, spam and label noise, deduplicate, and hold out an eval split. A nightly job trains a LoRA adapter with DPO, and the adapter is promoted only if offline evals and a shadow or canary test beat the current version.",
+              "subtopics": [
+                {
+                  "id": "e-datafly-x1-s1",
+                  "title": "Logging prompts, context, versions"
+                },
+                {
+                  "id": "e-datafly-x1-s2",
+                  "title": "Turning thumbs-down and edits into preference pairs"
+                },
+                {
+                  "id": "e-datafly-x1-s3",
+                  "title": "Filtering, PII scrubbing, deduplication"
+                },
+                {
+                  "id": "e-datafly-x1-s4",
+                  "title": "Nightly LoRA + DPO training jobs"
+                },
+                {
+                  "id": "e-datafly-x1-s5",
+                  "title": "Eval gates, shadow and canary promotion"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -2232,9 +2461,33 @@
               ],
               "answer": 2,
               "why": "Bias toward vocal users skews training and evals."
+            },
+            {
+              "q": "What does a DPO training example contain?",
+              "choices": [
+                "Only images",
+                "Only a reward score",
+                "A prompt plus a chosen and a rejected response",
+                "A SQL query"
+              ],
+              "answer": 2,
+              "why": "DPO learns from preference pairs."
+            },
+            {
+              "q": "When should a nightly adapter be promoted?",
+              "choices": [
+                "Always, automatically",
+                "When the loss is lowest",
+                "When it is newest",
+                "Only after it beats the current model on offline evals and a shadow or canary test"
+              ],
+              "answer": 3,
+              "why": "Gates prevent regressions."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [
+            "rlhf-dpo-grpo"
+          ]
         },
         {
           "id": "e-edge",
@@ -2370,6 +2623,14 @@
             {
               "title": "Google: Practitioners guide to MLOps",
               "url": "https://cloud.google.com/resources/mlops-whitepaper"
+            },
+            {
+              "title": "LiteLLM: fallbacks and reliability",
+              "url": "https://docs.litellm.ai/docs/proxy/reliability"
+            },
+            {
+              "title": "AWS Well-Architected: graceful degradation",
+              "url": "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html"
             }
           ],
           "project": "Stand up a mini platform: LiteLLM gateway with per-team keys and budgets, a Git-based prompt and agent manifest registry, a CI pipeline that runs evals and blocks regressions, OpenTelemetry tracing with cost attribution, and a cookiecutter/Backstage template that creates a new compliant agent repo. Time how long a new agent takes to reach staging.",
@@ -2454,6 +2715,33 @@
                   "title": "Mandatory vs optional controls"
                 }
               ]
+            },
+            {
+              "id": "e-llmops-x1",
+              "title": "Graceful degradation and fallback chains",
+              "explainer": "Plan for outages, rate limits and budget overruns before they happen. A fallback chain tries a frontier model, then a mid-tier model, then a local model, then a semantic cache or a canned answer. Each step triggers on errors, timeouts or a budget signal. Cost kill switches watch spend per tenant and per feature, and step down tiers or disable expensive features at thresholds. Tell users when quality is degraded, log which tier served each request, and test the chain with chaos drills.",
+              "subtopics": [
+                {
+                  "id": "e-llmops-x1-s1",
+                  "title": "Fallback chain: frontier, mid, local, cache"
+                },
+                {
+                  "id": "e-llmops-x1-s2",
+                  "title": "Triggers: errors, timeouts, rate limits, budget"
+                },
+                {
+                  "id": "e-llmops-x1-s3",
+                  "title": "Cost kill switches per tenant and feature"
+                },
+                {
+                  "id": "e-llmops-x1-s4",
+                  "title": "Degraded-mode UX messaging"
+                },
+                {
+                  "id": "e-llmops-x1-s5",
+                  "title": "Chaos drills for the chain"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -2489,12 +2777,35 @@
               ],
               "answer": 0,
               "why": "Platform value shows in its customers' outcomes."
+            },
+            {
+              "q": "Frontier and mid-tier providers fail independently, 2% and 1% of the time. How often are both down?",
+              "choices": [
+                "3%",
+                "1%",
+                "0.2%",
+                "0.02%"
+              ],
+              "answer": 3,
+              "why": "0.02 × 0.01 = 0.0002 = 0.02%."
+            },
+            {
+              "q": "Which signal should step traffic down to a cheaper tier even when nothing is failing?",
+              "choices": [
+                "Higher user satisfaction",
+                "Lower latency",
+                "A new deploy",
+                "A budget threshold from a cost kill switch"
+              ],
+              "answer": 3,
+              "why": "Budget triggers enforce FinOps limits."
             }
           ],
           "conceptIds": [
             "eval-pipeline",
             "agentops-loop",
-            "model-router"
+            "model-router",
+            "fallback-chain"
           ]
         },
         {
