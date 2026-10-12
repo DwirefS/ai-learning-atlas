@@ -358,6 +358,156 @@
             "agent-loop",
             "harness"
           ]
+        },
+        {
+          "id": "g-patterns",
+          "title": "Agentic Design Patterns: Reflection, Planning, Tools, Multi-Agent, Deep Research",
+          "why": "A handful of reusable patterns explain almost every agent architecture; knowing them lets you pick the simplest one that works.",
+          "explainer": "Andrew Ng's four agentic design patterns are a useful vocabulary. Reflection: the model critiques and revises its own output (or a second model does). Tool use: the model calls functions, search, code or APIs to act and to get facts. Planning: the model decomposes a goal into steps (ReAct interleaves reasoning and acting; plan-and-execute writes a plan, then runs it). Multi-agent: specialized agents collaborate through an orchestrator or hand-offs.\n\nAnthropic's 'Building effective agents' adds workflow patterns that are often better than free agents: prompt chaining, routing, parallelization, orchestrator-workers and evaluator-optimizer. The broader idea is augmented language models: an LLM plus retrieval, tools and memory.\n\nDeep research agents combine these: plan sub-questions, run many searches in parallel (often with built-in web search, file search and code interpreter tools), read and extract evidence, reflect on gaps, and write a cited report.\n\nCommon mistakes: starting with multi-agent when one agent with good tools would do; reflection loops with no stopping rule; plans that are never re-checked against observations.\n\nMental model: use workflows when the steps are known, agents when they are not, and add autonomy only where it pays.",
+          "resources": [
+            {
+              "title": "Anthropic: Building effective agents",
+              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+            },
+            {
+              "title": "DeepLearning.AI: Agentic AI (Andrew Ng)",
+              "url": "https://www.deeplearning.ai/courses/agentic-ai/"
+            },
+            {
+              "title": "ReAct paper (arXiv)",
+              "url": "https://arxiv.org/abs/2210.03629"
+            },
+            {
+              "title": "Anthropic: How we built our multi-agent research system",
+              "url": "https://www.anthropic.com/engineering/multi-agent-research-system"
+            }
+          ],
+          "project": "Implement the same research task four ways: single prompt, prompt chain, ReAct agent with web search, and orchestrator plus parallel research sub-agents with a reflection step. Compare citation accuracy, coverage, cost and latency on 15 questions.",
+          "topics": [
+            {
+              "id": "g-patterns-t1",
+              "title": "Reflection and evaluator-optimizer",
+              "explainer": "Reflection asks the model to critique its draft against criteria, then revise. It helps most when feedback is concrete: failing tests, schema errors, a checklist, or a judge with a rubric. The evaluator-optimizer workflow makes this explicit with a separate evaluator. Always cap iterations and stop when the evaluator passes or improvement stalls. Reflection without external signal can entrench errors, so prefer tool-grounded feedback such as running the code or checking the citation.",
+              "subtopics": [
+                {
+                  "id": "g-patterns-t1-s1",
+                  "title": "Self-critique against criteria"
+                },
+                {
+                  "id": "g-patterns-t1-s2",
+                  "title": "External feedback (tests, validators)"
+                },
+                {
+                  "id": "g-patterns-t1-s3",
+                  "title": "Evaluator-optimizer loops"
+                },
+                {
+                  "id": "g-patterns-t1-s4",
+                  "title": "Iteration caps"
+                },
+                {
+                  "id": "g-patterns-t1-s5",
+                  "title": "When reflection hurts"
+                }
+              ]
+            },
+            {
+              "id": "g-patterns-t2",
+              "title": "Planning, routing and workflows",
+              "explainer": "ReAct interleaves a thought, an action and an observation each step, which adapts well but can wander. Plan-and-execute writes a full plan first, then executes and re-plans on failure, which is cheaper and easier to audit. Routing classifies the input and sends it to a specialized prompt or model. Prompt chaining and parallelization handle known multi-step tasks deterministically. Pick the least autonomous pattern that meets the requirement, and log plans so failures are debuggable.",
+              "subtopics": [
+                {
+                  "id": "g-patterns-t2-s1",
+                  "title": "Augmented language models: retrieval, tools, memory"
+                },
+                {
+                  "id": "g-patterns-t2-s2",
+                  "title": "ReAct loop"
+                },
+                {
+                  "id": "g-patterns-t2-s3",
+                  "title": "Plan-and-execute with re-planning"
+                },
+                {
+                  "id": "g-patterns-t2-s4",
+                  "title": "Routing to specialists"
+                },
+                {
+                  "id": "g-patterns-t2-s5",
+                  "title": "Prompt chaining"
+                },
+                {
+                  "id": "g-patterns-t2-s6",
+                  "title": "Parallelization and voting"
+                }
+              ]
+            },
+            {
+              "id": "g-patterns-t3",
+              "title": "Multi-agent systems and deep research",
+              "explainer": "Multi-agent designs split work across specialized agents: an orchestrator that delegates to workers, or peer hand-offs. They help with parallel breadth such as researching ten sub-topics at once, and with separation of privileges. They cost more tokens and add coordination failures. Deep research agents plan sub-questions, fan out parallel searches with built-in web and file search tools, extract evidence with sources, reflect on gaps, and synthesize a cited report. Evaluate citation accuracy, not just fluency.",
+              "subtopics": [
+                {
+                  "id": "g-patterns-t3-s1",
+                  "title": "Orchestrator-worker"
+                },
+                {
+                  "id": "g-patterns-t3-s2",
+                  "title": "Hand-offs between agents"
+                },
+                {
+                  "id": "g-patterns-t3-s3",
+                  "title": "Parallel research fan-out"
+                },
+                {
+                  "id": "g-patterns-t3-s4",
+                  "title": "Evidence extraction with citations"
+                },
+                {
+                  "id": "g-patterns-t3-s5",
+                  "title": "Token cost of multi-agent"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Which pattern fits a task whose steps are fully known in advance?",
+              "choices": [
+                "Reflection only",
+                "Prompt chaining / workflow",
+                "Multi-agent debate",
+                "Free-form autonomous agent"
+              ],
+              "answer": 1,
+              "why": "Workflows are cheaper and more reliable when steps are known."
+            },
+            {
+              "q": "Reflection works best when…",
+              "choices": [
+                "The model critiques with no external signal",
+                "Iterations are unlimited",
+                "Feedback comes from tests, validators or a rubric-based judge",
+                "Temperature is high"
+              ],
+              "answer": 2,
+              "why": "Concrete external signal makes revisions converge."
+            },
+            {
+              "q": "Main benefit of multi-agent deep research?",
+              "choices": [
+                "No need for citations",
+                "Parallel breadth across many sub-questions",
+                "Fewer tool calls",
+                "Lower cost"
+              ],
+              "answer": 1,
+              "why": "Parallel sub-agents cover more ground at higher token cost."
+            }
+          ],
+          "conceptIds": [
+            "agent-loop"
+          ]
         }
       ]
     },
@@ -861,6 +1011,160 @@
           "conceptIds": [
             "multi-agent",
             "a2a"
+          ]
+        },
+        {
+          "id": "g-frameworks",
+          "title": "Agent Frameworks and Managed Agent Platforms",
+          "why": "Teams lose months picking frameworks; knowing what each one actually provides lets you choose in a day and stay portable.",
+          "explainer": "Agent frameworks package the loop, tools, state, memory, tracing and multi-agent coordination. Open frameworks: LangGraph (explicit state graphs, checkpointing, human-in-the-loop interrupts, streaming; traced with LangSmith), OpenAI Agents SDK (agents, tools, hand-offs, guardrails, tracing), Claude Agent SDK (the harness behind Claude Code: tools, permissions, sub-agents, context compaction), Google ADK (Agent Development Kit, multi-agent, A2A support), CrewAI and AutoGen (role-based and conversational multi-agent), Hugging Face smolagents (minimal code agents), and LlamaIndex (workflows and query engines over data).\n\nManaged platforms run agents for you with enterprise identity, logging and scaling: AWS Bedrock AgentCore (runtime, memory, identity, gateway, observability) alongside Bedrock Agents and Knowledge Bases; Google Vertex AI Agent Engine; Azure AI Foundry Agent Service and Copilot Studio; Databricks Mosaic AI Agent Framework with Agent Evaluation, Genie and Unity Catalog; Snowflake Cortex Agents.\n\nCommon mistakes: choosing by GitHub stars; deep framework lock-in for logic that is 200 lines of plain code; ignoring how the framework handles state persistence, tracing and identity.\n\nMental model: frameworks are harness kits. Keep your tools (MCP), evals and data framework-agnostic so you can swap the harness.",
+          "resources": [
+            {
+              "title": "LangGraph docs",
+              "url": "https://langchain-ai.github.io/langgraph/"
+            },
+            {
+              "title": "OpenAI Agents SDK",
+              "url": "https://openai.github.io/openai-agents-python/"
+            },
+            {
+              "title": "Claude Agent SDK overview",
+              "url": "https://docs.claude.com/en/api/agent-sdk/overview"
+            },
+            {
+              "title": "Google Agent Development Kit (ADK)",
+              "url": "https://google.github.io/adk-docs/"
+            },
+            {
+              "title": "Amazon Bedrock AgentCore",
+              "url": "https://aws.amazon.com/bedrock/agentcore/"
+            },
+            {
+              "title": "Hugging Face smolagents",
+              "url": "https://huggingface.co/docs/smolagents/index"
+            }
+          ],
+          "project": "Build one support agent (two tools, one MCP server, human approval for refunds) in three stacks: plain Python, LangGraph, and one of OpenAI Agents SDK / Claude Agent SDK / Google ADK. Deploy one version on a managed platform (Bedrock AgentCore, Vertex AI Agent Engine or Azure AI Foundry Agent Service). Compare lines of code, tracing, state persistence, identity integration and eval results.",
+          "topics": [
+            {
+              "id": "g-frameworks-t1",
+              "title": "Open-source agent frameworks",
+              "explainer": "LangGraph models agents as state graphs with nodes and edges, persistent checkpoints, interrupts for human approval and streaming, and pairs with LangSmith for tracing and evals. The OpenAI Agents SDK is a light layer with agents, tools, hand-offs, guardrails and built-in tracing. The Claude Agent SDK exposes the Claude Code harness: file and shell tools, permissions, sub-agents and context compaction. Google ADK supports multi-agent hierarchies and A2A. CrewAI and AutoGen focus on role-based or conversational multi-agent setups, smolagents on minimal code-writing agents, and LlamaIndex on data-centric workflows and query engines.",
+              "subtopics": [
+                {
+                  "id": "g-frameworks-t1-s1",
+                  "title": "LangGraph graphs, checkpoints, interrupts"
+                },
+                {
+                  "id": "g-frameworks-t1-s2",
+                  "title": "OpenAI Agents SDK hand-offs and guardrails"
+                },
+                {
+                  "id": "g-frameworks-t1-s3",
+                  "title": "Claude Agent SDK and Claude Code harness"
+                },
+                {
+                  "id": "g-frameworks-t1-s4",
+                  "title": "Google ADK and A2A"
+                },
+                {
+                  "id": "g-frameworks-t1-s5",
+                  "title": "CrewAI, AutoGen, smolagents, LlamaIndex"
+                }
+              ]
+            },
+            {
+              "id": "g-frameworks-t2",
+              "title": "Managed agent platforms",
+              "explainer": "Managed platforms trade flexibility for enterprise plumbing. Bedrock AgentCore provides a serverless agent runtime, memory, identity, a tool gateway and observability for agents built with any framework; Bedrock Agents and Knowledge Bases offer configured agents and managed RAG. Vertex AI Agent Engine hosts ADK or LangGraph agents with sessions and memory. Azure AI Foundry Agent Service and Copilot Studio integrate with Entra identity and Microsoft 365. Databricks Mosaic AI Agent Framework adds Agent Evaluation, Genie text-to-SQL and Unity Catalog governance; Snowflake offers Cortex Agents.",
+              "subtopics": [
+                {
+                  "id": "g-frameworks-t2-s1",
+                  "title": "Bedrock AgentCore, Agents, Knowledge Bases"
+                },
+                {
+                  "id": "g-frameworks-t2-s2",
+                  "title": "Vertex AI Agent Engine"
+                },
+                {
+                  "id": "g-frameworks-t2-s3",
+                  "title": "Azure AI Foundry Agent Service, Copilot Studio"
+                },
+                {
+                  "id": "g-frameworks-t2-s4",
+                  "title": "Databricks Mosaic AI and Agent Evaluation"
+                },
+                {
+                  "id": "g-frameworks-t2-s5",
+                  "title": "Snowflake Cortex Agents"
+                }
+              ]
+            },
+            {
+              "id": "g-frameworks-t3",
+              "title": "Choosing and staying portable",
+              "explainer": "Choose on: state and durability model, human-in-the-loop support, tracing and eval integration, identity and secrets handling, multi-agent needs, language support, and where it will run. Keep the valuable parts portable: tools as MCP servers, prompts in a registry, evals in your own harness, and data behind your own APIs. Wrap framework calls behind a thin interface. Re-evaluate yearly; the landscape moves fast, and a plain loop with good tools often beats a heavy framework.",
+              "subtopics": [
+                {
+                  "id": "g-frameworks-t3-s1",
+                  "title": "Selection criteria"
+                },
+                {
+                  "id": "g-frameworks-t3-s2",
+                  "title": "Tools via MCP for portability"
+                },
+                {
+                  "id": "g-frameworks-t3-s3",
+                  "title": "Framework-agnostic evals"
+                },
+                {
+                  "id": "g-frameworks-t3-s4",
+                  "title": "Thin abstraction layers"
+                },
+                {
+                  "id": "g-frameworks-t3-s5",
+                  "title": "Build vs adopt"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Which LangGraph feature supports human approval mid-run?",
+              "choices": [
+                "Quantization",
+                "Interrupts with persisted checkpoints",
+                "Tokenizers",
+                "Embeddings"
+              ],
+              "answer": 1,
+              "why": "Interrupts pause the graph and checkpoints let it resume after approval."
+            },
+            {
+              "q": "What is the best way to stay portable across agent frameworks?",
+              "choices": [
+                "Use only managed platforms",
+                "Expose tools as MCP servers and keep evals and data framework-agnostic",
+                "Write all logic inside one framework's classes",
+                "Avoid tracing"
+              ],
+              "answer": 1,
+              "why": "Portable tools, evals and data make the harness swappable."
+            },
+            {
+              "q": "Which managed service offers an agent runtime, memory, identity and tool gateway on AWS?",
+              "choices": [
+                "AWS Glue",
+                "Amazon S3",
+                "Amazon Bedrock AgentCore",
+                "Amazon SQS"
+              ],
+              "answer": 2,
+              "why": "Bedrock AgentCore provides those agent runtime services."
+            }
+          ],
+          "conceptIds": [
+            "agent-loop"
           ]
         }
       ]

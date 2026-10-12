@@ -938,6 +938,33 @@
                   "title": "Product feedback loops"
                 }
               ]
+            },
+            {
+              "id": "a-fde-x1",
+              "title": "Workshops, exec readouts and enterprise platform integration",
+              "explainer": "FDEs run discovery workshops: map the workflow on a whiteboard with the people who do it, list systems and data, and agree on the metric. Exec readouts are short: problem, result versus baseline, risks, cost and next step. Most enterprise value runs through SAP, Salesforce, ServiceNow, Workday and Microsoft 365, so learn their APIs, event models, permission schemes and the vendor's own agent features before building custom connectors.",
+              "subtopics": [
+                {
+                  "id": "a-fde-x1-s1",
+                  "title": "Discovery workshop format"
+                },
+                {
+                  "id": "a-fde-x1-s2",
+                  "title": "Exec readout structure"
+                },
+                {
+                  "id": "a-fde-x1-s3",
+                  "title": "SAP, Salesforce, ServiceNow APIs"
+                },
+                {
+                  "id": "a-fde-x1-s4",
+                  "title": "Vendor-native agent features"
+                },
+                {
+                  "id": "a-fde-x1-s5",
+                  "title": "Change management with users"
+                }
+              ]
             }
           ],
           "quiz": [

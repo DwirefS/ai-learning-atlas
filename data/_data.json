@@ -985,6 +985,33 @@
                   "title": "Audit logs per tool call"
                 }
               ]
+            },
+            {
+              "id": "d-connect-x1",
+              "title": "Warehouse-native agents: Genie, Cortex Analyst and Unity Catalog",
+              "explainer": "Data platforms now ship their own text-to-SQL agents. Databricks Genie answers questions over Unity Catalog tables using curated instructions, example queries and certified metrics; Snowflake Cortex Analyst uses semantic models, and Cortex Agents orchestrate search and SQL. They keep data and governance inside the platform, with Unity Catalog or Snowflake roles enforcing access. Treat them like any text-to-SQL agent: curate the semantic context, evaluate with golden questions and expose them to other agents as tools.",
+              "subtopics": [
+                {
+                  "id": "d-connect-x1-s1",
+                  "title": "Databricks Genie spaces"
+                },
+                {
+                  "id": "d-connect-x1-s2",
+                  "title": "Snowflake Cortex Analyst and semantic models"
+                },
+                {
+                  "id": "d-connect-x1-s3",
+                  "title": "Unity Catalog permissions"
+                },
+                {
+                  "id": "d-connect-x1-s4",
+                  "title": "Golden questions for text-to-SQL agents"
+                },
+                {
+                  "id": "d-connect-x1-s5",
+                  "title": "Exposing platform agents as tools"
+                }
+              ]
             }
           ],
           "quiz": [
