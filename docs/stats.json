@@ -1,11 +1,13 @@
 {
-  "subjects": 91,
-  "topics": 198,
-  "subtopics": 990,
-  "quiz": 283,
-  "resources": 130,
-  "concepts": 41,
-  "glossary": 104,
-  "paths": 5,
-  "capstones": 6
+  "subjects": 118,
+  "topics": 279,
+  "subtopics": 1395,
+  "quiz": 364,
+  "resources": 217,
+  "concepts": 51,
+  "glossary": 128,
+  "paths": 6,
+  "capstones": 8,
+  "roles": 13,
+  "tracks": 8
 }
