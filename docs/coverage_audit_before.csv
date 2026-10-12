@@ -1,0 +1,168 @@
+topic,source_type,sources,regex,status,units_matched,mentions,where
+Indirect prompt injection,job postings 2026,Replit AI Agent Security Architect; Notify Secure AI Engineer; Lakera Red Team,indirect (prompt )?injection,covered,6,14,t-threat; sc-sec; a-secarch; g-secure; g-redteam; f-aisec
+Goal hijacking / tool parameter tampering,job postings 2026,Replit AI Agent Security Architect,goal hijack|tool (parameter|argument) tamper,missing,0,0,
+Data poisoning,job postings 2026,Replit; Notify; Lakera AI Security Red Team,data poisoning|poison,covered,7,10,sc-sec; e-cache; g-secure; d-perm; t-threat; concept:threat-model
+Model inversion / extraction attacks,job postings 2026,Notify Secure AI Engineer,model (inversion|extraction)|model stealing,thin,2,2,sc-sec; f-aisec
+Jailbreaks,job postings 2026,Lakera; Cloudflare AI Red Team; CMU SEI AI Red Team,jailbreak,covered,3,4,g-redteam; a-sys; t-threat
+"AI red teaming tools (PyRIT, garak)",job postings 2026,Notify Secure AI Engineer,pyrit|garak,covered,2,6,t-threat; project:p-guardrails
+OWASP Top 10 for LLMs/agents,job postings 2026,Replit AI Agent Security Architect,owasp,covered,4,8,t-threat; a-secarch; sc-sec; concept:threat-model
+MITRE ATLAS,job postings 2026,Replit AI Agent Security Architect,mitre atlas,covered,3,5,a-secarch; t-threat; sc-sec
+Semantic firewall / runtime guardrails,job postings 2026,Replit; Brookfield Staff Security Engineer,guardrail,covered,14,26,a-plat; a-product; a-cards; e-voice; f-cloud; project:p-guardrails
+Sandboxing for code-executing agents,job postings 2026,Replit; Mirendil RL Environments,sandbox,covered,11,37,t-threat; g-secure; a-plat; f-secinfra; t-traj; sc-sec
+LLM-as-judge calibration vs human labels,job postings 2026,Distyl AI Engineer Evaluation; Salla Agent Evaluation,calibrat,covered,9,36,t-judge; sc-math; sc-eval; i-quant; concept:eval-pipeline; e-eval
+User simulators for agent testing,job postings 2026,Salla Agent Evaluation; Hark RL Environments,user simulator,covered,2,6,t-traj; project:p-traj
+Per-PR eval harness / regression in CI,job postings 2026,Salla; Distyl; Apple ML Evaluation Engineer,regression,covered,20,34,g-redteam; sc-eval; t-evalfound; e-eval; e-ft; e-datafly
+Groundedness / faithfulness metrics,job postings 2026,Apple ML Evaluation Engineer,grounded|faithful,covered,3,4,t-judge; a-sys; e-docrag
+Tool-selection and parameter accuracy,job postings 2026,Resaro Agentic AI Evaluation,tool[- ]selection|wrong tool,covered,3,3,e-tools; t-evalfound; t-traj
+Benchmark contamination / leaderboards,job postings 2026,Vals AI Evaluations Engineer,contaminat|leaderboard,covered,6,16,sc-eval; a-llm-arch; e-post; e-synth; concept:quantization; concept:evals
+Evaluation-driven development,job postings 2026,Distyl AI Engineer Evaluation,eval(uation)?[- ]driven|evals? (are|is) the (spec|unit),thin,2,2,a-product; t-evalfound
+vLLM / SGLang / TensorRT-LLM serving,job postings 2026,Inferact FDE; vCluster Senior Inference Engineer,vllm|sglang|tensorrt,covered,11,31,i-engines; i-pd; f-obs; project:p-inference; i-mem; a-bb
+KV-cache-aware routing,job postings 2026,Red Hat FDE vLLM/llm-d,kv[- ]aware|kv-cache aware|prefix-aware,covered,4,8,i-gateway; concept:llm-gateway-routing; i-engines; i-pd
+KV cache offloading,job postings 2026,Red Hat FDE vLLM/llm-d,offload,covered,3,7,i-hw; i-mem; f-interconnect
+llm-d / disaggregated serving,job postings 2026,Red Hat FDE vLLM/llm-d,llm-d|disaggregat,covered,8,20,i-pd; i-engines; concept:prefill-decode; concept:pd-disagg; i-gateway; i-research
+TPOT / TTFT metrics,job postings 2026,Red Hat FDE vLLM/llm-d,tpot|ttft|time per output token|time to first token,covered,15,25,i-life; a-sys; f-obs; concept:prefill-decode; project:p-inference; e-voice
+Kubernetes Gateway API (inference extension),job postings 2026,Red Hat FDE vLLM/llm-d,gateway api,thin,2,2,i-gateway; concept:llm-gateway-routing
+Kubernetes operators / CRDs,job postings 2026,Red Hat FDE; vCluster AI Infrastructure,operator|crd,covered,7,20,f-k8s; f-gpushare; a-sov; concept:k8s-gpu; f-secinfra; concept:gpu-sharing
+AMD ROCm,job postings 2026,Inferact FDE,rocm|amd,covered,2,9,i-hw; f-gpu
+Slurm and Ray for AI clusters,job postings 2026,vCluster AI Infrastructure Engineer,slurm|\bray\b,covered,3,10,f-sched; f-k8s; concept:k8s-gpu
+Multi-tenant GPU clusters / neoclouds,job postings 2026,vCluster AI Infrastructure Engineer,neocloud|multi-tenan|tenant,covered,34,85,a-scale; a-gateway; t-runbook; e-vector; t-durable; e-cache
+Snowflake Cortex / warehouse-native AI,job postings 2026,Accenture Sr. AI & Data Engineer – Snowflake,cortex|snowflake,covered,5,6,d-model; a-ref; f-k8s; d-found; concept:ref-arch
+Databricks vector search / Genie,job postings 2026,GM Senior Data Engineer – Agentic AI,databricks|genie,thin,1,1,d-found
+Embedding pipelines at scale,job postings 2026,Fil Distinguished Data Engineer,embedding (pipeline|job)|batch embedding|re-embed,covered,8,14,d-cdc; a-data; d-unstruct; d-catalog; concept:cdc-freshness; e-vector
+Evaluation datasets as data products,job postings 2026,Fil Distinguished Data Engineer,eval set|eval(uation)? dataset,covered,12,20,d-products; a-fde; a-solarch; a-product; d-memory; sc-eval
+"Multi-agent orchestration frameworks (CrewAI, AutoGen)",job postings 2026,EXL Agentic AI Data Engineer; Indicium FDE,crewai|autogen,missing,0,0,
+Unity Catalog,job postings 2026,Indicium Forward Deployed AI Engineer,unity catalog,thin,1,1,d-catalog
+Bedrock AgentCore / managed agent runtimes,job postings 2026,EXL Agentic AI Data Engineer,agentcore|agent engine|agent service,thin,1,1,t-cloudsec
+Reward hacking prevention,job postings 2026,Mirendil Post-Training RL Environments; Bespoke Labs,reward hack,thin,2,5,e-post; concept:rlhf-dpo-grpo
+"RL environments (Gym-style, sandboxes)",job postings 2026,Hark Frontier RL Environments; Bespoke Labs,rl environment|environments? for (agentic )?rl|gym,missing,0,0,
+GRPO / PPO / DPO,job postings 2026,Hark Post-training,grpo|ppo|dpo,covered,42,90,t-cloudsec; e-post; a-sov; e-ft; i-quant; i-gateway
+"RL training frameworks (verl, OpenRLHF)",job postings 2026,Preference Model Research Engineer,verl|openrlhf,covered,8,12,i-dist; i-slo; f-cloud; e-prompt; e-rag; e-synth
+"Prompt/policy optimization (GEPA, DSPy)",job postings 2026,Bespoke Labs RL Environment Research Engineer,gepa|dspy|prompt optimi,thin,1,1,f-linux
+"Computer-use / GUI agents (OSWorld, WebArena)",job postings 2026,Hark Post-training,computer[- ]use|osworld|webarena,covered,3,4,concept:computer-use; e-multimodal-app; g-browser
+LLM gateway with budgets and failover,job postings 2026,Handshake Senior LLM Platform; Kuok AI Platform Engineer,gateway,covered,26,88,a-gateway; i-gateway; g-mcp; t-runbook; a-bb; e-llmops
+Prompt/model version registry,job postings 2026,Kuok AI Platform Engineer; Prairie LLMOps,prompt registry|registry,covered,12,26,t-fleet; a-plat; e-llmops; f-mlops; g-mcp; d-connect
+Bedrock Guardrails,job postings 2026,Brookfield Staff Security Engineer,bedrock guardrail|guardrails? (for|in) bedrock|bedrock,thin,2,4,a-bb; f-cloud
+CSPM / CNAPP,job postings 2026,Lila Sciences Cloud Security; S&P Global GenAI Cloud Security,cspm|cnapp,covered,2,8,t-cloudsec; project:p-cloudsec
+Vertex AI security,job postings 2026,S&P Global GenAI Cloud Security Chief Architect,vertex,thin,2,3,a-bb; f-cloud
+Agent autonomy boundaries and escalation,job postings 2026,Siena AI PM Agent Autonomy; BackOps AI PM,autonomy,covered,12,36,a-product; g-org; t-fleet; a-solarch; t-runbook; e-agents
+AgentOps release management and rollback,job postings 2026,Accenture AgentOps Engineer,rollback,covered,12,26,t-runbook; f-mlops; e-ft; i-lora-serve; g-long; a-sys
+Langfuse tracing,job postings 2026,Straker AI Ops Agent Engineer,langfuse,thin,2,3,t-agentops; project:p-obs
+Agent run replay / conversation replay,job postings 2026,Sentry Agent Tracing,replay,covered,6,17,g-harness; t-durable; g-long; d-cdc; i-kernel; concept:harness
+AI FinOps,job postings 2026,Accenture AgentOps; BIP AgentOps,finops,covered,4,5,f-finops; a-cost; f-energy; d-fleetdata
+AI inventory / registry for governance,job postings 2026,aigovernanceengineer.com role definition; Swiss Re AI Governance,inventory,covered,7,10,t-reg; t-cloudsec; e-cache; f-gpu; t-fleet; concept:threat-model
+OSCAL machine-readable evidence,job postings 2026,aigovernanceengineer.com role definition,oscal,covered,9,20,i-slo; i-coldstart; f-k8s; f-sched; t-audit; project:p-inference
+Fairness audits / bias testing,job postings 2026,Swiss Re AI Governance Engineer,fairness|bias,covered,17,30,t-judge; sc-nn; sc-eval; e-datafly; t-durable; i-batch
+Model lineage tracking,job postings 2026,Swiss Re AI Governance Engineer,lineage,covered,9,48,d-catalog; a-mlsys; d-fleetdata; f-mlops; a-data; d-unstruct
+Customer workshops and exec readouts,job postings 2026,Accenture FDE; Deloitte FDE,workshop|readout,thin,2,2,a-fde; project:p-fde
+"Enterprise platforms (SAP, Salesforce, ServiceNow) integration",job postings 2026,Accenture FDE; Accenture AgentOps,salesforce|servicenow|\bsap\b,thin,1,1,d-connect
+Copilot Studio / Azure AI Foundry agents,job postings 2026,BIP AgentOps Engineer,copilot studio|foundry,thin,2,4,a-bb; f-cloud
+Tokenization (BPE),course syllabus,Stanford CS336; Hugging Face LLM Course,tokeni[sz],covered,30,59,sc-llm; e-tok; i-life; a-llm-arch; g-train; e-post
+Transformer architecture from scratch,course syllabus,Stanford CS336; CS224N,transformer,covered,3,5,sc-nn; sc-llm; project:p-semsearch
+Attention mechanism,course syllabus,CS224N,attention,covered,13,63,sc-llm; i-kernel; concept:attention; concept:flash-attn; i-engines; sc-long
+Word embeddings (word2vec),course syllabus,CS224N,word2vec|word vectors|word embedding,missing,0,0,
+RNNs / LSTMs history,course syllabus,CS224N,\brnn|lstm|recurrent,missing,0,0,
+Scaling laws,course syllabus,Stanford CS336,scaling law|chinchilla,thin,1,5,sc-nn
+GPU kernels / Triton / FlashAttention,course syllabus,Stanford CS336,triton|flashattention|kernel,covered,15,46,i-kernel; concept:flash-attn; i-engines; f-gpushare; concept:paged-attention; concept:gpu-memory
+Data parallel / tensor / pipeline parallelism,course syllabus,Stanford CS336,tensor parallel|pipeline parallel|fsdp|data parallel,covered,5,17,i-dist; f-traininfra; f-interconnect; concept:parallelism; concept:nccl-collectives
+Pretraining data curation and filtering,course syllabus,Stanford CS336,data (curation|filtering)|dedup|common crawl|fineweb,covered,3,7,d-unstruct; d-memory; concept:unstructured-pipeline
+Mixed precision / FP8 training,course syllabus,Stanford CS336,mixed precision|fp8|bf16,covered,7,23,i-quant; f-traininfra; i-batch; i-kernel; f-gpu; i-mem
+Instruction tuning / SFT,course syllabus,CS336; HF LLM Course,sft|instruction tun|supervised fine,covered,5,12,e-ft; e-datafly; e-post; f-traininfra; concept:rlhf-dpo-grpo
+RLHF,course syllabus,CS336; CS224N,rlhf,covered,3,6,e-post; concept:rlhf-dpo-grpo; sc-math
+Reasoning models / test-time compute,course syllabus,CS336 2025-26; DeepLearning.AI reasoning short courses,test-time compute|reasoning model|thinking tokens|extended thinking|chain-of-thought,thin,1,2,e-prompt
+"Interpretability (probing, SAEs)",course syllabus,CS224N,interpretab|sparse autoencoder|probing,thin,1,1,concept:attention
+Benchmarks and evaluation methodology,course syllabus,CS224N; CS336,benchmark,covered,13,18,t-cloudsec; a-llm-arch; i-spec; f-econ; sc-long; a-gov
+Hugging Face Transformers / Hub,course syllabus,Hugging Face LLM Course,hugging face,covered,3,3,a-cards; i-engines; project:p-lora
+Hugging Face smolagents / agents course,course syllabus,Hugging Face Agents Course,smolagents|hugging face agents,missing,0,0,
+Prompt engineering for developers,course syllabus,DeepLearning.AI ChatGPT Prompt Engineering for Developers,prompt engineering|prompting,covered,10,13,project:p-lora; e-synth; sc-nn; a-fde; e-prompt; e-ft
+"Building systems with LLM APIs (chaining, moderation)",course syllabus,DeepLearning.AI Building Systems with the ChatGPT API,moderation,missing,0,0,
+Knowledge graphs for RAG,course syllabus,DeepLearning.AI Knowledge Graphs for RAG,knowledge graph|graphrag,thin,2,5,concept:graphrag; e-rag
+"Advanced retrieval (reranking, query rewriting, HyDE)",course syllabus,DeepLearning.AI Advanced Retrieval for AI with Chroma,rerank|query rewrit|hyde|query expansion,covered,10,18,e-rag; e-docrag; e-tok; e-vector; d-unstruct; concept:rag-pipeline
+"Agentic design patterns (reflection, planning, tool use, multi-agent)",course syllabus,DeepLearning.AI Agentic AI (Andrew Ng),reflection,missing,0,0,
+Agent memory,course syllabus,DeepLearning.AI LLMs as Operating Systems: Agent Memory,memory,covered,52,164,g-mem; d-memory; i-mem; e-vector; i-lora-serve; f-gpushare
+MCP course,course syllabus,DeepLearning.AI MCP: Build Rich-Context AI Apps with Anthropic; HF MCP Course,mcp,covered,28,83,g-mcp; d-connect; f-aisec; project:p-mcp-db; d-products; d-catalog
+A2A protocol,course syllabus,DeepLearning.AI A2A short course,a2a,covered,5,17,g-a2a; g-eco; g-multi; t-fleet; concept:a2a
+Evaluating and debugging generative AI,course syllabus,DeepLearning.AI Evaluating and Debugging Generative AI,debug,covered,17,26,f-interconnect; f-net; g-harness; t-agentops; t-audit; sc-math
+Quantization fundamentals,course syllabus,DeepLearning.AI Quantization Fundamentals,quantiz,covered,15,35,i-quant; e-vector; i-engines; e-edge; concept:quantization; i-mem
+"Efficient serving of LLMs (batching, LoRA serving)",course syllabus,DeepLearning.AI Efficiently Serving LLMs,continuous batching|multi-lora|lora serving,covered,9,16,i-lora-serve; i-batch; concept:batching; i-engines; i-kernel; i-slo
+LLMOps pipelines,course syllabus,DeepLearning.AI LLMOps; Full Stack LLM Bootcamp,llmops,covered,3,7,e-llmops; f-mlops; project:p-router
+UX for LLM apps,course syllabus,Full Stack LLM Bootcamp: UX for Language User Interfaces,\bux\b|user experience,covered,6,13,a-product; e-edge; a-org; e-api; g-mental; concept:tool-calling
+Augmented language models,course syllabus,Full Stack LLM Bootcamp,augmented,missing,0,0,
+Launch an LLM app in an hour / prototyping,course syllabus,Full Stack LLM Bootcamp,prototyp,covered,5,10,a-fde; a-product; concept:fde-lifecycle; g-a2a; project:p-fde
+Agentic coding / coding agents,course syllabus,DeepLearning.AI Claude Code: A Highly Agentic Coding Assistant,coding agent|claude code|codex|cursor,covered,6,7,concept:agent-loop; g-harness-intro; g-browser; concept:mcp; concept:unstructured-pipeline; project:p-mcp-db
+Voice agents course,course syllabus,DeepLearning.AI Building AI Voice Agents for Production,voice agent,covered,3,5,e-voice; concept:voice-latency; project:p-voice
+Multimodal RAG course,course syllabus,DeepLearning.AI Multimodal RAG,multimodal rag|colpali,covered,3,10,e-docrag; project:p-docrag; concept:docrag-pipeline
+Safe and reliable AI via guardrails,course syllabus,DeepLearning.AI Safe and Reliable AI via Guardrails,guardrails,covered,12,19,a-plat; a-cards; a-product; e-voice; f-cloud; project:p-guardrails
+"Post-training of LLMs (SFT, DPO, online RL)",course syllabus,DeepLearning.AI Post-training of LLMs,post-training|post training,thin,2,3,e-post; concept:rlhf-dpo-grpo
+Reinforcement fine-tuning with GRPO,course syllabus,DeepLearning.AI Reinforcement Fine-Tuning LLMs with GRPO,grpo,covered,3,8,e-post; concept:rlhf-dpo-grpo; g-train
+Pretraining LLMs,course syllabus,DeepLearning.AI Pretraining LLMs,pretrain,thin,2,2,sc-nn; g-harness-intro
+Function calling and data extraction,course syllabus,DeepLearning.AI Function-calling and data extraction with LLMs,function calling|structured output,covered,8,11,e-vision; e-prompt; a-llm-arch; i-engines; i-struct; d-connect
+Deep research agents,course syllabus,DeepLearning.AI building deep research agents,deep research|research agent,thin,1,1,project:p-research-email
+Responses API / stateful conversations,vendor docs,OpenAI API docs,responses api|conversation state,thin,2,2,a-scale; e-api
+Prompt caching,vendor docs,"OpenAI, Anthropic, Gemini docs",prompt caching|prefix cach|context caching,covered,9,15,i-batch; a-cost; a-ref; a-scale; i-engines; i-struct
+Batch APIs,vendor docs,OpenAI Batch; Anthropic Message Batches; Bedrock batch inference,batch api|batch inference|batch job,covered,5,5,a-ref; a-cost; i-slo; f-gpushare; d-found
+Structured outputs / JSON schema,vendor docs,OpenAI structured outputs,structured output|json schema,covered,11,19,e-prompt; e-vision; i-struct; project:p-receipts; sc-llm; a-llm-arch
+Embeddings APIs,vendor docs,"OpenAI, Gemini, Bedrock",embedding,covered,34,99,a-data; e-tok; e-docrag; d-unstruct; d-fleetdata; a-privacy
+Vision input,vendor docs,"OpenAI, Anthropic, Gemini",vision,covered,14,21,sc-long; e-vision; i-coldstart; d-unstruct; concept:cold-start; project:p-receipts
+Realtime / Live API,vendor docs,OpenAI Realtime; Gemini Live API,realtime|live api,covered,5,9,e-voice; a-cost; a-ref; a-sov; project:p-voice
+Fine-tuning APIs / reinforcement fine-tuning,vendor docs,OpenAI fine-tuning & RFT,reinforcement fine-tuning|fine-tuning api|rft,missing,0,0,
+Moderation / content safety APIs,vendor docs,OpenAI Moderation; Azure AI Content Safety,moderation|content safety,missing,0,0,
+Prompt Shields / jailbreak detection,vendor docs,Azure AI Content Safety Prompt Shields,prompt shield|prompt guard|injection classifier|classifier,covered,12,20,t-judge; t-threat; project:p-guardrails; g-secure; concept:model-router; sc-math
+"Agents SDK (handoffs, guardrails, tracing)",vendor docs,OpenAI Agents SDK,agents sdk|handoff,covered,6,9,a-product; g-a2a; g-multi; a-org; i-pd; project:p-research-email
+"Built-in tools (web search, file search, code interpreter)",vendor docs,OpenAI built-in tools; Anthropic web search,web search|file search|code interpreter,thin,1,1,project:p-research-email
+Extended thinking / reasoning effort,vendor docs,"Anthropic, OpenAI reasoning docs",extended thinking|reasoning effort|thinking budget,missing,0,0,
+Context window management / compaction,vendor docs,Anthropic context management; Agent SDK,compaction|context management|context engineering,covered,8,26,e-prompt; g-harness; g-harness-intro; concept:context-eng; concept:harness; g-train
+Citations API / grounded answers,vendor docs,Anthropic Citations,citation,covered,12,24,a-ref; e-prompt; e-rag; e-docrag; d-unstruct; a-product
+Agent Skills,vendor docs,Anthropic Agent Skills,agent skills|\bskills\b,covered,7,13,a-org; g-mem; e-ft; concept:a2a; a-bb; g-eco
+Claude Agent SDK,vendor docs,Anthropic Claude Agent SDK,agent sdk,missing,0,0,
+Grounding with Google Search,vendor docs,Gemini API grounding,grounding,covered,2,7,g-browser; e-rag
+Long context (1M tokens),vendor docs,Gemini long context,long context|long-context,covered,2,7,sc-long; concept:rope-long-context
+Google ADK (Agent Development Kit),vendor docs,Google ADK docs,\badk\b|agent development kit,missing,0,0,
+Vertex AI Agent Engine,vendor docs,Vertex AI Agent Engine,agent engine,missing,0,0,
+Bedrock Knowledge Bases,vendor docs,AWS Bedrock Knowledge Bases,knowledge base,missing,0,0,
+Bedrock Agents / AgentCore,vendor docs,AWS Bedrock AgentCore,agentcore|bedrock agents,missing,0,0,
+Bedrock model evaluation,vendor docs,AWS Bedrock evaluations,model evaluation,missing,0,0,
+Provisioned throughput / reserved capacity,vendor docs,Bedrock provisioned throughput; Azure PTU,provisioned throughput|reserved capacity|ptu,covered,21,32,e-datafly; d-cdc; d-memory; a-product; t-agentops; concept:rope-long-context
+Intelligent prompt routing / model router,vendor docs,Bedrock Intelligent Prompt Routing; Azure Foundry model router,model router|prompt routing|routing,covered,31,64,i-gateway; concept:llm-gateway-routing; a-bb; e-multi; project:p-router; i-lora-serve
+Azure AI Foundry Agent Service,vendor docs,Azure AI Foundry docs,foundry,thin,2,4,a-bb; f-cloud
+Azure AI evaluation SDK / tracing,vendor docs,Azure AI Foundry evaluation & tracing,tracing,covered,10,16,e-llmops; t-agentops; a-plat; a-ref; a-fde; a-privacy
+Mosaic AI Agent Framework / Agent Evaluation,vendor docs,Databricks Mosaic AI docs,mosaic,missing,0,0,
+Databricks AI Gateway,vendor docs,Databricks AI Gateway,ai gateway,thin,2,2,a-bb; i-gateway
+LangGraph state graphs and checkpointing,vendor docs,LangGraph docs,langgraph,thin,2,2,t-durable; project:p-research-email
+Human-in-the-loop interrupts,vendor docs,LangGraph interrupts,human-in-the-loop|interrupt|approval,covered,37,79,f-aisec; g-secure; sc-sec; a-secarch; t-runbook; concept:policy-gate
+LangSmith tracing and evals,vendor docs,LangSmith docs,langsmith,thin,1,1,t-agentops
+Streaming responses,vendor docs,OpenAI/Anthropic/LangGraph streaming,stream,covered,26,73,d-cdc; e-voice; e-api; i-coldstart; concept:cold-start; concept:voice-latency
+LlamaIndex workflows and query engines,vendor docs,LlamaIndex docs,llamaindex,missing,0,0,
+LlamaParse document parsing,vendor docs,LlamaIndex LlamaParse,llamaparse,thin,2,2,e-docrag; project:p-docrag
+Text-to-SQL agents,vendor docs,LlamaIndex/LangChain SQL agents; Databricks Genie,text-to-sql,thin,1,2,d-model
+Rate limits and quotas,vendor docs,All vendor API docs,rate limit|quota,covered,20,56,f-cloud; f-gpushare; a-scale; t-durable; f-finops; d-connect
+Data residency / regional endpoints,vendor docs,Azure OpenAI; Bedrock; Vertex,residency|region,covered,23,46,a-privacy; a-scale; e-docrag; a-ref; a-bb; e-cache
+Vector databases,roadmap repo,roadmap.sh AI Engineer,vector (db|database|store),covered,14,22,t-cloudsec; e-vector; g-mem; d-found; d-products; a-ref
+Hybrid search (BM25 + vectors),roadmap repo,roadmap.sh AI Engineer,bm25|hybrid,covered,14,35,e-rag; a-bb; e-edge; e-vector; e-docrag; i-hw
+Chunking strategies,roadmap repo,roadmap.sh AI Engineer,chunk,covered,22,91,d-unstruct; e-rag; a-data; e-docrag; concept:permission-aware-rag; d-perm
+"Open-weight models (Llama, Qwen, Mistral)",roadmap repo,roadmap.sh AI Engineer,llama|qwen|mistral|open-weight,covered,13,31,i-engines; a-llm-arch; e-docrag; e-edge; project:p-docrag; project:p-lora
+"Running models locally (Ollama, llama.cpp)",roadmap repo,roadmap.sh AI Engineer; ai-engineering-hub,ollama|llama\.cpp|gguf,covered,4,20,i-engines; e-edge; i-quant; concept:quantization
+Hallucination detection and mitigation,roadmap repo,Chip Huyen AI Engineering; roadmap.sh,hallucinat,covered,5,5,sc-eval; a-gov; e-vision; t-evalfound; project:p-research-email
+Synthetic data generation,roadmap repo,Chip Huyen AI Engineering,synthetic,covered,6,17,e-synth; e-ft; t-evalfound; t-reg; concept:batching; concept:cdc-freshness
+Model selection and benchmarks,roadmap repo,Chip Huyen AI Engineering,model selection|choose (a|the) model,thin,2,2,a-llm-arch; a-data
+Inference optimization (speculative decoding),roadmap repo,Chip Huyen AI Engineering,speculative,covered,5,7,i-spec; sc-math; i-engines; i-struct; concept:speculative
+Distillation,roadmap repo,Chip Huyen AI Engineering,distill,covered,5,19,e-synth; concept:distillation; e-post; g-train; e-ft
+Mixture of experts,roadmap repo,llm-course (mlabonne),mixture[- ]of[- ]experts|\bmoe\b,covered,10,28,sc-long; a-llm-arch; i-research; concept:moe-routing; sc-llm; i-dist
+Model merging,roadmap repo,llm-course (mlabonne),merg(e|ing) models|model merging|mergekit,missing,0,0,
+LoRA / QLoRA / PEFT,roadmap repo,llm-course (mlabonne),lora|peft,covered,12,38,e-ft; i-lora-serve; concept:lora; project:p-lora; sc-math; e-post
+Preference datasets,roadmap repo,llm-course (mlabonne),preference,covered,9,20,e-datafly; e-post; e-ft; sc-eval; d-memory; t-judge
+Semantic caching,roadmap repo,roadmap.sh AI Engineer,semantic cach,covered,7,20,a-gateway; e-cache; d-perm; a-ref; a-scale; concept:cost-model
+"Multimodal models (vision, audio)",roadmap repo,roadmap.sh AI Engineer,multimodal,covered,7,13,e-docrag; sc-long; e-multimodal-app; i-engines; g-browser; concept:docrag-pipeline
+Speech recognition (Whisper),roadmap repo,roadmap.sh AI Engineer,whisper|speech-to-text|\bstt\b,covered,5,14,e-voice; concept:voice-latency; sc-long; e-multimodal-app; project:p-voice
+Text-to-speech,roadmap repo,roadmap.sh AI Engineer,text-to-speech|\btts\b,covered,4,20,e-voice; concept:voice-latency; sc-long; project:p-voice
+Image generation / diffusion models,roadmap repo,roadmap.sh AI Engineer,diffusion|image generation,thin,1,1,i-spec
+Responsible AI / ethics,roadmap repo,roadmap.sh AI Engineer,responsible ai|ethic,missing,0,0,
+Privacy and PII,roadmap repo,roadmap.sh AI Engineer,pii|privacy,covered,22,53,a-privacy; e-edge; t-audit; a-data; g-mem; project:p-guardrails
+Cost optimization,roadmap repo,roadmap.sh AI Engineer,cost,covered,100,295,a-solarch; t-agentops; a-cost; d-fleetdata; t-traj; a-product
+Agent frameworks comparison,roadmap repo,ai-engineering-hub; roadmap.sh AI Agents,framework,covered,15,21,t-reg; e-llmops; t-cloudsec; a-sys; a-mlsys; a-secarch
+Browser agents,roadmap repo,roadmap.sh AI Agents,browser,covered,8,18,g-browser; g-secure; t-threat; concept:computer-use; sc-sec; a-ref
+Agent evaluation,roadmap repo,roadmap.sh AI Agents,agent eval|trajector,covered,11,27,t-traj; g-mem; g-eval; t-fleet; project:p-traj; e-eval
+"Planning (ReAct, plan-and-execute)",roadmap repo,roadmap.sh AI Agents,react|plan-and-execute|planner,covered,6,6,i-pd; i-coldstart; f-aisec; t-agentops; concept:pd-disagg; concept:prompt-injection-defense
+Edge / on-device AI,roadmap repo,ai-engineering-hub,on-device|edge,covered,18,36,e-edge; a-llm-arch; t-evalfound; a-ref; i-engines; i-quant
+Data labeling / annotation,roadmap repo,Chip Huyen AI Engineering,label,covered,21,36,t-judge; sc-eval; f-gpushare; d-perm; e-synth; d-memory
+Drift monitoring,roadmap repo,Chip Huyen AI Engineering; Full Stack LLM Bootcamp,drift,covered,20,41,a-mlsys; t-judge; sc-eval; e-tok; e-prod; d-quality
+A/B testing AI features,roadmap repo,Chip Huyen AI Engineering,a/b,covered,8,15,a-product; e-multi; sc-eval; i-quant; g-tools; concept:quantization
