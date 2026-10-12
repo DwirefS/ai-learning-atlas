@@ -609,5 +609,42 @@
     "body": "Discover: shadow the workflow and quantify volume, time and cost. Find where data access, value and risk tolerance line up.\nScope: one narrow use case, a baseline metric and target, required data and system access, security reviewers, and explicit non-goals.\nPrototype (days): real-shaped data, simplest agent that could work, demo to the people who do the work.\nHarden (weeks): customer-derived eval set, least-privilege connectors and MCP servers, tracing, guardrails, human approval for risky actions, security and privacy review.\nPilot: a small user group, feedback capture, an outcome dashboard, and fixes driven by error analysis.\nHand over: IaC, runbooks, dashboards, eval suite, trained owners and champions.\nFeed back: reusable connectors and patterns to the FDE practice, feature requests to the product.\n\nThe critical path is almost always access and approvals, not prompting, so start security conversations in week one.",
     "mermaid": "flowchart LR\n  D[Discover] --> S[Scope + metric]\n  S --> P[Prototype days]\n  P --> H[Harden weeks: evals, IAM, security review]\n  H --> PI[Pilot + feedback]\n  PI --> HO[Handover: runbooks, owners]\n  HO --> FB[Field feedback to product]\n  PI -.error analysis.-> H",
     "example": "Support deflection case: 40,000 tickets/month, 30% resolved by the agent = 12,000 tickets × $6 human cost saved = $72,000/month. Costs: 40,000 conversations × $0.30 model and tool cost = $12,000, plus $15,000 platform and operations = $27,000. Net value is $45,000/month, which is the number the CFO asks for."
+  },
+  {
+    "id": "voice-latency",
+    "title": "Voice Agent Latency Pipeline",
+    "trackHints": [
+      "engineer",
+      "agentic"
+    ],
+    "summary": "Where the milliseconds go between a caller finishing a sentence and hearing the agent reply, and how streaming hides them.",
+    "body": "Voice-to-voice latency is measured from the end of user speech to the first audible agent audio. People perceive pauses above roughly a second as awkward, so production targets are usually around 500-800 ms.\n\nIn a cascaded pipeline the hops are: end-of-turn detection (VAD plus a semantic turn model deciding the user is done), final STT transcript, LLM time to first token, TTS time to first audio byte, and network and jitter buffers in both directions.\n\nThe key trick is streaming overlap. STT streams partial transcripts so the final arrives quickly; the LLM streams tokens; TTS starts speaking as soon as the first sentence is complete, while the rest is still being generated. The user hears the first sentence while the agent is still thinking about the third.\n\nTool calls break the flow. If a calendar lookup takes 1.5 s, speak a short filler ('Let me check that for you') and then the result. Barge-in must cancel TTS and generation within about 200 ms.\n\nSpeech-to-speech models remove the STT and TTS hops but keep turn detection and network.",
+    "mermaid": "flowchart LR\n  U[User stops speaking] --> EOT[End-of-turn detect]\n  EOT --> STT[Final transcript]\n  STT --> LLM[LLM first token]\n  LLM --> S1[First sentence complete]\n  S1 --> TTS[TTS first audio]\n  TTS --> N[Network to caller]\n  LLM -.tool call.-> F[Speak filler]\n  B[Barge-in] -.cancel.-> TTS",
+    "example": "Budget: end-of-turn 200 ms + final transcript 100 ms + LLM first token 300 ms + first sentence (about 8 tokens at 50 tokens/s) 160 ms + TTS first audio 120 ms + network 80 ms = 960 ms. Switching to a faster turn model (100 ms) and a smaller LLM (180 ms first token) gives 100 + 100 + 180 + 160 + 120 + 80 = 740 ms, inside an 800 ms target."
+  },
+  {
+    "id": "docrag-pipeline",
+    "title": "Document and Multimodal RAG Pipeline",
+    "trackHints": [
+      "engineer",
+      "data"
+    ],
+    "summary": "Two roads from PDF to answer, parse-then-embed and embed-the-page, and how hybrid systems combine them.",
+    "body": "Road 1, parse-then-embed: a layout parser splits each page into regions; tables become Markdown or HTML with headers; charts and images get VLM captions and, where possible, extracted data series; text is chunked with page and bounding-box references and embedded as single vectors.\n\nRoad 2, embed-the-page: each page image goes through a ColPali-style model that outputs one vector per patch. Queries are embedded per token and scored by late interaction: for each query token take the best-matching patch similarity and sum. No OCR, strong on visual layouts, but much bigger indexes.\n\nHybrid: run both retrievers, fuse with reciprocal rank fusion, rerank, then send the top pages (as images) plus their extracted text to a VLM that answers with page-level citations.\n\nEvaluate per question type (prose, table, chart, image), track index size and cost per query, and keep image counts and resolution under control.",
+    "mermaid": "flowchart TB\n  PDF[PDF pages] --> LP[Layout parse]\n  LP --> TB[Tables as Markdown]\n  LP --> CH[Charts and figures to VLM captions]\n  LP --> TX[Text chunks]\n  TB --> E1[Text embeddings]\n  CH --> E1\n  TX --> E1\n  PDF --> IMG[Page images]\n  IMG --> CP[ColPali patch vectors]\n  Q[Query] --> E1\n  Q --> CP\n  E1 --> RRF[Rank fusion + rerank]\n  CP --> RRF\n  RRF --> VLM[VLM answer with page citations]",
+    "example": "Index size: 10,000 pages × 1,030 patch vectors × 128 dimensions × 2 bytes (fp16) ≈ 2.64 GB for the visual index. Binarizing to 1 bit per dimension gives 10,000 × 1,030 × 16 bytes ≈ 165 MB, 16x smaller. A text index of 10,000 pages × 3 chunks × 1,024 dims × 4 bytes ≈ 123 MB."
+  },
+  {
+    "id": "model-router",
+    "title": "Model Router: Cheap vs Smart",
+    "trackHints": [
+      "engineer",
+      "inference",
+      "trust"
+    ],
+    "summary": "Send each request to the cheapest model that will get it right, escalate when needed, and prove the savings with evals.",
+    "body": "Most traffic is easy, so routing can cut cost substantially without hurting quality. Routing strategies:\n\nRules: route by task type, input length, tenant tier or tool needs (for example, all classification goes to a small model).\nClassifier routers: a small model or embedding classifier predicts difficulty or which model will succeed, trained on eval data where both models were scored.\nCascades: try the cheap model first, check its output with a verifier (schema validity, confidence, a judge, or tests), and escalate to the strong model only on failure.\n\nMeasure on a golden set: quality of the routed system versus always-strong, cost per request, latency, and the escalation rate. Watch for drift; the share of hard requests changes over time.\n\nImplement in the LLM gateway so every app benefits, with logging of which route each request took and why.",
+    "mermaid": "flowchart LR\n  R[Request] --> RT{Router: rules or classifier}\n  RT -->|easy| S[Small model]\n  RT -->|hard| L[Large model]\n  S --> V{Verifier: schema, judge, tests}\n  V -->|pass| OUT[Response]\n  V -->|fail| L\n  L --> OUT\n  OUT --> LOG[(Route, cost, quality logs)]",
+    "example": "1M requests per month at 1,500 tokens each. Always-large at $5 per 1M tokens: 1.5B tokens × $5/M = $7,500. Cascade: everything hits small ($0.30/M) = $450, and 20% escalate to large = 300M tokens × $5/M = $1,500, total $1,950, a 74% saving. It's only worth it if routed quality on the golden set stays within your threshold."
   }
 ]

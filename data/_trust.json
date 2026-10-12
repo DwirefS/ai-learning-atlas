@@ -113,6 +113,33 @@
                   "title": "Alert routing with example traces"
                 }
               ]
+            },
+            {
+              "id": "t-agentops-x1",
+              "title": "Tooling landscape: Langfuse, LangSmith, Phoenix and more",
+              "explainer": "Agent observability tools share a model of traces, spans, sessions, scores and datasets. Langfuse is open source with tracing, prompt management and evals. LangSmith is tightly integrated with LangChain and LangGraph. Arize Phoenix is open source and OpenTelemetry-native. Braintrust focuses on evals and experiments, and Datadog and Sentry add LLM tracing to existing APM. Prefer tools that ingest OpenTelemetry GenAI spans so you can switch vendors without re-instrumenting, and check data residency for stored prompts.",
+              "subtopics": [
+                {
+                  "id": "t-agentops-x1-s1",
+                  "title": "Langfuse"
+                },
+                {
+                  "id": "t-agentops-x1-s2",
+                  "title": "LangSmith"
+                },
+                {
+                  "id": "t-agentops-x1-s3",
+                  "title": "Arize Phoenix"
+                },
+                {
+                  "id": "t-agentops-x1-s4",
+                  "title": "Braintrust, Datadog, Sentry"
+                },
+                {
+                  "id": "t-agentops-x1-s5",
+                  "title": "OpenTelemetry for portability"
+                }
+              ]
             }
           ],
           "quiz": [
@@ -257,6 +284,33 @@
                 {
                   "id": "t-evalfound-t3-s5",
                   "title": "Regression gates with confidence intervals"
+                }
+              ]
+            },
+            {
+              "id": "t-evalfound-x1",
+              "title": "Evaluation-driven development and model selection",
+              "explainer": "Evaluation-driven development makes evals the main loop: write cases first, change prompts, tools or models, and keep a change only if the eval improves without regressions. The same suite drives model selection. Public benchmarks and leaderboards shortlist candidates, but contamination and task mismatch mean only your own golden set decides. Compare quality, latency and cost per correct answer for each candidate, and re-run the comparison when new models ship.",
+              "subtopics": [
+                {
+                  "id": "t-evalfound-x1-s1",
+                  "title": "Evals-first iteration loop"
+                },
+                {
+                  "id": "t-evalfound-x1-s2",
+                  "title": "Model selection with your own golden set"
+                },
+                {
+                  "id": "t-evalfound-x1-s3",
+                  "title": "Benchmark contamination"
+                },
+                {
+                  "id": "t-evalfound-x1-s4",
+                  "title": "Cost per correct answer"
+                },
+                {
+                  "id": "t-evalfound-x1-s5",
+                  "title": "Re-evaluating on new releases"
                 }
               ]
             }
@@ -697,6 +751,33 @@
                 {
                   "id": "t-cloudsec-t3-s5",
                   "title": "Automated evidence export"
+                }
+              ]
+            },
+            {
+              "id": "t-cloudsec-x1",
+              "title": "Securing managed AI services: Bedrock, Vertex AI and Azure AI Foundry",
+              "explainer": "Each cloud provides AI-specific controls. On AWS, Bedrock offers private VPC endpoints, IAM condition keys per model, Bedrock Guardrails for content and PII filtering, and model invocation logging. On Google Cloud, Vertex AI supports VPC Service Controls, CMEK, workload identity and Model Armor for prompt and response screening. Azure AI Foundry uses private networking, managed identity, Entra-based access and Content Safety with Prompt Shields. Enable these by default in landing zones and audit them with CSPM.",
+              "subtopics": [
+                {
+                  "id": "t-cloudsec-x1-s1",
+                  "title": "Bedrock IAM, endpoints, Guardrails, logging"
+                },
+                {
+                  "id": "t-cloudsec-x1-s2",
+                  "title": "Vertex AI VPC-SC, CMEK, Model Armor"
+                },
+                {
+                  "id": "t-cloudsec-x1-s3",
+                  "title": "Azure AI Foundry managed identity and Prompt Shields"
+                },
+                {
+                  "id": "t-cloudsec-x1-s4",
+                  "title": "Default-on landing zone controls"
+                },
+                {
+                  "id": "t-cloudsec-x1-s5",
+                  "title": "CSPM checks for AI services"
                 }
               ]
             }
@@ -1187,6 +1268,296 @@
           "conceptIds": [
             "audit-trail"
           ]
+        },
+        {
+          "id": "t-agentattacks",
+          "title": "Agent Attacks Deep Dive: Goal Hijacking, Tool Tampering, Poisoning and Model Extraction",
+          "why": "Attacks on agents target their goals, tools, memory and the model itself; each needs a specific defense beyond generic guardrails.",
+          "explainer": "Beyond basic prompt injection, agentic systems face a wider attack catalog (OWASP's agentic threats guidance and MITRE ATLAS describe many).\n\nGoal hijacking: injected content redirects the agent's objective, for example a web page that tells a browsing agent to buy something else. Tool parameter tampering: the attacker manipulates tool arguments, such as changing a recipient address or amount, often via injected text the model copies into a call. Tool and MCP supply chain: a malicious or compromised MCP server returns poisoned descriptions or outputs ('tool poisoning') or a trusted tool changes behavior after approval ('rug pull'). Memory and context poisoning: attackers plant false facts in long-term memory or retrieval corpora that persist across sessions. Data poisoning: tampered training or fine-tuning data implants backdoors. Model extraction and inversion: repeated queries reconstruct a model's behavior or leak training data; system prompt extraction leaks proprietary instructions.\n\nDefenses: argument validation and policy checks on every tool call, pinning and reviewing tool descriptions, provenance and write controls for memory, data supply-chain checks, rate limiting and anomaly detection against extraction, and assuming system prompts are public.\n\nMental model: every input channel to an agent, whether a page, a tool description, a memory or a dataset, is an attack surface.",
+          "resources": [
+            {
+              "title": "OWASP GenAI Security Project: Agentic threats",
+              "url": "https://genai.owasp.org/initiatives/agentic-security-initiative/"
+            },
+            {
+              "title": "MITRE ATLAS",
+              "url": "https://atlas.mitre.org/"
+            },
+            {
+              "title": "Invariant Labs: MCP tool poisoning attacks",
+              "url": "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+            },
+            {
+              "title": "Stealing machine learning models via prediction APIs (arXiv)",
+              "url": "https://arxiv.org/abs/1609.02943"
+            }
+          ],
+          "project": "Red-team a browsing and email agent connected to two MCP servers. Demonstrate goal hijacking via a web page, tool parameter tampering of an email recipient, an MCP tool-description poisoning, and memory poisoning that persists to a new session. Implement defenses (argument policies, pinned tool manifests, memory write review, approvals) and report attack success before and after.",
+          "topics": [
+            {
+              "id": "t-agentattacks-t1",
+              "title": "Goal hijacking and tool parameter tampering",
+              "explainer": "Goal hijacking replaces the user's objective with the attacker's through injected instructions in content the agent reads. Tool parameter tampering is quieter: the objective stays, but arguments change, such as a payment to a different account or an email to an external address. Defend by validating arguments against policies and the user's original request (allowed recipients, amount limits, domains), showing previews of consequential calls for approval, and keeping untrusted content from flowing into high-privilege tool arguments without checks.",
+              "subtopics": [
+                {
+                  "id": "t-agentattacks-t1-s1",
+                  "title": "Goal hijacking via content"
+                },
+                {
+                  "id": "t-agentattacks-t1-s2",
+                  "title": "Argument tampering patterns"
+                },
+                {
+                  "id": "t-agentattacks-t1-s3",
+                  "title": "Policy validation of arguments"
+                },
+                {
+                  "id": "t-agentattacks-t1-s4",
+                  "title": "Previews and approvals"
+                },
+                {
+                  "id": "t-agentattacks-t1-s5",
+                  "title": "Taint tracking from untrusted inputs"
+                }
+              ]
+            },
+            {
+              "id": "t-agentattacks-t2",
+              "title": "Tool, MCP and memory poisoning",
+              "explainer": "Tool poisoning hides malicious instructions in an MCP tool's description or outputs that the model reads but the user never sees. Rug pulls change a tool's behavior after it was approved. Memory poisoning writes false facts or instructions into long-term memory or a retrieval corpus so they influence future sessions. Mitigate by pinning and diffing tool manifests, allowlisting MCP servers, isolating servers by privilege, reviewing or scoring memory writes, storing provenance with every memory, and expiring unverified memories.",
+              "subtopics": [
+                {
+                  "id": "t-agentattacks-t2-s1",
+                  "title": "Tool description poisoning"
+                },
+                {
+                  "id": "t-agentattacks-t2-s2",
+                  "title": "Rug pulls and manifest pinning"
+                },
+                {
+                  "id": "t-agentattacks-t2-s3",
+                  "title": "MCP server allowlists"
+                },
+                {
+                  "id": "t-agentattacks-t2-s4",
+                  "title": "Memory poisoning across sessions"
+                },
+                {
+                  "id": "t-agentattacks-t2-s5",
+                  "title": "Provenance and expiry for memories"
+                }
+              ]
+            },
+            {
+              "id": "t-agentattacks-t3",
+              "title": "Data poisoning, model extraction and prompt leakage",
+              "explainer": "Data poisoning inserts crafted examples into training or fine-tuning data to create backdoors triggered by specific phrases; vet data sources, deduplicate, and test for trigger behaviors. Model extraction queries an API at scale to train a copy, and model inversion or membership inference tries to recover training data; mitigate with rate limits, anomaly detection, output limits and avoiding sensitive training data. System prompt extraction is easy, so never put secrets in prompts and assume instructions will leak.",
+              "subtopics": [
+                {
+                  "id": "t-agentattacks-t3-s1",
+                  "title": "Backdoors via poisoned data"
+                },
+                {
+                  "id": "t-agentattacks-t3-s2",
+                  "title": "Training data vetting"
+                },
+                {
+                  "id": "t-agentattacks-t3-s3",
+                  "title": "Extraction and inversion attacks"
+                },
+                {
+                  "id": "t-agentattacks-t3-s4",
+                  "title": "Rate limiting and anomaly detection"
+                },
+                {
+                  "id": "t-agentattacks-t3-s5",
+                  "title": "System prompt leakage"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "An injected email makes the agent send the report to attacker@evil.com instead of the user's manager. This is…",
+              "choices": [
+                "Data poisoning",
+                "Reward hacking",
+                "Tool parameter tampering",
+                "Model extraction"
+              ],
+              "answer": 2,
+              "why": "The goal stays the same, but a tool argument was manipulated."
+            },
+            {
+              "q": "Best defense against an MCP 'rug pull'?",
+              "choices": [
+                "Disable logging",
+                "Higher temperature",
+                "Bigger context window",
+                "Pin and diff tool manifests, re-approve on change"
+              ],
+              "answer": 3,
+              "why": "Detecting changed tool definitions prevents silent behavior changes."
+            },
+            {
+              "q": "Why never put secrets in system prompts?",
+              "choices": [
+                "They cost tokens",
+                "System prompts can be extracted by users",
+                "They slow inference",
+                "Models ignore them"
+              ],
+              "answer": 1,
+              "why": "Prompt extraction is routine; secrets belong in secret managers."
+            }
+          ],
+          "conceptIds": [
+            "policy-gate"
+          ]
+        },
+        {
+          "id": "t-responsible",
+          "title": "Responsible AI: Fairness, Transparency and Content Safety",
+          "why": "Responsible AI turns values like fairness and transparency into tests, controls and disclosures that ship with the product.",
+          "explainer": "Responsible AI covers fairness, reliability and safety, privacy, inclusiveness, transparency and accountability (Microsoft's principles; similar lists from Google, NIST and the OECD). For engineers it becomes concrete work.\n\nFairness and bias: measure outcome differences across groups (demographic parity, equalized odds) for decisions such as screening or credit, and test generative outputs for stereotyped or uneven quality across languages, dialects and names. Content safety: classify and filter harmful inputs and outputs with moderation APIs (OpenAI Moderation, Azure AI Content Safety, Bedrock Guardrails, Llama Guard), tuned per use case and audience. Transparency: tell users they are talking to AI, explain limitations, and document the system with model cards, system cards or transparency notes. Human oversight: meaningful review for consequential decisions, with the ability to contest.\n\nThis aligns with regulation: the EU AI Act prohibits certain practices, requires transparency (Article 50) and imposes data governance and bias-examination duties on high-risk systems.\n\nCommon mistakes: one aggregate accuracy number hiding group disparities; safety filters so strict they block legitimate use; ethics as a one-time review instead of ongoing tests.\n\nMental model: if a value is not measured, it is not a requirement.",
+          "resources": [
+            {
+              "title": "Microsoft Responsible AI Standard",
+              "url": "https://www.microsoft.com/en-us/ai/principles-and-approach"
+            },
+            {
+              "title": "Fairlearn",
+              "url": "https://fairlearn.org/"
+            },
+            {
+              "title": "Azure AI Content Safety",
+              "url": "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/overview"
+            },
+            {
+              "title": "Model Cards for Model Reporting (arXiv)",
+              "url": "https://arxiv.org/abs/1810.03993"
+            }
+          ],
+          "project": "For a resume-screening assistant, build a fairness eval with synthetic resumes varied only by name and gender cues, measure selection-rate differences, and mitigate. Add content safety filtering with a moderation API, tune thresholds on 100 labeled examples, and write a transparency note and model card.",
+          "topics": [
+            {
+              "id": "t-responsible-t1",
+              "title": "Fairness and bias testing",
+              "explainer": "Define the decision and the groups that matter, then measure: selection rates per group (demographic parity), error rates per group (equalized odds), and calibration. For LLMs, use counterfactual tests that swap names, genders or dialects while holding qualifications fixed, and compare outputs. Report disaggregated metrics, not one average. Mitigations include better data, prompt and policy changes, post-processing thresholds and human review, each re-measured. Fairlearn and similar toolkits help compute and visualize disparities.",
+              "subtopics": [
+                {
+                  "id": "t-responsible-t1-s1",
+                  "title": "Choosing groups and decisions"
+                },
+                {
+                  "id": "t-responsible-t1-s2",
+                  "title": "Demographic parity and equalized odds"
+                },
+                {
+                  "id": "t-responsible-t1-s3",
+                  "title": "Counterfactual prompt tests"
+                },
+                {
+                  "id": "t-responsible-t1-s4",
+                  "title": "Disaggregated reporting"
+                },
+                {
+                  "id": "t-responsible-t1-s5",
+                  "title": "Mitigation and re-measurement"
+                }
+              ]
+            },
+            {
+              "id": "t-responsible-t2",
+              "title": "Content safety and moderation",
+              "explainer": "Content safety systems classify text and images into harm categories (hate, violence, sexual content, self-harm) with severity levels, and detect jailbreak or injection attempts. Use them on inputs, tool outputs and model outputs. Tune thresholds per audience: a children's tutor and a security research tool need different settings. Measure both misses and false blocks on labeled samples, give users a clear message when blocked, and log decisions for review and appeals.",
+              "subtopics": [
+                {
+                  "id": "t-responsible-t2-s1",
+                  "title": "Harm categories and severity"
+                },
+                {
+                  "id": "t-responsible-t2-s2",
+                  "title": "Moderation APIs and Llama Guard"
+                },
+                {
+                  "id": "t-responsible-t2-s3",
+                  "title": "Thresholds per audience"
+                },
+                {
+                  "id": "t-responsible-t2-s4",
+                  "title": "False blocks vs misses"
+                },
+                {
+                  "id": "t-responsible-t2-s5",
+                  "title": "Block messages and appeals"
+                }
+              ]
+            },
+            {
+              "id": "t-responsible-t3",
+              "title": "Transparency, documentation and oversight",
+              "explainer": "Tell people when they interact with AI and when content is AI-generated, as EU AI Act Article 50 requires in many cases. Document systems with model cards, system cards or transparency notes covering intended use, limitations, evaluation results and known risks. Provide meaningful human oversight for consequential decisions: reviewers need the evidence, time and authority to override, and affected people need a way to contest. Review documentation whenever models or prompts change.",
+              "subtopics": [
+                {
+                  "id": "t-responsible-t3-s1",
+                  "title": "AI disclosure to users"
+                },
+                {
+                  "id": "t-responsible-t3-s2",
+                  "title": "Model cards and transparency notes"
+                },
+                {
+                  "id": "t-responsible-t3-s3",
+                  "title": "Limitations and intended use"
+                },
+                {
+                  "id": "t-responsible-t3-s4",
+                  "title": "Meaningful human oversight"
+                },
+                {
+                  "id": "t-responsible-t3-s5",
+                  "title": "Contestability and appeals"
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Why report fairness metrics disaggregated by group?",
+              "choices": [
+                "Required by Kafka",
+                "A single average can hide large disparities between groups",
+                "To raise accuracy",
+                "Saves compute"
+              ],
+              "answer": 1,
+              "why": "Aggregates mask subgroup harms."
+            },
+            {
+              "q": "A counterfactual fairness test for an LLM screener changes…",
+              "choices": [
+                "Only identity cues like names while keeping qualifications fixed",
+                "The tokenizer",
+                "The model weights",
+                "Temperature"
+              ],
+              "answer": 0,
+              "why": "Holding qualifications constant isolates the effect of identity cues."
+            },
+            {
+              "q": "Content safety thresholds should be…",
+              "choices": [
+                "Identical for every product",
+                "Disabled in production",
+                "Set by the model itself",
+                "Tuned per audience and measured for misses and false blocks"
+              ],
+              "answer": 3,
+              "why": "Different audiences need different trade-offs."
+            }
+          ],
+          "conceptIds": []
         }
       ]
     },

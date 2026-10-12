@@ -78,7 +78,7 @@
       h+=`<button type="button" class="nav-btn ${state.track===it.id&&state.mode==='track'?'active':''}" data-track="${it.id}"><span class="mascot">${ICONS[it.id]||'•'}</span><span style="flex:1;min-width:0"><div>${esc(it.name)}</div><div class="mini"><i style="width:${st.pct}%"></i></div></span><span class="meta">${st.pct}%</span></button>`;
     }
     h+=`<div class="nav-label">Explore</div>`;
-    for(const [m,ic,label] of [['roles','🧑‍🚀','Roles ('+(DATA.roles||[]).length+')'],['paths','🧭','Learning paths'],['capstones','🏆','Capstone projects'],['concepts','💡','Concept cards ('+CONCEPTS.length+')'],['glossary','📖','Glossary ('+DATA.glossary.length+')']]){
+    for(const [m,ic,label] of [['roles','🧑‍🚀','Roles ('+(DATA.roles||[]).length+')'],['projects','🪜','Project ladder ('+(DATA.projects||[]).length+')'],['paths','🧭','Learning paths'],['capstones','🏆','Capstone projects'],['concepts','💡','Concept cards ('+CONCEPTS.length+')'],['glossary','📖','Glossary ('+DATA.glossary.length+')']]){
       h+=`<button type="button" class="nav-btn ${state.mode===m?'active':''}" data-mode="${m}"><span class="mascot">${ic}</span><span style="flex:1">${label}</span></button>`;
     }
     h+=`<div class="side-actions"><button type="button" id="btnConcepts">Concept cards (${CONCEPTS.length})</button><button type="button" id="exportProg">Export progress</button><button type="button" id="importProg">Import progress</button></div>`;
@@ -190,6 +190,28 @@
     if(!list.length) h+=`<p class="why">No roles match “${esc(state.query)}”.</p>`;
     return h+`</div>`;
   }
+
+  function renderProjects(){
+    const P=DATA.projects||[]; const T=DATA.projectTiers||{}; const q=state.query.trim().toLowerCase();
+    const list=P.filter(p=>!q||JSON.stringify(p).toLowerCase().includes(q));
+    const rn=id=>{const r=(DATA.roles||[]).find(x=>x.id===id);return r?r.emoji+' '+r.name:id;};
+    let h=`<section class="hero"><div class="hero-grid"><div><h2>Project ladder <span class="badge">${P.length}</span></h2><p class="role">One AI skill = one project. Each rung is a hands-on build with a goal, stack options, steps, stretch goals and clear "done" criteria, mapped to roles and to the subjects that teach it. Climb from Starter to Expert; tick each project's done criteria to track progress.</p><div class="role-chips">${Object.entries(T).map(([k,v])=>`<a href="#" class="chip" data-tier-jump="${k}">Tier ${k} · ${esc(v)}</a>`).join('')}</div></div><div>${HERO.capstone}</div></div></section>`;
+    for(const [k,v] of Object.entries(T)){
+      const items=list.filter(p=>String(p.tier)===k); if(!items.length) continue;
+      h+=`<h3 class="tier-h" id="tier-${k}">Tier ${k} · ${esc(v)}</h3><div class="roles">`;
+      for(const p of items){
+        const ul=a=>`<ul>${a.map(x=>`<li>${highlight(x)}</li>`).join('')}</ul>`;
+        const done=p.done.map((d,i)=>{const id=p.id+'-done-'+i;const ok=isDone(id);return `<div class="sub ${ok?'done':''}"><input type="checkbox" id="${id}" data-sub="${id}" ${ok?'checked':''}/><label for="${id}">${highlight(d)}</label></div>`;}).join('');
+        const nd=p.done.filter((_,i)=>isDone(p.id+'-done-'+i)).length;
+        h+=`<section class="role-card" id="proj-${p.id}"><div class="role-head"><span class="role-emoji">${p.emoji}</span><div style="flex:1"><div class="cap-kicker">Tier ${p.tier} · ${esc(v)}</div><h3>${highlight(p.title)}</h3><p>${highlight(p.goal)}</p></div><span class="pp">${nd}/${p.done.length}</span></div>
+        <div class="role-grid"><div class="cap-cell"><h4>🧰 Stack options</h4>${ul(p.stack)}</div><div class="cap-cell"><h4>🪜 Steps</h4><ol>${p.steps.map(x=>`<li>${highlight(x)}</li>`).join('')}</ol></div><div class="cap-cell"><h4>🚀 Stretch goals</h4>${ul(p.stretch)}</div><div class="cap-cell"><h4>✅ Done when</h4>${done}</div></div>
+        <p style="font-size:.82rem;margin:.7rem 0 0">👥 ${p.roles.map(r=>`<a href="#" data-mode-link="roles">${esc(rn(r))}</a>`).join(' · ')}<br/>📚 ${p.subjects.map(id=>{const f=findSubject(id);return `<a href="#" data-jump-subject="${id}">${esc(f?f.s.title:id)}</a>`;}).join(' · ')}</p></section>`;
+      }
+      h+=`</div>`;
+    }
+    if(!list.length) h+=`<p class="why">No projects match “${esc(state.query)}”.</p>`;
+    return h;
+  }
   function renderCapstones(){
     let h=`<section class="hero"><div class="hero-grid"><div><h2>Capstone projects <span class="badge">${Object.keys(DATA.capstones).length}</span></h2><p class="role">One portfolio-grade project per track. Each covers architecture, infrastructure, deployment, security, observability, scaling and cost, because that is what real AI systems are judged on.</p></div><div>${HERO.capstone}</div></div></section>`;
     for(const id of ['shared',...DATA.tracks.map(t=>t.id)]) h+=capstoneCard(id);
@@ -232,6 +254,7 @@
     content.querySelectorAll('[data-jump-cap]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode='capstones';render();setTimeout(()=>{const el=document.getElementById('cap-'+a.dataset.jumpCap);if(el)el.scrollIntoView({behavior:'smooth'});},60);});
     content.querySelectorAll('[data-role-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('role-'+a.dataset.roleJump);if(el)el.scrollIntoView({behavior:'smooth'});});
     content.querySelectorAll('[data-mode-link]').forEach(a=>a.onclick=e=>{e.preventDefault();state.mode=a.dataset.modeLink;render();window.scrollTo(0,0);});
+    content.querySelectorAll('[data-tier-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('tier-'+a.dataset.tierJump);if(el)el.scrollIntoView({behavior:'smooth'});});
     content.querySelectorAll('[data-az]').forEach(a=>a.onclick=e=>{e.preventDefault();const el=document.getElementById('gl-'+a.dataset.az);if(el)el.scrollIntoView({behavior:'smooth'});});
     runMermaid();
   }
@@ -253,7 +276,7 @@
 
   function render(){
     renderSidebar();
-    content.innerHTML = ({roles:renderRoles,concepts:renderConcepts,paths:renderPaths,capstones:renderCapstones,glossary:renderGlossary}[state.mode]||renderTrack)();
+    content.innerHTML = ({roles:renderRoles,projects:renderProjects,concepts:renderConcepts,paths:renderPaths,capstones:renderCapstones,glossary:renderGlossary}[state.mode]||renderTrack)();
     bind();
   }
 
@@ -262,6 +285,7 @@
   document.getElementById('collapseAll').onclick=()=>content.querySelectorAll('.level,.subject,.topic,.concept').forEach(el=>el.classList.remove('open'));
   document.getElementById('tabConcepts').onclick=()=>{state.mode='concepts';render();};
   document.getElementById('tabRoles').onclick=()=>{state.mode='roles';render();window.scrollTo(0,0);};
+  document.getElementById('tabProjects').onclick=()=>{state.mode='projects';render();window.scrollTo(0,0);};
   document.getElementById('tabPaths').onclick=()=>{state.mode='paths';render();};
   document.getElementById('tabGloss').onclick=()=>{state.mode='glossary';render();};
   document.getElementById('resetProgress').onclick=()=>{if(confirm('Reset XP and checkboxes?')){state.progress={done:{},xp:0,streak:0,last:null};save();render();}};
