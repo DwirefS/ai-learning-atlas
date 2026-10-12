@@ -4,7 +4,7 @@
     "subtitle": "0→100 expert paths for 13 agentic AI roles: explainers, diagrams, labs, capstones and learning paths",
     "audience": "Working engineers leveling into any of 13 enterprise agentic-AI roles",
     "as_of": "2026-10",
-    "version": "6.0.0",
+    "version": "7.0.0",
     "credit": "Sapient Edge",
     "license_content": "CC BY 4.0",
     "license_code": "MIT"
@@ -1033,6 +1033,14 @@
                 {
                   "title": "Designing Machine Learning Systems",
                   "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+                },
+                {
+                  "title": "ADR GitHub organization",
+                  "url": "https://adr.github.io/"
+                },
+                {
+                  "title": "Michael Nygard: Documenting architecture decisions",
+                  "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"
                 }
               ],
               "project": "Write an ADR for customer-support AI: workflow vs agent, retrieval vs fine-tune, rollback plan.",
@@ -1090,6 +1098,33 @@
                     }
                   ],
                   "explainer": "Break the system along boundaries that fail and scale differently. Keep the synchronous user path thin and push slow work (enrichment, indexing, long agent runs) to async queues. Separate failure domains so a model provider outage degrades one feature instead of the whole product. Use strangler patterns to replace legacy flows incrementally rather than in a big bang. Design degraded modes up front: cached answers, a smaller fallback model, or a \"we're busy, here's a form\" path. A good decomposition makes it obvious which team owns which latency and cost budget."
+                },
+                {
+                  "id": "a-sys-x1",
+                  "title": "ADRs, teardowns and public benchmarks",
+                  "explainer": "Architecture Decision Records are short documents: context, decision, alternatives considered, and consequences. Each one is numbered and immutable, and a later record supersedes it rather than editing it. Write ADRs for model choice, retrieval design and fallback policy. Public teardowns show a hiring manager how you think: the problem, the architecture, the eval results with numbers, the costs, what failed and what you would change. Publish reproducible benchmarks with the dataset, harness and settings so others can rerun them.",
+                  "subtopics": [
+                    {
+                      "id": "a-sys-x1-s1",
+                      "title": "ADR template: context, decision, consequences"
+                    },
+                    {
+                      "id": "a-sys-x1-s2",
+                      "title": "Superseding instead of editing"
+                    },
+                    {
+                      "id": "a-sys-x1-s3",
+                      "title": "Writing a system teardown"
+                    },
+                    {
+                      "id": "a-sys-x1-s4",
+                      "title": "Reproducible benchmark write-ups"
+                    },
+                    {
+                      "id": "a-sys-x1-s5",
+                      "title": "Portfolio as evidence of judgment"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -1125,6 +1160,28 @@
                   ],
                   "answer": 1,
                   "why": "Planned degradation keeps users served when the main path fails."
+                },
+                {
+                  "q": "How is an accepted ADR changed when the decision changes?",
+                  "choices": [
+                    "Edit it in place",
+                    "Write a new ADR that supersedes it",
+                    "Rename it",
+                    "Delete it"
+                  ],
+                  "answer": 1,
+                  "why": "ADRs are immutable; new records supersede old ones."
+                },
+                {
+                  "q": "What makes a public benchmark credible?",
+                  "choices": [
+                    "A logo",
+                    "The dataset, harness and settings are published so others can reproduce it",
+                    "High numbers",
+                    "Only a chart"
+                  ],
+                  "answer": 1,
+                  "why": "Reproducibility is the bar."
                 }
               ],
               "conceptIds": [
@@ -3625,6 +3682,14 @@
                 {
                   "title": "Retrieval-Augmented Generation",
                   "url": "https://arxiv.org/abs/2005.11401"
+                },
+                {
+                  "title": "Anthropic: Effective context engineering for AI agents",
+                  "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+                },
+                {
+                  "title": "Anthropic prompt caching docs",
+                  "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching"
                 }
               ],
               "project": "Tokenize 20 real docs; report fertility; chunk three ways and compare retrieval hit rate.",
@@ -3682,6 +3747,37 @@
                     }
                   ],
                   "explainer": "Embeddings turn text into vectors for search. Bi-encoders embed queries and documents separately, which is fast and indexable; cross-encoders read the pair together and are more accurate, so use them to rerank a shortlist. Matryoshka (MRL) models let you truncate vectors to fewer dimensions with modest quality loss, saving memory. Cosine similarity is standard; normalize vectors so dot product equals cosine. Some models use different prefixes or encoders for queries and documents. Re-evaluate when your domain drifts, and remember that changing embedding models means re-indexing."
+                },
+                {
+                  "id": "e-tok-x1",
+                  "title": "Context engineering and token economics",
+                  "explainer": "Context engineering decides what goes into each call and in what order. Treat the window as a budget: reserve output tokens, then fixed costs (system prompt, tool schemas), then split the rest among retrieved evidence, conversation history and memory by priority. Put stable content first so prompt caching hits. When history overflows, compress older turns into summaries, drop stale tool outputs, and keep identifiers verbatim. Measure cost per task, not per call, because agents make many calls and input tokens dominate the bill.",
+                  "subtopics": [
+                    {
+                      "id": "e-tok-x1-s1",
+                      "title": "Context assembly order and prompt caching"
+                    },
+                    {
+                      "id": "e-tok-x1-s2",
+                      "title": "Token budget allocation by priority"
+                    },
+                    {
+                      "id": "e-tok-x1-s3",
+                      "title": "Context compression: summaries, pruning stale tool output"
+                    },
+                    {
+                      "id": "e-tok-x1-s4",
+                      "title": "Output token reservation"
+                    },
+                    {
+                      "id": "e-tok-x1-s5",
+                      "title": "Cost per task vs cost per call"
+                    },
+                    {
+                      "id": "e-tok-x1-s6",
+                      "title": "Context rot in long windows"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -3717,9 +3813,33 @@
                   ],
                   "answer": 3,
                   "why": "Normalization removes magnitude, leaving the cosine."
+                },
+                {
+                  "q": "A 32k window reserves 4k for output and 5k for system and tools. Retrieval gets 60% of the rest. How many tokens is that?",
+                  "choices": [
+                    "19,200",
+                    "16,200",
+                    "13,800",
+                    "23,000"
+                  ],
+                  "answer": 2,
+                  "why": "32,000 − 4,000 − 5,000 = 23,000; 60% of 23,000 = 13,800."
+                },
+                {
+                  "q": "Why put the stable system prompt and tool schemas first?",
+                  "choices": [
+                    "It is required by JSON",
+                    "Models ignore the end",
+                    "It shortens output",
+                    "It maximizes prompt-cache prefix hits"
+                  ],
+                  "answer": 3,
+                  "why": "Caches match on identical prefixes, so stable content goes first."
                 }
               ],
-              "conceptIds": []
+              "conceptIds": [
+                "context-budget"
+              ]
             }
           ]
         },
@@ -3863,6 +3983,22 @@
                 {
                   "title": "Ragas",
                   "url": "https://docs.ragas.io/en/stable/"
+                },
+                {
+                  "title": "Anthropic: Introducing contextual retrieval",
+                  "url": "https://www.anthropic.com/news/contextual-retrieval"
+                },
+                {
+                  "title": "Corrective RAG (CRAG) paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2401.15884"
+                },
+                {
+                  "title": "Self-RAG paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2310.11511"
+                },
+                {
+                  "title": "LangGraph agentic RAG tutorial",
+                  "url": "https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/"
                 }
               ],
               "project": "Hybrid BM25+vector RAG with citations, refusal, ACL filters, and a Ragas-style report.",
@@ -3974,6 +4110,33 @@
                       "title": "When knowledge graphs pay off"
                     }
                   ]
+                },
+                {
+                  "id": "e-rag-x2",
+                  "title": "Agentic RAG: query rewriting, self-correction and abstention",
+                  "explainer": "Agentic RAG puts the model in control of retrieval. Rewrite the query first: expand acronyms, split multi-part questions, or generate a hypothetical answer to embed (HyDE). Use hybrid search (BM25 plus vectors) and contextual retrieval, which prepends a short chunk-specific context before embedding. Then grade the retrieved chunks. Corrective RAG (CRAG) rewrites and re-searches or falls back to web search when the grades are low, and Self-RAG trains the model to critique its own retrieval and support. If evidence stays weak after a capped number of retries, abstain and say what is missing.",
+                  "subtopics": [
+                    {
+                      "id": "e-rag-x2-s1",
+                      "title": "Query rewriting, decomposition and HyDE"
+                    },
+                    {
+                      "id": "e-rag-x2-s2",
+                      "title": "Contextual retrieval and hybrid search"
+                    },
+                    {
+                      "id": "e-rag-x2-s3",
+                      "title": "Relevance grading of retrieved chunks"
+                    },
+                    {
+                      "id": "e-rag-x2-s4",
+                      "title": "CRAG and Self-RAG self-correction loops"
+                    },
+                    {
+                      "id": "e-rag-x2-s5",
+                      "title": "Abstention with retry caps"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -4009,12 +4172,35 @@
                   ],
                   "answer": 2,
                   "why": "Separate retrieval misses from generation errors."
+                },
+                {
+                  "q": "First-pass retrieval is relevant 70% of the time, and one rewrite fixes half of the failures. What is the success rate after one retry?",
+                  "choices": [
+                    "85%",
+                    "100%",
+                    "70%",
+                    "77%"
+                  ],
+                  "answer": 0,
+                  "why": "0.70 + 0.30 × 0.5 = 0.85."
+                },
+                {
+                  "q": "What should an agentic RAG system do when evidence is still weak after its retry cap?",
+                  "choices": [
+                    "Retry forever",
+                    "Abstain and state what is missing",
+                    "Answer anyway, confidently",
+                    "Raise temperature"
+                  ],
+                  "answer": 1,
+                  "why": "Bounded retries followed by abstention prevent unsupported answers."
                 }
               ],
               "conceptIds": [
                 "rag-pipeline",
                 "hnsw",
-                "graphrag"
+                "graphrag",
+                "agentic-rag-loop"
               ]
             },
             {
@@ -4678,6 +4864,18 @@
                 {
                   "title": "Google SRE Book",
                   "url": "https://sre.google/sre-book/table-of-contents/"
+                },
+                {
+                  "title": "MDN: Using server-sent events",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+                },
+                {
+                  "title": "MDN: WebSockets API",
+                  "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API"
+                },
+                {
+                  "title": "OpenAI streaming responses guide",
+                  "url": "https://platform.openai.com/docs/guides/streaming-responses"
                 }
               ],
               "project": "Add tracing, rate limits, spend caps, and a kill switch to your LLM API app.",
@@ -4762,6 +4960,37 @@
                     }
                   ],
                   "explainer": "Authorize every tool call against the end user's permissions, not the app's service account. Filter outputs for sensitive data and unsafe content before display or action. Redact PII before sending to third-party models where possible. Pin dependency and model versions to avoid supply-chain surprises. Enforce spend caps per user and per key so an abuser or a runaway loop cannot generate a five-figure bill overnight."
+                },
+                {
+                  "id": "e-prod-x1",
+                  "title": "Real-time streaming UX: SSE, WebSockets, optimistic UI",
+                  "explainer": "Users judge AI apps by time to first token. Server-Sent Events stream tokens one way over HTTP and suit most chat. WebSockets are two-way and suit voice and collaborative apps. For voice, add voice activity detection and barge-in, which cancels TTS and generation when the user speaks. Stream tool calls too: show 'searching…' as soon as the call is emitted, and render partial JSON arguments carefully. Optimistic UI shows the user's action immediately and reconciles later. Always handle reconnects, cancellation and backpressure.",
+                  "subtopics": [
+                    {
+                      "id": "e-prod-x1-s1",
+                      "title": "SSE vs WebSockets"
+                    },
+                    {
+                      "id": "e-prod-x1-s2",
+                      "title": "Time to first token and perceived latency"
+                    },
+                    {
+                      "id": "e-prod-x1-s3",
+                      "title": "Streaming tool calls and partial JSON"
+                    },
+                    {
+                      "id": "e-prod-x1-s4",
+                      "title": "Barge-in and VAD for voice"
+                    },
+                    {
+                      "id": "e-prod-x1-s5",
+                      "title": "Optimistic UI and reconciliation"
+                    },
+                    {
+                      "id": "e-prod-x1-s6",
+                      "title": "Cancellation and reconnects"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -4797,6 +5026,28 @@
                   ],
                   "answer": 1,
                   "why": "Otherwise the agent becomes a confused deputy."
+                },
+                {
+                  "q": "A chat app only needs to stream from server to client over HTTP. What is the simplest fit?",
+                  "choices": [
+                    "gRPC bidirectional",
+                    "Server-Sent Events",
+                    "Polling every 10 s",
+                    "WebSockets"
+                  ],
+                  "answer": 1,
+                  "why": "SSE is a simple one-way HTTP stream."
+                },
+                {
+                  "q": "What is barge-in?",
+                  "choices": [
+                    "Token shuffling",
+                    "Batching requests",
+                    "Cancelling playback and generation when the user starts speaking",
+                    "A caching layer"
+                  ],
+                  "answer": 2,
+                  "why": "Barge-in lets users interrupt a voice agent."
                 }
               ],
               "conceptIds": []
@@ -5500,6 +5751,14 @@
                 {
                   "title": "Designing Machine Learning Systems",
                   "url": "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/"
+                },
+                {
+                  "title": "DPO paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2305.18290"
+                },
+                {
+                  "title": "Hugging Face TRL DPO Trainer",
+                  "url": "https://huggingface.co/docs/trl/dpo_trainer"
                 }
               ],
               "project": "Thumbs and tool-success signals → weekly curated fine-tune and eval delta sets.",
@@ -5557,6 +5816,33 @@
                     }
                   ],
                   "explainer": "Captured data feeds several loops: new eval cases, SFT examples, preference pairs from edited or rejected answers, reward signals for RL, and regression tests for prompts. Publish a regular quality report that shows how the flywheel moved key metrics. A flywheel that only collects data without changing the product is just storage cost. Try it: every week, turn the top five new failure clusters into eval cases before anyone changes a prompt. This keeps fixes honest."
+                },
+                {
+                  "id": "e-datafly-x1",
+                  "title": "DPO feedback flywheel end to end",
+                  "explainer": "A preference flywheel turns user feedback into training data. Log every response with the prompt, context and model version. When a user gives a thumbs-down and then accepts an edited or regenerated answer, that pair becomes a chosen and rejected example. Filter the pairs for PII, spam and label noise, deduplicate, and hold out an eval split. A nightly job trains a LoRA adapter with DPO, and the adapter is promoted only if offline evals and a shadow or canary test beat the current version.",
+                  "subtopics": [
+                    {
+                      "id": "e-datafly-x1-s1",
+                      "title": "Logging prompts, context, versions"
+                    },
+                    {
+                      "id": "e-datafly-x1-s2",
+                      "title": "Turning thumbs-down and edits into preference pairs"
+                    },
+                    {
+                      "id": "e-datafly-x1-s3",
+                      "title": "Filtering, PII scrubbing, deduplication"
+                    },
+                    {
+                      "id": "e-datafly-x1-s4",
+                      "title": "Nightly LoRA + DPO training jobs"
+                    },
+                    {
+                      "id": "e-datafly-x1-s5",
+                      "title": "Eval gates, shadow and canary promotion"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -5592,9 +5878,33 @@
                   ],
                   "answer": 2,
                   "why": "Bias toward vocal users skews training and evals."
+                },
+                {
+                  "q": "What does a DPO training example contain?",
+                  "choices": [
+                    "Only images",
+                    "Only a reward score",
+                    "A prompt plus a chosen and a rejected response",
+                    "A SQL query"
+                  ],
+                  "answer": 2,
+                  "why": "DPO learns from preference pairs."
+                },
+                {
+                  "q": "When should a nightly adapter be promoted?",
+                  "choices": [
+                    "Always, automatically",
+                    "When the loss is lowest",
+                    "When it is newest",
+                    "Only after it beats the current model on offline evals and a shadow or canary test"
+                  ],
+                  "answer": 3,
+                  "why": "Gates prevent regressions."
                 }
               ],
-              "conceptIds": []
+              "conceptIds": [
+                "rlhf-dpo-grpo"
+              ]
             },
             {
               "id": "e-edge",
@@ -5730,6 +6040,14 @@
                 {
                   "title": "Google: Practitioners guide to MLOps",
                   "url": "https://cloud.google.com/resources/mlops-whitepaper"
+                },
+                {
+                  "title": "LiteLLM: fallbacks and reliability",
+                  "url": "https://docs.litellm.ai/docs/proxy/reliability"
+                },
+                {
+                  "title": "AWS Well-Architected: graceful degradation",
+                  "url": "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html"
                 }
               ],
               "project": "Stand up a mini platform: LiteLLM gateway with per-team keys and budgets, a Git-based prompt and agent manifest registry, a CI pipeline that runs evals and blocks regressions, OpenTelemetry tracing with cost attribution, and a cookiecutter/Backstage template that creates a new compliant agent repo. Time how long a new agent takes to reach staging.",
@@ -5814,6 +6132,33 @@
                       "title": "Mandatory vs optional controls"
                     }
                   ]
+                },
+                {
+                  "id": "e-llmops-x1",
+                  "title": "Graceful degradation and fallback chains",
+                  "explainer": "Plan for outages, rate limits and budget overruns before they happen. A fallback chain tries a frontier model, then a mid-tier model, then a local model, then a semantic cache or a canned answer. Each step triggers on errors, timeouts or a budget signal. Cost kill switches watch spend per tenant and per feature, and step down tiers or disable expensive features at thresholds. Tell users when quality is degraded, log which tier served each request, and test the chain with chaos drills.",
+                  "subtopics": [
+                    {
+                      "id": "e-llmops-x1-s1",
+                      "title": "Fallback chain: frontier, mid, local, cache"
+                    },
+                    {
+                      "id": "e-llmops-x1-s2",
+                      "title": "Triggers: errors, timeouts, rate limits, budget"
+                    },
+                    {
+                      "id": "e-llmops-x1-s3",
+                      "title": "Cost kill switches per tenant and feature"
+                    },
+                    {
+                      "id": "e-llmops-x1-s4",
+                      "title": "Degraded-mode UX messaging"
+                    },
+                    {
+                      "id": "e-llmops-x1-s5",
+                      "title": "Chaos drills for the chain"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -5849,12 +6194,35 @@
                   ],
                   "answer": 0,
                   "why": "Platform value shows in its customers' outcomes."
+                },
+                {
+                  "q": "Frontier and mid-tier providers fail independently, 2% and 1% of the time. How often are both down?",
+                  "choices": [
+                    "3%",
+                    "1%",
+                    "0.2%",
+                    "0.02%"
+                  ],
+                  "answer": 3,
+                  "why": "0.02 × 0.01 = 0.0002 = 0.02%."
+                },
+                {
+                  "q": "Which signal should step traffic down to a cheaper tier even when nothing is failing?",
+                  "choices": [
+                    "Higher user satisfaction",
+                    "Lower latency",
+                    "A new deploy",
+                    "A budget threshold from a cost kill switch"
+                  ],
+                  "answer": 3,
+                  "why": "Budget triggers enforce FinOps limits."
                 }
               ],
               "conceptIds": [
                 "eval-pipeline",
                 "agentops-loop",
-                "model-router"
+                "model-router",
+                "fallback-chain"
               ]
             },
             {
@@ -11926,6 +12294,10 @@
                 {
                   "title": "Retrieval-Augmented Generation",
                   "url": "https://arxiv.org/abs/2005.11401"
+                },
+                {
+                  "title": "Generative Agents paper (arXiv)",
+                  "url": "https://arxiv.org/abs/2304.03442"
                 }
               ],
               "project": "Add working + episodic memory; measure success on a 20-step workflow.",
@@ -11983,6 +12355,33 @@
                     }
                   ],
                   "explainer": "Memory needs policies. Decide what is worth writing; saving everything creates noise. Summaries lose detail, so keep links to sources. Retrieval can surface irrelevant or outdated memories. Support deletion for privacy. Evaluate memory by whether it improves task success, not by how much it stores. A memory that is never read is cost, and a memory that is read wrongly is a bug. Try it: delete a user and verify every memory store forgets them, including summaries and embeddings."
+                },
+                {
+                  "id": "g-mem-x1",
+                  "title": "Three-tier memory with scoring and eviction",
+                  "explainer": "Split agent memory into tiers. Working memory is the current context. Episodic memory stores past interactions and events with timestamps. Semantic memory holds distilled facts and preferences. Score each item for retrieval by a mix of relevance, recency and importance. The Generative Agents paper used a weighted sum with exponential recency decay. Evict or summarize low-score items, merge duplicates, and resolve contradictions by preferring newer, confirmed facts. Let users view and delete what is stored.",
+                  "subtopics": [
+                    {
+                      "id": "g-mem-x1-s1",
+                      "title": "Working, episodic and semantic tiers"
+                    },
+                    {
+                      "id": "g-mem-x1-s2",
+                      "title": "Relevance, recency and importance scoring"
+                    },
+                    {
+                      "id": "g-mem-x1-s3",
+                      "title": "Eviction and consolidation"
+                    },
+                    {
+                      "id": "g-mem-x1-s4",
+                      "title": "Contradiction resolution"
+                    },
+                    {
+                      "id": "g-mem-x1-s5",
+                      "title": "User-visible memory controls"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -12018,6 +12417,17 @@
                   ],
                   "answer": 2,
                   "why": "Including summaries and embeddings."
+                },
+                {
+                  "q": "With recency decay of 0.99 per hour, what is a memory's recency weight after 100 hours?",
+                  "choices": [
+                    "0.01",
+                    "0.99",
+                    "1.0",
+                    "About 0.37"
+                  ],
+                  "answer": 3,
+                  "why": "0.99^100 ≈ 0.366."
                 }
               ],
               "conceptIds": [
@@ -12045,6 +12455,14 @@
                 {
                   "title": "A2A protocol",
                   "url": "https://a2aproject.github.io/A2A/"
+                },
+                {
+                  "title": "MCP specification",
+                  "url": "https://modelcontextprotocol.io/specification/2025-06-18"
+                },
+                {
+                  "title": "JSON-RPC 2.0 specification",
+                  "url": "https://www.jsonrpc.org/specification"
                 }
               ],
               "project": "Expose one internal API as MCP server with OAuth; connect two hosts.",
@@ -12129,6 +12547,33 @@
                       "title": "Deprecation and versioning"
                     }
                   ]
+                },
+                {
+                  "id": "g-mcp-x1",
+                  "title": "MCP on the wire: raw JSON-RPC without an SDK",
+                  "explainer": "MCP messages are JSON-RPC 2.0: a request has jsonrpc, id, method and params; a response echoes the id with result or error; a notification has no id. A session starts with initialize, where client and server exchange protocol version and capabilities, then the client sends notifications/initialized. After that come tools/list, tools/call, resources/read and prompts/get. Over stdio, each message is one newline-delimited JSON line. Streamable HTTP uses POST, with optional SSE streams. Writing a 100-line server by hand teaches you what the SDKs do for you.",
+                  "subtopics": [
+                    {
+                      "id": "g-mcp-x1-s1",
+                      "title": "JSON-RPC 2.0 requests, responses, notifications"
+                    },
+                    {
+                      "id": "g-mcp-x1-s2",
+                      "title": "initialize handshake and capability negotiation"
+                    },
+                    {
+                      "id": "g-mcp-x1-s3",
+                      "title": "tools/list and tools/call payloads"
+                    },
+                    {
+                      "id": "g-mcp-x1-s4",
+                      "title": "stdio framing vs Streamable HTTP"
+                    },
+                    {
+                      "id": "g-mcp-x1-s5",
+                      "title": "Error codes and cancellation"
+                    }
+                  ]
                 }
               ],
               "quiz": [
@@ -12164,6 +12609,28 @@
                   ],
                   "answer": 2,
                   "why": "stdio serves local servers; streamable HTTP serves remote ones."
+                },
+                {
+                  "q": "What makes a JSON-RPC notification different from a request?",
+                  "choices": [
+                    "It has no id and expects no response",
+                    "It has a result field",
+                    "It must be batched",
+                    "It uses XML"
+                  ],
+                  "answer": 0,
+                  "why": "Notifications omit id, so no response is sent."
+                },
+                {
+                  "q": "Which message must come first in an MCP session?",
+                  "choices": [
+                    "resources/read",
+                    "tools/call",
+                    "ping",
+                    "initialize"
+                  ],
+                  "answer": 3,
+                  "why": "Clients start with initialize to negotiate the version and capabilities."
                 }
               ],
               "conceptIds": [
@@ -17410,7 +17877,10 @@
     "fde-lifecycle",
     "voice-latency",
     "docrag-pipeline",
-    "model-router"
+    "model-router",
+    "context-budget",
+    "agentic-rag-loop",
+    "fallback-chain"
   ],
   "capstones": {
     "shared": {
@@ -18223,6 +18693,75 @@
           "capstone",
           "data",
           "Capstone: AI-ready data product"
+        ]
+      ]
+    },
+    {
+      "id": "suraj-12-stage",
+      "title": "Agentic AI Engineer (Suraj Sharma's 12 stages)",
+      "untimed": true,
+      "emoji": "🧭",
+      "who": "Untimed path following Suraj Sharma's '6 months to become an AI Engineer in the Agentic Era'. Each stage names the Project Ladder build that proves the skill.",
+      "steps": [
+        [
+          "engineer",
+          "e-tok",
+          "1 Context engineering & token economics → project p-context"
+        ],
+        [
+          "trust",
+          "t-durable",
+          "2 Durable orchestration (Temporal/LangGraph, checkpoints, HITL waits) → p-durable"
+        ],
+        [
+          "agentic",
+          "g-mcp",
+          "3 Raw MCP over JSON-RPC → p-mcp-raw"
+        ],
+        [
+          "engineer",
+          "e-reasoning",
+          "4 System-1 vs System-2 routing and cascades → p-router"
+        ],
+        [
+          "engineer",
+          "e-rag",
+          "5 Agentic RAG: contextual retrieval, rewriting, CRAG/Self-RAG, abstention → p-agentic-rag"
+        ],
+        [
+          "agentic",
+          "g-mem",
+          "6 Three-tier memory with scoring and eviction → p-memory"
+        ],
+        [
+          "trust",
+          "t-traj",
+          "7 Trajectory evals, CI gates, shadow routing → p-traj, p-evals-ci"
+        ],
+        [
+          "trust",
+          "t-agentattacks",
+          "8 Inter-agent security, PII tokenization, sanitization proxies → p-guardrails"
+        ],
+        [
+          "engineer",
+          "e-prod",
+          "9 Streaming UX: SSE, WebSockets, VAD, barge-in → p-streaming"
+        ],
+        [
+          "engineer",
+          "e-datafly",
+          "10 DPO data flywheel → p-flywheel"
+        ],
+        [
+          "engineer",
+          "e-llmops",
+          "11 FinOps and graceful degradation → p-killswitch"
+        ],
+        [
+          "architect",
+          "a-sys",
+          "12 Public teardowns, ADRs, benchmarks → p-teardown"
         ]
       ]
     }
@@ -19802,6 +20341,112 @@
       ]
     },
     {
+      "id": "p-context",
+      "emoji": "🧮",
+      "title": "Context budget allocator",
+      "tier": 2,
+      "goal": "Build a library that assembles prompts under a token budget and logs what it compressed or dropped.",
+      "stack": [
+        "Python",
+        "tiktoken or provider token counter",
+        "An LLM API with prompt caching"
+      ],
+      "steps": [
+        "Define buckets: output reserve, fixed, retrieval, history, memory",
+        "Count tokens exactly and allocate by priority",
+        "Compress overflow: summarize turns, prune stale tool output",
+        "Order stable content first for caching",
+        "Log a budget report per call"
+      ],
+      "stretch": [
+        "Learn bucket ratios from eval results",
+        "Cost per task dashboard"
+      ],
+      "done": [
+        "Never exceeds window on 1,000 synthetic conversations",
+        "Cache hit rate ≥ 70% on repeated sessions",
+        "Answer quality on golden set within 2 points of the uncompressed baseline"
+      ],
+      "roles": [
+        "ai-engineer"
+      ],
+      "subjects": [
+        "e-tok",
+        "g-harness"
+      ]
+    },
+    {
+      "id": "p-mcp-raw",
+      "emoji": "🔌",
+      "title": "MCP server with raw JSON-RPC (no SDK)",
+      "tier": 2,
+      "goal": "Implement an MCP server over stdio by hand to learn the wire protocol.",
+      "stack": [
+        "Python or TypeScript standard library",
+        "MCP Inspector for testing"
+      ],
+      "steps": [
+        "Read newline-delimited JSON-RPC from stdin",
+        "Handle initialize and notifications/initialized",
+        "Implement tools/list and tools/call for 2 tools",
+        "Return JSON-RPC errors for bad input",
+        "Test with MCP Inspector and a real client"
+      ],
+      "stretch": [
+        "Streamable HTTP transport",
+        "Cancellation and progress notifications"
+      ],
+      "done": [
+        "Works in at least one MCP client",
+        "Conformance on malformed requests (correct error codes)",
+        "Under 300 lines, no SDK"
+      ],
+      "roles": [
+        "ai-engineer",
+        "platform"
+      ],
+      "subjects": [
+        "g-mcp",
+        "g-tools"
+      ]
+    },
+    {
+      "id": "p-streaming",
+      "emoji": "⚡",
+      "title": "Streaming agent UI",
+      "tier": 2,
+      "goal": "Build a chat UI that streams tokens and tool calls with cancellation and optimistic updates.",
+      "stack": [
+        "FastAPI or Node",
+        "SSE (and WebSockets for voice stretch)",
+        "React or plain JS"
+      ],
+      "steps": [
+        "Stream tokens over SSE",
+        "Show tool calls as they start",
+        "Render partial JSON safely",
+        "Add a cancel button wired to the server",
+        "Reconnect and resume after network drops"
+      ],
+      "stretch": [
+        "Voice with VAD and barge-in",
+        "Optimistic UI for user actions"
+      ],
+      "done": [
+        "Time to first token under 800 ms p50",
+        "Cancel stops generation server-side within 300 ms",
+        "Survives network toggle without losing the transcript"
+      ],
+      "roles": [
+        "ai-engineer",
+        "product"
+      ],
+      "subjects": [
+        "e-prod",
+        "e-voice"
+      ]
+    },
+    {
       "id": "p-lora",
       "emoji": "🎙️",
       "title": "LoRA fine-tune in your voice",
@@ -20029,6 +20674,76 @@
       ]
     },
     {
+      "id": "p-agentic-rag",
+      "emoji": "🔁",
+      "title": "Self-correcting agentic RAG",
+      "tier": 3,
+      "goal": "Upgrade a RAG app with query rewriting, grading, retries and abstention.",
+      "stack": [
+        "LangGraph or plain Python",
+        "Hybrid search (BM25 + vectors)",
+        "LLM grader"
+      ],
+      "steps": [
+        "Add contextual retrieval when indexing",
+        "Rewrite and decompose queries",
+        "Grade chunks; retry with a new query up to 2 times",
+        "Route to web search when the corpus fails",
+        "Abstain with explanation at the cap"
+      ],
+      "stretch": [
+        "Claim-level support check",
+        "Per-question-type dashboards"
+      ],
+      "done": [
+        "Report first-pass, recovery and abstention rates",
+        "Accuracy on answered questions ≥ baseline + 10 points",
+        "No unbounded loops (cap enforced in tests)"
+      ],
+      "roles": [
+        "ai-engineer",
+        "data-eng"
+      ],
+      "subjects": [
+        "e-rag",
+        "e-eval"
+      ]
+    },
+    {
+      "id": "p-memory",
+      "emoji": "🧠",
+      "title": "Three-tier agent memory",
+      "tier": 3,
+      "goal": "Give an assistant working, episodic and semantic memory with scoring and eviction.",
+      "stack": [
+        "Postgres + pgvector",
+        "An LLM for fact extraction"
+      ],
+      "steps": [
+        "Store episodes with timestamps",
+        "Extract facts into semantic memory",
+        "Score by relevance, recency and importance",
+        "Evict and consolidate on a schedule",
+        "Add a user view and delete UI"
+      ],
+      "stretch": [
+        "Contradiction resolution",
+        "Per-user memory evals"
+      ],
+      "done": [
+        "Recalls planted facts after 50 turns ≥ 90%",
+        "Deleted memories never resurface",
+        "Memory store bounded in size"
+      ],
+      "roles": [
+        "ai-engineer"
+      ],
+      "subjects": [
+        "g-mem",
+        "d-memory"
+      ]
+    },
+    {
       "id": "p-audit",
       "emoji": "📜",
       "title": "Audit trail and EU AI Act evidence pack",
@@ -20215,6 +20930,79 @@
         "a-fde",
         "a-solarch",
         "a-product"
+      ]
+    },
+    {
+      "id": "p-flywheel",
+      "emoji": "♻️",
+      "title": "DPO feedback flywheel",
+      "tier": 4,
+      "goal": "Turn thumbs-down feedback into preference pairs and a nightly DPO LoRA with eval gates.",
+      "stack": [
+        "Logging store",
+        "Hugging Face TRL (DPOTrainer) + PEFT",
+        "Eval harness",
+        "Scheduler"
+      ],
+      "steps": [
+        "Log responses with versions",
+        "Capture thumbs-down and accepted regenerations as pairs",
+        "Filter, scrub PII, deduplicate",
+        "Train a LoRA with DPO nightly",
+        "Promote only if offline evals and shadow tests win"
+      ],
+      "stretch": [
+        "Online canary with automatic rollback",
+        "Pair quality classifier"
+      ],
+      "done": [
+        "End-to-end run on 1,000 synthetic pairs",
+        "Promotion gate blocks a deliberately worse adapter",
+        "Lineage from each pair to the adapter version"
+      ],
+      "roles": [
+        "ai-engineer",
+        "ml-posttrain"
+      ],
+      "subjects": [
+        "e-datafly",
+        "e-ft",
+        "e-post"
+      ]
+    },
+    {
+      "id": "p-teardown",
+      "emoji": "📝",
+      "title": "Public teardown, ADRs and benchmark",
+      "tier": 4,
+      "goal": "Publish evidence of engineering judgment: ADRs, a system teardown and a reproducible benchmark.",
+      "stack": [
+        "Markdown in a repo",
+        "Your eval harness"
+      ],
+      "steps": [
+        "Write 5 ADRs for one of your ladder projects",
+        "Write a teardown: problem, architecture, evals, costs, failures",
+        "Publish a benchmark with dataset, harness and settings",
+        "Ask a peer to reproduce it",
+        "Revise based on feedback"
+      ],
+      "stretch": [
+        "Teardown of a public product's AI feature",
+        "Talk or blog version"
+      ],
+      "done": [
+        "A peer reproduces your numbers within noise",
+        "Each ADR lists alternatives and consequences",
+        "Teardown includes cost per task"
+      ],
+      "roles": [
+        "ai-engineer",
+        "fde"
+      ],
+      "subjects": [
+        "a-sys",
+        "t-evalfound"
       ]
     }
   ],
