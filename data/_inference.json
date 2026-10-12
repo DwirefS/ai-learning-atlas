@@ -16,19 +16,31 @@
           "resources": [
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "PagedAttention / Efficient LLM Serving",
-              "url": "https://arxiv.org/abs/2309.06180"
+              "url": "https://arxiv.org/abs/2309.06180",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "PagedAttention paper (HTML)",
-              "url": "https://arxiv.org/html/2309.06180"
+              "url": "https://arxiv.org/html/2309.06180",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             }
           ],
           "project": "Local vLLM: log TTFT, ITL, tokens/s, KV utilization for 3 prompt lengths.",
@@ -43,11 +55,13 @@
                 },
                 {
                   "id": "i-life-stages-s2",
-                  "title": "Prefill compute-bound"
+                  "title": "Prefill compute-bound",
+                  "text": "Prefill multiplies large matrices over all prompt tokens at once, so it keeps GPU compute units busy."
                 },
                 {
                   "id": "i-life-stages-s3",
-                  "title": "Decode memory-bound"
+                  "title": "Decode memory-bound",
+                  "text": "Each decode step reads all model weights and the KV cache to produce one token, so memory bandwidth is the limit."
                 },
                 {
                   "id": "i-life-stages-s4",
@@ -66,7 +80,8 @@
               "subtopics": [
                 {
                   "id": "i-life-metrics-s1",
-                  "title": "TTFT / TBT / ITL"
+                  "title": "TTFT / TBT / ITL",
+                  "text": "TTFT is time to first token; TBT or ITL is time between later tokens. Users feel TTFT as 'thinking time' and ITL as reading speed."
                 },
                 {
                   "id": "i-life-metrics-s2",
@@ -74,7 +89,8 @@
                 },
                 {
                   "id": "i-life-metrics-s3",
-                  "title": "Goodput vs throughput"
+                  "title": "Goodput vs throughput",
+                  "text": "Goodput is the rate of requests that finished within their latency targets; raw throughput can rise while goodput falls."
                 },
                 {
                   "id": "i-life-metrics-s4",
@@ -82,7 +98,8 @@
                 },
                 {
                   "id": "i-life-metrics-s5",
-                  "title": "Queue time"
+                  "title": "Queue time",
+                  "text": "Time spent waiting for a free slot in the engine before prefill starts; it grows quickly near capacity."
                 }
               ],
               "explainer": "TTFT (time to first token) measures prefill plus queueing. TBT or ITL (time between tokens) measures decode speed per user. Throughput is tokens per second per GPU across all users. Goodput counts only requests that met their SLOs, which is what actually matters. KV cache hit rate shows how much prefix reuse you get. Queue time reveals under-provisioning before latency explodes. Always report percentiles (p50, p95, p99), not averages."
@@ -125,7 +142,32 @@
           ],
           "conceptIds": [
             "prefill-decode"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Every LLM request goes through the same stages. The prompt is tokenized, the whole prompt is processed in one big parallel pass (prefill), and then the answer is produced one token at a time (decode), each step reading the cached keys and values. Prefill is limited by compute and decode by memory bandwidth, and most serving tricks target one or the other.",
+            "how": [
+              "Tokenize the input and apply the chat template.",
+              "Wait in the scheduler queue until the engine has room for the request.",
+              "Prefill: process all prompt tokens in parallel, filling the KV cache; this sets time to first token (TTFT).",
+              "Decode: generate one token per step, reading all weights and the KV cache each step; this sets time between tokens (TBT or ITL).",
+              "Detokenize, parse tool calls or JSON, and stream tokens to the client."
+            ],
+            "example": "Why decode is memory-bound: an 8B model in bf16 has 16 GB of weights. Each decode step for a single sequence must read all of them. On a GPU with 3.35 TB/s of memory bandwidth (H100 SXM), that's at least 16 / 3,350 ≈ 4.8 ms per token, at most ≈ 210 tokens per second for one sequence, no matter how many FLOPs are available. Batching many sequences shares that weight read.",
+            "mistakes": [
+              "Reporting only average latency and hiding long-tail TTFT under load.",
+              "Measuring throughput without checking whether requests met their SLOs (goodput).",
+              "Ignoring queue time, which is often the biggest part of TTFT at peak."
+            ],
+            "enterprise": "A chat product's p95 TTFT spiked at lunch even though GPU utilization looked fine. Tracing showed queue time made up 70% of TTFT; enabling chunked prefill and adding one replica brought p95 TTFT from 3.1 s back under 1 s.",
+            "takeaways": [
+              "Prefill = compute-bound, decode = memory-bound.",
+              "TTFT and TBT are the user-facing metrics.",
+              "Goodput counts only requests that met SLOs."
+            ],
+            "diagram": "flowchart LR\n  T[Tokenize + template] --> Q[Queue]\n  Q --> PF[Prefill: all prompt tokens, compute-bound]\n  PF --> KV[(KV cache)]\n  PF --> D[Decode: 1 token/step, memory-bound]\n  KV <--> D\n  D --> DT[Detokenize + parse]\n  DT --> S[Stream to client]",
+            "diagramAlt": "Diagram: a request is tokenized, queued, prefilled into the KV cache, decoded one token per step reading the cache, detokenized and streamed to the client.",
+            "widget": "kvcache"
+          }
         },
         {
           "id": "i-engines",
@@ -135,27 +177,45 @@
           "resources": [
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             },
             {
               "title": "SGLang GitHub",
-              "url": "https://github.com/sgl-project/sglang"
+              "url": "https://github.com/sgl-project/sglang",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "TensorRT-LLM docs",
-              "url": "https://nvidia.github.io/TensorRT-LLM/"
+              "url": "https://nvidia.github.io/TensorRT-LLM/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "TensorRT-LLM GitHub",
-              "url": "https://github.com/NVIDIA/TensorRT-LLM"
+              "url": "https://github.com/NVIDIA/TensorRT-LLM",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "llama.cpp",
-              "url": "https://github.com/ggml-org/llama.cpp"
+              "url": "https://github.com/ggml-org/llama.cpp",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             }
           ],
           "project": "Same 7B on vLLM and llama.cpp; compare setup, throughput, features.",
@@ -166,11 +226,13 @@
               "subtopics": [
                 {
                   "id": "i-eng-open-s1",
-                  "title": "vLLM"
+                  "title": "vLLM",
+                  "text": "vLLM introduced PagedAttention and offers continuous batching, prefix caching and an OpenAI-compatible server for many model families."
                 },
                 {
                   "id": "i-eng-open-s2",
-                  "title": "SGLang"
+                  "title": "SGLang",
+                  "text": "SGLang adds RadixAttention for prefix reuse and a fast runtime for structured and multi-call programs."
                 },
                 {
                   "id": "i-eng-open-s3",
@@ -178,7 +240,8 @@
                 },
                 {
                   "id": "i-eng-open-s4",
-                  "title": "llama.cpp / Ollama"
+                  "title": "llama.cpp / Ollama",
+                  "text": "llama.cpp runs quantized GGUF models on CPUs, Apple silicon and consumer GPUs; Ollama packages it for easy local use."
                 },
                 {
                   "id": "i-eng-open-s5",
@@ -193,7 +256,8 @@
               "subtopics": [
                 {
                   "id": "i-eng-nv-s1",
-                  "title": "TensorRT-LLM"
+                  "title": "TensorRT-LLM",
+                  "text": "TensorRT-LLM compiles models into optimized engines for NVIDIA GPUs, often with the best raw performance on that hardware."
                 },
                 {
                   "id": "i-eng-nv-s2",
@@ -205,7 +269,8 @@
                 },
                 {
                   "id": "i-eng-nv-s4",
-                  "title": "NIM"
+                  "title": "NIM",
+                  "text": "NVIDIA NIM ships prebuilt inference containers with optimized engines and standard APIs."
                 },
                 {
                   "id": "i-eng-nv-s5",
@@ -250,7 +315,31 @@
               "why": "Compiled engines are fast but add pipeline work."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "A serving engine is the software that turns a model file into a fast API: it schedules requests, manages the KV cache, runs optimized kernels and streams tokens. vLLM, SGLang, TensorRT-LLM, TGI and llama.cpp each make different trade-offs in speed, hardware support and features. Pick for your workload and team, not for a benchmark chart.",
+            "how": [
+              "List requirements: hardware, model families, quantization formats, structured output, multi-LoRA, prefix caching, disaggregation.",
+              "Shortlist engines: vLLM and SGLang (open, broad support), TensorRT-LLM (NVIDIA-optimized), TGI, llama.cpp/Ollama for CPU and edge.",
+              "Benchmark on your traffic shape: input/output lengths, concurrency, SLOs.",
+              "Consider operations: upgrades, metrics, community, enterprise support (for example NVIDIA NIM packages).",
+              "Plan migration costs: tokenizers, chat templates and tool parsers differ between engines."
+            ],
+            "example": "Benchmark on your shape: Engine A wins a public benchmark of 128-token prompts. Your workload is 6,000-token RAG prompts with 300-token answers at 50 concurrent users and a p95 TTFT target of 1.5 s. Re-running both engines on that shape, Engine B serves 40% more requests within the SLO because of its prefix caching. Your shape, your results.",
+            "mistakes": [
+              "Choosing an engine from a benchmark with a different input/output length mix.",
+              "Forgetting that tool-call and reasoning parsers are engine-specific.",
+              "Underestimating the work of upgrading engines that change fast."
+            ],
+            "enterprise": "A SaaS company runs vLLM for most open models because of broad model support and its OpenAI-compatible API, and uses TensorRT-LLM for one very high-volume model where the extra optimization pays for the engineering effort.",
+            "takeaways": [
+              "Benchmark on your own traffic shape.",
+              "Features (prefix cache, LoRA, structured output) often matter more than raw speed.",
+              "Count migration and upgrade costs."
+            ],
+            "diagram": "flowchart TD\n  REQ[Requirements: hardware, models, features, SLOs] --> SH[Shortlist]\n  SH --> V[vLLM]\n  SH --> SG[SGLang]\n  SH --> TR[TensorRT-LLM]\n  SH --> LC[llama.cpp / Ollama]\n  V --> BM[Benchmark on your traffic]\n  SG --> BM\n  TR --> BM\n  LC --> BM\n  BM --> PICK[Pick + ops plan]",
+            "diagramAlt": "Diagram: requirements lead to a shortlist of vLLM, SGLang, TensorRT-LLM and llama.cpp, all benchmarked on your traffic before picking one with an operations plan."
+          }
         },
         {
           "id": "i-mem",
@@ -260,15 +349,24 @@
           "resources": [
             {
               "title": "PagedAttention / Efficient LLM Serving",
-              "url": "https://arxiv.org/abs/2309.06180"
+              "url": "https://arxiv.org/abs/2309.06180",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "CUDA docs",
-              "url": "https://docs.nvidia.com/cuda/"
+              "url": "https://docs.nvidia.com/cuda/",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
             }
           ],
           "project": "Estimate KV bytes for 32B GQA at 8k ctx batch 16; compare to vLLM stats.",
@@ -283,7 +381,8 @@
                 },
                 {
                   "id": "i-mem-fit-s2",
-                  "title": "KV scaling formula"
+                  "title": "KV scaling formula",
+                  "text": "KV bytes per token = 2 (K and V) × layers × KV heads × head dim × bytes per value. GQA lowers the KV head count."
                 },
                 {
                   "id": "i-mem-fit-s3",
@@ -291,7 +390,8 @@
                 },
                 {
                   "id": "i-mem-fit-s4",
-                  "title": "Fragmentation"
+                  "title": "Fragmentation",
+                  "text": "Allocating one big contiguous buffer per request wastes memory when requests end early; paging avoids that."
                 },
                 {
                   "id": "i-mem-fit-s5",
@@ -306,11 +406,13 @@
               "subtopics": [
                 {
                   "id": "i-mem-tech-s1",
-                  "title": "PagedAttention blocks"
+                  "title": "PagedAttention blocks",
+                  "text": "PagedAttention stores KV in fixed-size blocks like virtual memory pages, so sequences use only what they need."
                 },
                 {
                   "id": "i-mem-tech-s2",
-                  "title": "KV quantization"
+                  "title": "KV quantization",
+                  "text": "Storing KV in FP8 halves its size versus bf16, usually with small quality impact; test on your eval."
                 },
                 {
                   "id": "i-mem-tech-s3",
@@ -318,7 +420,8 @@
                 },
                 {
                   "id": "i-mem-tech-s4",
-                  "title": "Prefix sharing"
+                  "title": "Prefix sharing",
+                  "text": "Requests sharing a prefix (same system prompt or document) can share its KV blocks."
                 },
                 {
                   "id": "i-mem-tech-s5",
@@ -366,7 +469,32 @@
           "conceptIds": [
             "kv-cache",
             "paged-attention"
-          ]
+          ],
+          "lesson": {
+            "intuition": "A GPU has a fixed amount of memory and three things compete for it: the model weights, the KV cache for every active sequence, and temporary activations. Weights are fixed; the KV cache grows with every token of every concurrent request. Whether you can serve 5 or 50 users at once is mostly a KV cache question.",
+            "how": [
+              "Weights: parameters × bytes per parameter (2 for bf16, 1 for FP8/INT8, 0.5 for 4-bit).",
+              "KV per token: 2 × layers × KV heads × head dimension × bytes.",
+              "KV total: KV per token × tokens per sequence × concurrent sequences.",
+              "Leave headroom for activations, CUDA graphs and fragmentation (engines reserve a fraction, e.g. 90%).",
+              "Use techniques to fit more: paged KV blocks, KV quantization, prefix sharing, offload and max-length policies."
+            ],
+            "example": "Fit a 70B model on 2 × 80 GB GPUs: weights in bf16 = 140 GB, leaving ≈ 20 GB minus overhead (say 12 GB) for KV. Llama-3-70B-style KV per token = 2 × 80 layers × 8 KV heads × 128 × 2 bytes = 327,680 bytes ≈ 320 KiB. 12 GB / 320 KiB ≈ 37,000 tokens total, about 4 concurrent 8k-token sequences. In FP8 weights (70 GB), KV room grows to ≈ 80 GB, roughly 250,000 tokens.",
+            "mistakes": [
+              "Sizing only for weights and forgetting the KV cache.",
+              "Allowing maximum context for every request, so a few long requests starve everyone.",
+              "Ignoring fragmentation, which wastes memory without paged allocation."
+            ],
+            "enterprise": "A legal search provider capped context at 32k tokens per request for its 70B model and enabled FP8 KV cache, which doubled concurrent users per node without measurable quality loss on their eval.",
+            "takeaways": [
+              "Memory = weights + KV + activations.",
+              "KV grows with tokens × concurrency.",
+              "Quantize weights and KV to buy batch size."
+            ],
+            "diagram": "flowchart LR\n  GPU[GPU memory 80 GB] --> W[Weights: fixed]\n  GPU --> KV[KV cache: tokens x sequences]\n  GPU --> ACT[Activations + overhead]\n  KV --> PG[Paged blocks]\n  KV --> Q8[FP8 KV]\n  KV --> PS[Prefix sharing]",
+            "diagramAlt": "Diagram: GPU memory is split between fixed weights, a KV cache that grows with tokens and sequences, and activations; paged blocks, FP8 KV and prefix sharing shrink the KV cost.",
+            "widget": "kvcache"
+          }
         }
       ]
     },
@@ -382,19 +510,31 @@
           "resources": [
             {
               "title": "PagedAttention / Efficient LLM Serving",
-              "url": "https://arxiv.org/abs/2309.06180"
+              "url": "https://arxiv.org/abs/2309.06180",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Orca continuous batching (USENIX OSDI)",
-              "url": "https://www.usenix.org/conference/osdi22/presentation/yu"
+              "url": "https://www.usenix.org/conference/osdi22/presentation/yu",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Orca continuous batching (USENIX OSDI) that complements the Batching, Scheduling & KV Cache lesson with another author's explanation and examples."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             }
           ],
           "project": "Saturate GPU; ablate max_num_seqs and max_model_len; plot throughput vs latency.",
@@ -405,15 +545,18 @@
               "subtopics": [
                 {
                   "id": "i-batch-types-s1",
-                  "title": "Static vs continuous"
+                  "title": "Static vs continuous",
+                  "text": "Static batches run until the longest sequence ends; continuous batching swaps sequences in and out every step."
                 },
                 {
                   "id": "i-batch-types-s2",
-                  "title": "Chunked prefill"
+                  "title": "Chunked prefill",
+                  "text": "Splitting a long prefill into chunks lets decode steps for other users run in between."
                 },
                 {
                   "id": "i-batch-types-s3",
-                  "title": "Preemption and priorities"
+                  "title": "Preemption and priorities",
+                  "text": "When KV memory runs out, the scheduler pauses (preempts) some sequences and resumes them later."
                 },
                 {
                   "id": "i-batch-types-s4",
@@ -436,11 +579,13 @@
                 },
                 {
                   "id": "i-kv-s2",
-                  "title": "Prefix caching"
+                  "title": "Prefix caching",
+                  "text": "If many requests start with the same tokens, their KV blocks are computed once and reused."
                 },
                 {
                   "id": "i-kv-s3",
-                  "title": "RadixAttention"
+                  "title": "RadixAttention",
+                  "text": "SGLang's RadixAttention stores cached prefixes in a radix tree so partial matches can be reused."
                 },
                 {
                   "id": "i-kv-s4",
@@ -492,7 +637,32 @@
           "conceptIds": [
             "batching",
             "paged-attention"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Because decode reads all weights for every step, serving one request at a time wastes the GPU. Batching runs many requests together so one weight read produces many tokens. Continuous batching goes further: requests join and leave the batch at every step, so short answers don't wait for long ones and the GPU stays busy.",
+            "how": [
+              "Static batching waits for a batch to fill, runs it to completion, and wastes slots when sequences finish early.",
+              "Continuous (in-flight) batching adds new requests and removes finished ones every decode step.",
+              "Chunked prefill splits long prompts into pieces mixed with decode steps, so one long prompt doesn't stall everyone.",
+              "The scheduler decides who runs next, preempts when KV memory runs out, and can apply priorities.",
+              "Prefix caching reuses KV blocks for shared prompt beginnings across requests."
+            ],
+            "example": "Static vs continuous: 4 requests need 10, 50, 50 and 200 output tokens. Static batching runs all 4 for 200 steps: 800 slot-steps, of which only 310 do useful work (39%). Continuous batching frees each slot when its request finishes and fills it from the queue, so with steady demand utilization approaches 100% of slots.",
+            "mistakes": [
+              "Using static batching for chat traffic with very different output lengths.",
+              "Letting long prompts block decodes without chunked prefill.",
+              "Not enabling prefix caching when every request shares a long system prompt."
+            ],
+            "enterprise": "A support chatbot with a 3,000-token system prompt enabled prefix caching; prefill work per request dropped by about 80% and p50 TTFT fell from 900 ms to 250 ms.",
+            "takeaways": [
+              "Batching shares the weight read across sequences.",
+              "Continuous batching keeps slots full.",
+              "Chunked prefill and prefix caching protect latency."
+            ],
+            "diagram": "gantt\n  title Continuous batching slots\n  dateFormat X\n  axisFormat %s\n  section Slot 1\n  Req A (10)   :0, 10\n  Req E        :10, 60\n  section Slot 2\n  Req B (50)   :0, 50\n  Req F        :50, 120\n  section Slot 3\n  Req C (50)   :0, 50\n  Req G        :50, 90\n  section Slot 4\n  Req D (200)  :0, 200",
+            "diagramAlt": "Gantt chart: four batch slots; when short requests A, B and C finish, new requests E, F and G take their slots while long request D keeps running.",
+            "widget": "batching"
+          }
         },
         {
           "id": "i-quant",
@@ -502,19 +672,31 @@
           "resources": [
             {
               "title": "GPTQ",
-              "url": "https://arxiv.org/abs/2210.17323"
+              "url": "https://arxiv.org/abs/2210.17323",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "AWQ",
-              "url": "https://arxiv.org/abs/2306.00978"
+              "url": "https://arxiv.org/abs/2306.00978",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "llama.cpp",
-              "url": "https://github.com/ggml-org/llama.cpp"
+              "url": "https://github.com/ggml-org/llama.cpp",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             }
           ],
           "project": "Serve large model AWQ/FP8; compare quality on 50 prompts vs higher precision.",
@@ -525,15 +707,18 @@
               "subtopics": [
                 {
                   "id": "i-quant-w-s1",
-                  "title": "INT8/4 GPTQ/AWQ/GGUF"
+                  "title": "INT8/4 GPTQ/AWQ/GGUF",
+                  "text": "GPTQ and AWQ are post-training methods that quantize weights to 4 bits while minimizing error; GGUF is llama.cpp's format with several bit-widths."
                 },
                 {
                   "id": "i-quant-w-s2",
-                  "title": "FP8"
+                  "title": "FP8",
+                  "text": "FP8 keeps a floating-point format at 8 bits and is supported natively by recent NVIDIA (Hopper, Blackwell) and AMD GPUs."
                 },
                 {
                   "id": "i-quant-w-s3",
-                  "title": "Calibration"
+                  "title": "Calibration",
+                  "text": "Calibration runs sample inputs through the model to choose good scaling factors."
                 },
                 {
                   "id": "i-quant-w-s4",
@@ -552,7 +737,8 @@
               "subtopics": [
                 {
                   "id": "i-quant-kv-s1",
-                  "title": "SmoothQuant ideas"
+                  "title": "SmoothQuant ideas",
+                  "text": "SmoothQuant moves activation outliers into the weights mathematically, making activations easier to quantize."
                 },
                 {
                   "id": "i-quant-kv-s2",
@@ -560,7 +746,8 @@
                 },
                 {
                   "id": "i-quant-kv-s3",
-                  "title": "Outliers"
+                  "title": "Outliers",
+                  "text": "A few very large activation values (outliers) make low-bit quantization lose precision for everything else."
                 },
                 {
                   "id": "i-quant-kv-s4",
@@ -611,7 +798,32 @@
           ],
           "conceptIds": [
             "quantization"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Quantization stores model numbers with fewer bits, like saving a photo at lower quality. Fewer bits per weight means less memory, so you can fit bigger models or more users per GPU, and less data to read per token, so decode gets faster. The risk is accuracy loss, which depends on the method, the model and your task, so always test on your own eval.",
+            "how": [
+              "Choose what to quantize: weights only, weights and activations, and/or the KV cache.",
+              "Choose a format: INT8, INT4 (GPTQ, AWQ, GGUF variants) or FP8 on hardware that supports it.",
+              "Calibrate with a small representative dataset so scales fit real activation ranges.",
+              "Evaluate on your task gold set and general benchmarks against the full-precision baseline.",
+              "Deploy with an engine that has fast kernels for that format."
+            ],
+            "example": "Memory and speed: a 70B model in bf16 is 140 GB; in FP8, 70 GB; in 4-bit, about 35 GB plus scales (~38-40 GB). Since decode reads all weights per step, 4-bit weights cut bytes read per token by about 3.5-4× versus bf16, which can greatly speed up single-stream decode if kernels are efficient. Quality must be checked: a 1-point drop may be fine for chat and unacceptable for code.",
+            "mistakes": [
+              "Assuming 4-bit is free; some tasks (math, code, long context) degrade more.",
+              "Calibrating on data unlike production traffic.",
+              "Using a format the engine can't run fast, losing the speed benefit."
+            ],
+            "enterprise": "A company serving a 70B model moved from bf16 on 4 GPUs to FP8 on 2 GPUs. On their 1,000-case eval, accuracy dropped 0.3 points, within noise, and cost per million tokens fell by about half.",
+            "takeaways": [
+              "Fewer bits → less memory → more batch → lower cost.",
+              "Quality loss is task-specific: always A/B on gold.",
+              "Match format to hardware and engine kernels."
+            ],
+            "diagram": "flowchart LR\n  BF16[bf16 weights: 2 bytes] --> FP8[FP8: 1 byte]\n  FP8 --> INT4[INT4: 0.5 byte]\n  CAL[Calibration data] --> FP8\n  CAL --> INT4\n  INT4 --> EVAL{Eval vs baseline}\n  FP8 --> EVAL\n  EVAL -->|ok| SERVE[Serve with fast kernels]\n  EVAL -->|drop| BACK[Higher precision / other method]",
+            "diagramAlt": "Diagram: weights go from bf16 to FP8 to INT4 using calibration data, are evaluated against the baseline, and are served with fast kernels or sent back to higher precision.",
+            "widget": "quant"
+          }
         },
         {
           "id": "i-spec",
@@ -621,15 +833,24 @@
           "resources": [
             {
               "title": "Speculative Decoding (Leviathan et al.)",
-              "url": "https://arxiv.org/abs/2211.17192"
+              "url": "https://arxiv.org/abs/2211.17192",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             }
           ],
           "project": "Enable EAGLE or draft speculation; measure speedup at batch 1/8/32.",
@@ -640,15 +861,18 @@
               "subtopics": [
                 {
                   "id": "i-spec-m-s1",
-                  "title": "Draft model"
+                  "title": "Draft model",
+                  "text": "A small model from the same family drafts tokens; it must share the tokenizer with the target."
                 },
                 {
                   "id": "i-spec-m-s2",
-                  "title": "EAGLE / Medusa"
+                  "title": "EAGLE / Medusa",
+                  "text": "Medusa and EAGLE add lightweight heads on the target model that predict several future tokens from its hidden states."
                 },
                 {
                   "id": "i-spec-m-s3",
-                  "title": "N-gram lookup"
+                  "title": "N-gram lookup",
+                  "text": "For edits and code, the next tokens often repeat earlier text, so copying n-grams from the prompt works well."
                 },
                 {
                   "id": "i-spec-m-s4",
@@ -667,11 +891,13 @@
               "subtopics": [
                 {
                   "id": "i-spec-lim-s1",
-                  "title": "Acceptance drivers"
+                  "title": "Acceptance drivers",
+                  "text": "Acceptance is high for predictable text (code, structured output) and lower for creative writing or high temperature."
                 },
                 {
                   "id": "i-spec-lim-s2",
-                  "title": "Batch collapse"
+                  "title": "Batch collapse",
+                  "text": "At large batch sizes the GPU is already compute-bound, so extra verification work can slow things down."
                 },
                 {
                   "id": "i-spec-lim-s3",
@@ -726,7 +952,31 @@
           ],
           "conceptIds": [
             "speculative"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Decoding one token at a time leaves a big GPU underused at small batch sizes. Speculative decoding guesses several tokens ahead cheaply, then has the big model check all the guesses in one pass. Correct guesses are kept for free; the first wrong one is replaced. With the standard acceptance rule, the output distribution is exactly what the big model would have produced.",
+            "how": [
+              "A cheap drafter proposes k tokens: a small draft model, extra heads (Medusa, EAGLE), n-gram lookup or built-in multi-token prediction.",
+              "The target model scores all k proposals in one forward pass.",
+              "Accept tokens left to right while they pass the acceptance test; at the first rejection, sample a corrected token.",
+              "Repeat. Speedup depends on acceptance rate and drafter cost.",
+              "Turn speculation down or off at large batch sizes, where the GPU is already busy."
+            ],
+            "example": "Expected tokens per step: with k = 4 draft tokens and per-token acceptance probability α = 0.8, the expected number of tokens produced per target pass is (1 − α^(k+1)) / (1 − α) = (1 − 0.8⁵) / 0.2 = (1 − 0.328) / 0.2 ≈ 3.36. If a target pass plus drafting costs about 1.3× a normal step, speedup ≈ 3.36 / 1.3 ≈ 2.6×.",
+            "mistakes": [
+              "Expecting the same speedup at large batch sizes; there's little idle compute to use.",
+              "Using a drafter that predicts your domain poorly, so acceptance is low.",
+              "Not checking that implementations preserve output quality (exact or approximate verification)."
+            ],
+            "enterprise": "A code-completion service with low concurrency and highly predictable output enabled n-gram and EAGLE-style speculation and cut median latency per completion by about half; at peak load it automatically reduces draft length.",
+            "takeaways": [
+              "Guess cheaply, verify in one pass.",
+              "Acceptance rate drives the speedup.",
+              "Best at small batch; tune or disable at high load."
+            ],
+            "diagram": "sequenceDiagram\n  participant D as Drafter\n  participant T as Target model\n  D->>T: propose t1 t2 t3 t4\n  T->>T: one forward pass scores all 4\n  T-->>D: accept t1 t2 t3, reject t4\n  T-->>D: corrected token t4'\n  D->>T: propose next 4",
+            "diagramAlt": "Sequence diagram: the drafter proposes four tokens, the target model scores them in one pass, accepts three, rejects the fourth and supplies a corrected token, then drafting continues."
+          }
         },
         {
           "id": "i-struct",
@@ -736,15 +986,24 @@
           "resources": [
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "OpenAI prompt engineering",
-              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering"
+              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
             }
           ],
           "project": "Benchmark unconstrained vs grammar JSON; measure tokens/s and validity.",
@@ -755,7 +1014,8 @@
               "subtopics": [
                 {
                   "id": "i-struct-tech-s1",
-                  "title": "FSM / grammar masking"
+                  "title": "FSM / grammar masking",
+                  "text": "The grammar becomes a finite-state machine or pushdown automaton; each state allows only certain next tokens."
                 },
                 {
                   "id": "i-struct-tech-s2",
@@ -763,11 +1023,13 @@
                 },
                 {
                   "id": "i-struct-tech-s3",
-                  "title": "Partial JSON repair"
+                  "title": "Partial JSON repair",
+                  "text": "When streaming, use a tolerant parser to read incomplete JSON safely before the object closes."
                 },
                 {
                   "id": "i-struct-tech-s4",
-                  "title": "Tool-call parsers"
+                  "title": "Tool-call parsers",
+                  "text": "Engines parse model-specific tool-call formats into structured calls; mismatched parsers cause silent failures."
                 },
                 {
                   "id": "i-struct-tech-s5",
@@ -782,7 +1044,8 @@
               "subtopics": [
                 {
                   "id": "i-struct-ops-s1",
-                  "title": "Compile cost"
+                  "title": "Compile cost",
+                  "text": "Compiling a complex schema takes time; cache compiled grammars and keep schemas reasonably small."
                 },
                 {
                   "id": "i-struct-ops-s2",
@@ -790,11 +1053,13 @@
                 },
                 {
                   "id": "i-struct-ops-s3",
-                  "title": "Failure modes"
+                  "title": "Failure modes",
+                  "text": "Watch for timeouts on complex schemas, truncated JSON at max tokens and grammar compile errors."
                 },
                 {
                   "id": "i-struct-ops-s4",
-                  "title": "Client contracts"
+                  "title": "Client contracts",
+                  "text": "Document which schema features the server supports so clients don't send ones it rejects."
                 },
                 {
                   "id": "i-struct-ops-s5",
@@ -839,7 +1104,31 @@
               "why": "Repeated schemas then cost nothing to compile."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "When an app needs JSON or a tool call, 'please answer in JSON' isn't enough: models sometimes add text or break the format. Constrained decoding enforces the format during generation by masking out any token that would make the output invalid. It guarantees structure, but compiling grammars and masking tokens costs some performance and can interact with caching.",
+            "how": [
+              "Define the output contract as a JSON schema, regex or grammar, versioned with the API.",
+              "The engine compiles it into a state machine over tokens.",
+              "At each decode step, tokens that would violate the grammar are masked to zero probability.",
+              "Parse the result (or partial result when streaming) and validate business rules separately.",
+              "Monitor compile time, failure modes and latency overhead."
+            ],
+            "example": "Masking example: the schema requires {\"priority\": \"low\"|\"medium\"|\"high\"}. After the model has produced {\"priority\": \", only tokens that start l, m or h (and continue a valid value) are allowed. If the unconstrained model put 60% probability on \"urgent\", that mass is removed and the remaining valid tokens are renormalized, so the output parses but you should check whether the forced choice is sensible.",
+            "mistakes": [
+              "Assuming schema-valid means correct; values can still be wrong.",
+              "Very large or deeply nested schemas that are slow to compile.",
+              "Changing the schema without versioning, breaking clients."
+            ],
+            "enterprise": "A logistics company extracts shipment events into a strict schema with constrained decoding. Parse failures dropped from 2% to 0%, and a separate validator checks dates and location codes before writing to the database.",
+            "takeaways": [
+              "Constrained decoding guarantees format, not truth.",
+              "Version schemas as API contracts.",
+              "Watch compile and masking overhead."
+            ],
+            "diagram": "flowchart LR\n  SCH[JSON schema] --> COMP[Compile to token FSM]\n  COMP --> MASK[Mask invalid tokens each step]\n  LLM[Model logits] --> MASK\n  MASK --> TOK[Valid token]\n  TOK --> OUT[Parseable JSON]\n  OUT --> VAL[Business validation]",
+            "diagramAlt": "Diagram: a JSON schema is compiled to a token state machine that masks invalid tokens from the model's logits at each step, producing parseable JSON that is then validated."
+          }
         }
       ]
     },
@@ -855,19 +1144,31 @@
           "resources": [
             {
               "title": "DistServe Prefill/Decode Disaggregation",
-              "url": "https://arxiv.org/abs/2401.09670"
+              "url": "https://arxiv.org/abs/2401.09670",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "vLLM disaggregated serving guide",
-              "url": "https://blog.vllm.ai/2026/09/29/disaggregated-serving-guide.html"
+              "url": "https://blog.vllm.ai/2026/09/29/disaggregated-serving-guide.html",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "TensorRT-LLM docs",
-              "url": "https://nvidia.github.io/TensorRT-LLM/"
+              "url": "https://nvidia.github.io/TensorRT-LLM/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             }
           ],
           "project": "Minimal P/D split or simulation; compare TTFT/TBT under long-ISL load.",
@@ -878,11 +1179,13 @@
               "subtopics": [
                 {
                   "id": "i-pd-why-s1",
-                  "title": "ISL/OSL asymmetry"
+                  "title": "ISL/OSL asymmetry",
+                  "text": "ISL and OSL are input and output sequence lengths. Long inputs with short outputs make prefill dominate."
                 },
                 {
                   "id": "i-pd-why-s2",
-                  "title": "Piggyback interference"
+                  "title": "Piggyback interference",
+                  "text": "When prefill and decode share a GPU, a big prefill delays the next decode step for every active user."
                 },
                 {
                   "id": "i-pd-why-s3",
@@ -890,7 +1193,8 @@
                 },
                 {
                   "id": "i-pd-why-s4",
-                  "title": "When co-locate wins"
+                  "title": "When co-locate wins",
+                  "text": "For short prompts or low traffic, the transfer overhead and extra complexity aren't worth it."
                 },
                 {
                   "id": "i-pd-why-s5",
@@ -905,11 +1209,13 @@
               "subtopics": [
                 {
                   "id": "i-pd-impl-s1",
-                  "title": "KV transfer"
+                  "title": "KV transfer",
+                  "text": "KV caches can be gigabytes per request; transfer them with RDMA or NVLink to avoid adding latency."
                 },
                 {
                   "id": "i-pd-impl-s2",
-                  "title": "Proxy orchestration"
+                  "title": "Proxy orchestration",
+                  "text": "A proxy sends each request to a prefill worker, then hands it and its KV cache to a decode worker."
                 },
                 {
                   "id": "i-pd-impl-s3",
@@ -917,7 +1223,8 @@
                 },
                 {
                   "id": "i-pd-impl-s4",
-                  "title": "Capacity planning"
+                  "title": "Capacity planning",
+                  "text": "Size prefill and decode pools separately based on prompt lengths and output lengths."
                 },
                 {
                   "id": "i-pd-impl-s5",
@@ -933,11 +1240,13 @@
               "subtopics": [
                 {
                   "id": "i-pd-fw-s1",
-                  "title": "vLLM / SGLang disagg modes"
+                  "title": "vLLM / SGLang disagg modes",
+                  "text": "vLLM and SGLang both offer modes that run prefill and decode on separate workers with KV transfer."
                 },
                 {
                   "id": "i-pd-fw-s2",
-                  "title": "NVIDIA Dynamo and NIXL"
+                  "title": "NVIDIA Dynamo and NIXL",
+                  "text": "NVIDIA Dynamo orchestrates disaggregated serving, and NIXL is its library for fast data transfer between GPUs and nodes."
                 },
                 {
                   "id": "i-pd-fw-s3",
@@ -949,7 +1258,8 @@
                 },
                 {
                   "id": "i-pd-fw-s5",
-                  "title": "Monitoring KV transfer"
+                  "title": "Monitoring KV transfer",
+                  "text": "Monitor KV transfer time and bandwidth, since slow transfers erase the benefit of disaggregation."
                 }
               ]
             }
@@ -992,7 +1302,31 @@
           "conceptIds": [
             "prefill-decode",
             "pd-disagg"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Prefill (reading the prompt) and decode (writing the answer) want different things: prefill wants lots of compute in bursts, decode wants steady memory bandwidth and low latency. Running both on the same GPUs means long prompts interrupt everyone's token stream. Disaggregation puts them on separate GPU pools and ships the KV cache between them.",
+            "how": [
+              "Measure your traffic: input and output lengths and their ratio, plus TTFT and ITL targets.",
+              "Run prefill workers that process prompts and produce KV caches.",
+              "Transfer KV to decode workers over fast interconnects (NVLink, RDMA via libraries like NIXL).",
+              "Decode workers generate tokens with stable inter-token latency.",
+              "Size each pool separately to its SLO, and fall back to co-location when it's cheaper."
+            ],
+            "example": "Pool sizing: 20 requests per second with 4,000 input and 300 output tokens. If a prefill GPU handles 40,000 prompt tokens per second, prefill needs 20 × 4,000 / 40,000 = 2 GPUs (plus headroom, say 3). If a decode GPU sustains 3,000 output tokens per second at the target ITL, decode needs 20 × 300 / 3,000 = 2 GPUs (say 3). The ratio comes from your traffic, not a fixed rule.",
+            "mistakes": [
+              "Disaggregating short-prompt workloads where co-location is simpler and cheaper.",
+              "Ignoring KV transfer bandwidth and its latency.",
+              "Fixed prefill:decode ratios that don't track traffic changes."
+            ],
+            "enterprise": "A document-QA service with 30k-token prompts saw ITL spikes whenever a long prompt arrived. Splitting prefill and decode pools stabilized p99 ITL and let them scale prefill GPUs separately during morning document uploads.",
+            "takeaways": [
+              "Split when long prompts hurt decode latency.",
+              "KV transfer speed makes or breaks it.",
+              "Size pools from your traffic and SLOs."
+            ],
+            "diagram": "flowchart LR\n  R[Requests] --> RT[Router / proxy]\n  RT --> PF[Prefill pool]\n  PF -->|KV transfer: NVLink / RDMA| DC[Decode pool]\n  DC --> S[Stream tokens]",
+            "diagramAlt": "Diagram: a router sends requests to a prefill pool, which transfers KV caches over NVLink or RDMA to a decode pool that streams tokens."
+          }
         },
         {
           "id": "i-dist",
@@ -1002,23 +1336,38 @@
           "resources": [
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "NCCL user guide",
-              "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html"
+              "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
             },
             {
               "title": "CUDA docs",
-              "url": "https://docs.nvidia.com/cuda/"
+              "url": "https://docs.nvidia.com/cuda/",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
             },
             {
               "title": "TensorRT-LLM docs",
-              "url": "https://nvidia.github.io/TensorRT-LLM/"
+              "url": "https://nvidia.github.io/TensorRT-LLM/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Mixture of Experts (Shazeer et al.)",
-              "url": "https://arxiv.org/abs/1701.06538"
+              "url": "https://arxiv.org/abs/1701.06538",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             }
           ],
           "project": "Serve TP=2 and TP=4; explain bottlenecks; note when PP/EP helps.",
@@ -1029,15 +1378,18 @@
               "subtopics": [
                 {
                   "id": "i-dist-types-s1",
-                  "title": "Tensor parallel"
+                  "title": "Tensor parallel",
+                  "text": "Each GPU holds a slice of every weight matrix; results are combined with all-reduce after each layer."
                 },
                 {
                   "id": "i-dist-types-s2",
-                  "title": "Pipeline parallel"
+                  "title": "Pipeline parallel",
+                  "text": "Layers are split into stages; micro-batches flow through the pipeline so stages work in parallel."
                 },
                 {
                   "id": "i-dist-types-s3",
-                  "title": "Expert parallel"
+                  "title": "Expert parallel",
+                  "text": "Each GPU holds some experts, and tokens are sent to whichever GPU holds their chosen experts."
                 },
                 {
                   "id": "i-dist-types-s4",
@@ -1056,7 +1408,8 @@
               "subtopics": [
                 {
                   "id": "i-dist-comm-s1",
-                  "title": "NCCL collectives"
+                  "title": "NCCL collectives",
+                  "text": "NCCL provides all-reduce, all-gather and all-to-all collectives optimized for NVIDIA GPUs and networks."
                 },
                 {
                   "id": "i-dist-comm-s2",
@@ -1072,7 +1425,8 @@
                 },
                 {
                   "id": "i-dist-comm-s5",
-                  "title": "Topology awareness"
+                  "title": "Topology awareness",
+                  "text": "Place communicating GPUs on the fastest links (same NVLink domain, same switch)."
                 }
               ],
               "explainer": "Distributed inference lives or dies on communication. NCCL provides collectives such as all-reduce and all-to-all. NVLink and NVSwitch give hundreds of GB/s inside a node or rack; InfiniBand or RoCE connect nodes at lower bandwidth. Good engines overlap communication with compute. Place tensor-parallel groups inside the fastest domain and check the topology with nvidia-smi topo -m before blaming the model."
@@ -1118,7 +1472,31 @@
             "nvlink-ib",
             "nccl-collectives",
             "moe-routing"
-          ]
+          ],
+          "lesson": {
+            "intuition": "When a model is too big for one GPU, or too slow on one, you split it. Tensor parallelism splits each layer's matrices across GPUs; pipeline parallelism gives each GPU a slice of layers; expert parallelism spreads MoE experts across GPUs. Each split needs GPUs to talk, so the network (NVLink, InfiniBand) becomes part of the model's speed.",
+            "how": [
+              "Tensor parallel (TP): split matrices across GPUs, with all-reduce communication every layer. Best inside a node over NVLink.",
+              "Pipeline parallel (PP): split layers into stages across GPUs or nodes; pass activations between stages.",
+              "Expert parallel (EP): place different MoE experts on different GPUs; route tokens with all-to-all communication.",
+              "Sequence/context parallel: split very long sequences across GPUs.",
+              "Combine them (e.g. TP within a node, PP across nodes) based on topology, and test collectives with NCCL tests."
+            ],
+            "example": "TP communication: with TP = 8 and hidden size 8,192, each layer does two all-reduces of activations of size tokens × 8,192 × 2 bytes. For a decode batch of 64 tokens, that's 64 × 8,192 × 2 = 1 MiB per all-reduce, small enough that NVLink latency, not bandwidth, dominates. That's why TP across nodes over slower links usually hurts.",
+            "mistakes": [
+              "Using tensor parallelism across nodes over slow networks.",
+              "Ignoring GPU topology, so communication crosses slow links.",
+              "Skipping NCCL bandwidth tests during bring-up."
+            ],
+            "enterprise": "A team serving a 400B-class MoE model uses TP = 8 inside each 8-GPU node and expert parallelism across 4 nodes over InfiniBand, after NCCL tests showed one node with a faulty link that halved all-to-all bandwidth.",
+            "takeaways": [
+              "TP inside the node, PP or EP across nodes.",
+              "Communication is part of model speed.",
+              "Test the fabric before blaming the model."
+            ],
+            "diagram": "flowchart LR\n  subgraph N1[Node 1: NVLink]\n    G1[GPU 1] --- G2[GPU 2]\n    G2 --- G3[GPU ...8]\n  end\n  subgraph N2[Node 2: NVLink]\n    H1[GPU 1] --- H2[GPU 2]\n    H2 --- H3[GPU ...8]\n  end\n  N1 <-->|InfiniBand: PP / EP| N2",
+            "diagramAlt": "Diagram: two 8-GPU nodes use NVLink internally for tensor parallelism and communicate over InfiniBand for pipeline or expert parallelism."
+          }
         },
         {
           "id": "i-lora-serve",
@@ -1128,19 +1506,31 @@
           "resources": [
             {
               "title": "LoRA: Low-Rank Adaptation",
-              "url": "https://arxiv.org/abs/2106.09685"
+              "url": "https://arxiv.org/abs/2106.09685",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "Hugging Face PEFT docs",
-              "url": "https://huggingface.co/docs/peft/index"
+              "url": "https://huggingface.co/docs/peft/index",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Hugging Face documentation or guide with practical, code-level detail."
             },
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             }
           ],
           "project": "Serve two LoRAs on one vLLM; measure switch overhead and isolation.",
@@ -1151,11 +1541,13 @@
               "subtopics": [
                 {
                   "id": "i-lora-mem-s1",
-                  "title": "Adapter footprints"
+                  "title": "Adapter footprints",
+                  "text": "Adapters are usually tens of megabytes, versus gigabytes for the base model."
                 },
                 {
                   "id": "i-lora-mem-s2",
-                  "title": "Request routing"
+                  "title": "Request routing",
+                  "text": "Send requests to replicas that already have their adapter loaded to avoid load delays."
                 },
                 {
                   "id": "i-lora-mem-s3",
@@ -1167,7 +1559,8 @@
                 },
                 {
                   "id": "i-lora-mem-s5",
-                  "title": "Batching constraints"
+                  "title": "Batching constraints",
+                  "text": "Batching sequences with different adapters needs special kernels; adapters of different ranks may batch less efficiently."
                 }
               ],
               "explainer": "Multi-LoRA serving keeps one base model in memory and loads many small adapters. Adapters are megabytes to hundreds of megabytes each. The router sends each request to a server that has its adapter loaded; hot adapters stay in GPU memory, cold ones live in CPU or disk. Kernels such as Punica and S-LoRA batch requests with different adapters together. Quantized adapters save more memory."
@@ -1178,15 +1571,18 @@
               "subtopics": [
                 {
                   "id": "i-lora-ops-s1",
-                  "title": "Versioning"
+                  "title": "Versioning",
+                  "text": "Version each adapter and record which base model it was trained for."
                 },
                 {
                   "id": "i-lora-ops-s2",
-                  "title": "Canary"
+                  "title": "Canary",
+                  "text": "Roll out a new adapter version to a small share of that customer's traffic and compare evals before switching fully."
                 },
                 {
                   "id": "i-lora-ops-s3",
-                  "title": "Noisy neighbor"
+                  "title": "Noisy neighbor",
+                  "text": "One busy adapter's traffic can slow others sharing the GPU; use per-adapter limits."
                 },
                 {
                   "id": "i-lora-ops-s4",
@@ -1237,7 +1633,31 @@
           ],
           "conceptIds": [
             "lora"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Many customers want their own fine-tuned model, but running a full copy for each is too expensive. LoRA adapters are tiny add-ons to a shared base model, so one GPU can serve hundreds of 'different' models by loading the right adapter for each request. The challenge is memory, routing and batching requests that use different adapters together.",
+            "how": [
+              "Keep one base model in GPU memory and many small LoRA adapters in GPU, CPU or storage.",
+              "Route each request to a replica that has its adapter loaded (or can load it fast).",
+              "Batch requests across adapters using kernels that apply different adapters per sequence (e.g. S-LoRA/Punica-style).",
+              "Keep hot adapters in GPU memory, warm ones in CPU memory, and cold ones on disk.",
+              "Version, canary and monitor each adapter separately."
+            ],
+            "example": "Adapter size: a rank-16 LoRA on the 4 attention projections of a 32-layer, 4,096-hidden model has about 16.8M parameters; in bf16 that's ≈ 34 MB. A GPU with 10 GB spare could hold about 300 such adapters, compared with one extra full 16 GB copy of the 8B base model.",
+            "mistakes": [
+              "Pinning each customer to a dedicated GPU instead of sharing the base.",
+              "Random routing that loads and unloads adapters constantly.",
+              "No per-adapter metrics, so one customer's bad adapter goes unnoticed."
+            ],
+            "enterprise": "A customer-support platform serves 600 customer-specific adapters on a shared 8B base. Adapter-aware routing keeps each customer's adapter on two replicas, and per-adapter evals gate every new version.",
+            "takeaways": [
+              "One base, many tiny adapters.",
+              "Route by adapter to avoid thrashing.",
+              "Treat each adapter as a release."
+            ],
+            "diagram": "flowchart LR\n  R1[Req: customer A] --> RT[Adapter-aware router]\n  R2[Req: customer B] --> RT\n  RT --> REP[Replica: base model]\n  REP --- AA[Adapter A: GPU]\n  REP --- AB[Adapter B: GPU]\n  CPU[(Warm adapters: CPU)] -.load.-> REP\n  DISK[(Cold adapters: disk)] -.load.-> CPU",
+            "diagramAlt": "Diagram: requests from customers A and B go through an adapter-aware router to a replica with the shared base model and their adapters in GPU memory; warm adapters wait in CPU memory and cold ones on disk."
+          }
         },
         {
           "id": "i-coldstart",
@@ -1247,19 +1667,31 @@
           "resources": [
             {
               "title": "vLLM Run:ai Model Streamer",
-              "url": "https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html"
+              "url": "https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "safetensors docs",
-              "url": "https://huggingface.co/docs/safetensors/index"
+              "url": "https://huggingface.co/docs/safetensors/index",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Hugging Face documentation or guide with practical, code-level detail."
             },
             {
               "title": "Knative scale to zero",
-              "url": "https://knative.dev/docs/serving/autoscaling/scale-to-zero/"
+              "url": "https://knative.dev/docs/serving/autoscaling/scale-to-zero/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Knative scale to zero that complements the Weight Loading & Cold Start lesson with another author's explanation and examples."
             },
             {
               "title": "KServe docs",
-              "url": "https://kserve.github.io/website/"
+              "url": "https://kserve.github.io/website/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             }
           ],
           "project": "Measure each cold-start phase for a 7B-70B model: node ready, image pull, weight load (object store vs local NVMe vs streamer), engine init, first token. Then cut total time by at least half and document which change mattered most.",
@@ -1279,11 +1711,13 @@
                 },
                 {
                   "id": "i-cs-where-s3",
-                  "title": "Weight transfer and load"
+                  "title": "Weight transfer and load",
+                  "text": "Weights for large models are tens to hundreds of gigabytes; download speed often dominates cold start."
                 },
                 {
                   "id": "i-cs-where-s4",
-                  "title": "Engine init and CUDA graphs"
+                  "title": "Engine init and CUDA graphs",
+                  "text": "Engines capture CUDA graphs and run warmup requests, which can take a minute or more."
                 },
                 {
                   "id": "i-cs-where-s5",
@@ -1298,11 +1732,13 @@
               "subtopics": [
                 {
                   "id": "i-cs-fast-s1",
-                  "title": "Local NVMe and caches"
+                  "title": "Local NVMe and caches",
+                  "text": "Cache model weights on local NVMe so new replicas don't download them over the network."
                 },
                 {
                   "id": "i-cs-fast-s2",
-                  "title": "safetensors and mmap"
+                  "title": "safetensors and mmap",
+                  "text": "safetensors files can be memory-mapped and loaded quickly and safely, unlike pickle-based formats."
                 },
                 {
                   "id": "i-cs-fast-s3",
@@ -1314,7 +1750,8 @@
                 },
                 {
                   "id": "i-cs-fast-s5",
-                  "title": "Image slimming and pre-pull"
+                  "title": "Image slimming and pre-pull",
+                  "text": "Smaller container images and pre-pulling them onto nodes cut startup time."
                 }
               ]
             },
@@ -1325,11 +1762,13 @@
               "subtopics": [
                 {
                   "id": "i-cs-policy-s1",
-                  "title": "Hot / warm / cold tiers"
+                  "title": "Hot / warm / cold tiers",
+                  "text": "Hot replicas serve now, warm ones have weights cached and start fast, cold ones start from scratch."
                 },
                 {
                   "id": "i-cs-policy-s2",
-                  "title": "Leading autoscale signals"
+                  "title": "Leading autoscale signals",
+                  "text": "Queue depth and request rate rise before GPU utilization does, so scale on them."
                 },
                 {
                   "id": "i-cs-policy-s3",
@@ -1394,7 +1833,31 @@
           ],
           "conceptIds": [
             "cold-start"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Autoscaling a normal web service takes seconds. A new LLM replica can take many minutes: get a GPU node, pull a large container, copy tens of gigabytes of weights, load them onto the GPU and warm up the engine. If you only scale when the queue is already long, users wait. Cold-start work shrinks each phase and keeps some capacity warm.",
+            "how": [
+              "Time each phase: node provisioning, image pull, weight download, load to GPU, engine init (CUDA graphs, warmup).",
+              "Cut image size and pre-pull images on GPU nodes.",
+              "Cache weights on local NVMe or a fast shared store; use safetensors with memory mapping and parallel streaming to GPU.",
+              "Keep warm pools or scale-to-zero only for low-priority models; scale on leading signals (queue depth, request rate) and schedules.",
+              "Show users a loading state when a cold model must start."
+            ],
+            "example": "Phase budget: node 180 s + image pull 120 s + 140 GB weights at 1 GB/s from object storage 140 s + GPU load 40 s + init 60 s = 540 s (9 minutes). With pre-pulled images (0 s), weights on local NVMe at 5 GB/s (28 s) and a warm node pool (0 s), it's 28 + 40 + 60 ≈ 128 s, about 2 minutes.",
+            "mistakes": [
+              "Measuring only total startup time, not each phase.",
+              "Autoscaling on GPU utilization, which reacts too late.",
+              "Huge container images that bundle weights and tools nobody uses."
+            ],
+            "enterprise": "An AI search company keeps one warm replica per popular model, pre-scales before known daily peaks, and caches weights on node-local NVMe. New replicas are ready in under 2 minutes instead of 10, and peak queue times dropped sharply.",
+            "takeaways": [
+              "Measure every startup phase.",
+              "Move weights close to the GPU and load in parallel.",
+              "Scale on leading signals and keep a warm pool."
+            ],
+            "diagram": "gantt\n  title Cold start phases (seconds)\n  dateFormat X\n  axisFormat %s\n  section Before\n  Node        :0, 180\n  Image pull  :180, 300\n  Weights     :300, 440\n  GPU load    :440, 480\n  Init        :480, 540\n  section After\n  Weights NVMe :0, 28\n  GPU load     :28, 68\n  Init         :68, 128",
+            "diagramAlt": "Gantt chart: cold start before optimization takes 540 seconds across node, image, weights, load and init; after optimization it takes 128 seconds."
+          }
         },
         {
           "id": "i-gateway",
@@ -1404,23 +1867,38 @@
           "resources": [
             {
               "title": "Gateway API Inference Extension",
-              "url": "https://gateway-api-inference-extension.sigs.k8s.io/"
+              "url": "https://gateway-api-inference-extension.sigs.k8s.io/",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "Kubernetes SIG project documentation for specialized scheduling and batch workloads."
             },
             {
               "title": "LiteLLM docs",
-              "url": "https://docs.litellm.ai/docs/"
+              "url": "https://docs.litellm.ai/docs/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "LiteLLM gateway documentation; concrete configuration for routing, budgets and fallbacks."
             },
             {
               "title": "Envoy AI Gateway",
-              "url": "https://aigateway.envoyproxy.io/"
+              "url": "https://aigateway.envoyproxy.io/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Envoy AI Gateway that complements the LLM Gateways & Inference Routing lesson with another author's explanation and examples."
             },
             {
               "title": "llm-d",
-              "url": "https://llm-d.ai/"
+              "url": "https://llm-d.ai/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on llm-d that complements the LLM Gateways & Inference Routing lesson with another author's explanation and examples."
             },
             {
               "title": "NVIDIA Dynamo (GitHub)",
-              "url": "https://github.com/ai-dynamo/dynamo"
+              "url": "https://github.com/ai-dynamo/dynamo",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             }
           ],
           "project": "Put LiteLLM or Envoy AI Gateway in front of two self-hosted replicas and one external provider. Add per-team budgets and a fallback. Then compare round-robin against prefix-aware routing on a workload with a shared 4k-token system prompt, measuring TTFT and GPU prefill time.",
@@ -1432,7 +1910,8 @@
               "subtopics": [
                 {
                   "id": "i-gw-func-s1",
-                  "title": "Virtual keys and budgets"
+                  "title": "Virtual keys and budgets",
+                  "text": "Virtual keys map to teams or apps, each with its own budget and allowed models, without sharing provider keys."
                 },
                 {
                   "id": "i-gw-func-s2",
@@ -1444,7 +1923,8 @@
                 },
                 {
                   "id": "i-gw-func-s4",
-                  "title": "Retries, fallbacks, hedging"
+                  "title": "Retries, fallbacks, hedging",
+                  "text": "Retries handle transient errors, fallbacks switch models or providers, and hedging sends duplicates to cut tail latency."
                 },
                 {
                   "id": "i-gw-func-s5",
@@ -1459,7 +1939,8 @@
               "subtopics": [
                 {
                   "id": "i-gw-route-s1",
-                  "title": "Why round-robin fails"
+                  "title": "Why round-robin fails",
+                  "text": "Round-robin ignores how busy each replica is and where cached prefixes live."
                 },
                 {
                   "id": "i-gw-route-s2",
@@ -1467,7 +1948,8 @@
                 },
                 {
                   "id": "i-gw-route-s3",
-                  "title": "Prefix-cache affinity"
+                  "title": "Prefix-cache affinity",
+                  "text": "Send requests with the same prefix to the same replica so its KV cache can be reused."
                 },
                 {
                   "id": "i-gw-route-s4",
@@ -1486,15 +1968,18 @@
               "subtopics": [
                 {
                   "id": "i-gw-policy-s1",
-                  "title": "Tier and task routing"
+                  "title": "Tier and task routing",
+                  "text": "Send each request to a model tier based on task type and customer tier."
                 },
                 {
                   "id": "i-gw-policy-s2",
-                  "title": "Fallback chains"
+                  "title": "Fallback chains",
+                  "text": "If the first model fails or is overloaded, try a predefined list of alternatives."
                 },
                 {
                   "id": "i-gw-policy-s3",
-                  "title": "Eval parity for fallbacks"
+                  "title": "Eval parity for fallbacks",
+                  "text": "Run the same eval on primary and fallback models so you know how much quality drops during a failover."
                 },
                 {
                   "id": "i-gw-policy-s4",
@@ -1513,11 +1998,13 @@
               "subtopics": [
                 {
                   "id": "i-gateway-x1-s1",
-                  "title": "InferencePool and endpoint picker"
+                  "title": "InferencePool and endpoint picker",
+                  "text": "An InferencePool groups model-server pods; the endpoint picker chooses one per request using live metrics."
                 },
                 {
                   "id": "i-gateway-x1-s2",
-                  "title": "Queue- and KV-aware scheduling"
+                  "title": "Queue- and KV-aware scheduling",
+                  "text": "Route requests to the replica with the shortest queue or the most reusable KV cache."
                 },
                 {
                   "id": "i-gateway-x1-s3",
@@ -1529,7 +2016,8 @@
                 },
                 {
                   "id": "i-gateway-x1-s5",
-                  "title": "Policy gateways (Databricks AI Gateway) vs inference routers"
+                  "title": "Policy gateways (Databricks AI Gateway) vs inference routers",
+                  "text": "Policy gateways handle auth, budgets and logging; inference routers optimize placement on replicas."
                 }
               ]
             }
@@ -1583,7 +2071,32 @@
           "conceptIds": [
             "llm-gateway-routing",
             "model-router"
-          ]
+          ],
+          "lesson": {
+            "intuition": "An inference gateway decides where every request goes before a single token is generated. At the business level it routes between providers and models with keys, budgets and fallbacks. At the cluster level it picks the replica that will answer fastest, using signals like queue length, free KV cache, cached prefixes and loaded LoRA adapters. Round-robin ignores all of that.",
+            "how": [
+              "Normalize request formats and authenticate with virtual keys tied to budgets.",
+              "Apply policy: allowed models per team, PII hooks, model aliases.",
+              "Choose model and provider by tier and task, with fallback chains that have similar eval quality.",
+              "Inside the cluster, score replicas on queue depth, KV utilization, prefix-cache match and adapter availability.",
+              "Log every routing decision for debugging and policy review."
+            ],
+            "example": "Prefix-aware routing: 4 replicas serve 200 customers, each with a 6,000-token prefix (its documents and instructions). With round-robin, every replica must hold every prefix: 200 × 6,000 = 1.2M tokens of KV per replica, more than fits (say 400,000 tokens), so prefixes are evicted and recomputed constantly. Routing each customer to one home replica means each replica holds only about 50 prefixes (300,000 tokens), which fits, so most requests skip most of their prefill. Hot customers are spread across two replicas to avoid hot spots.",
+            "mistakes": [
+              "Round-robin balancing that destroys cache locality.",
+              "Fallback models never evaluated against the primary.",
+              "No logs of why a request went where it did."
+            ],
+            "enterprise": "A platform running llm-d on Kubernetes uses the Gateway API Inference Extension so an endpoint picker chooses pods based on queue depth and KV-cache state. Under the same load, p95 TTFT dropped about 40% compared with plain round-robin.",
+            "takeaways": [
+              "Route on real-time engine signals, not round-robin.",
+              "Fallbacks need eval parity.",
+              "Log routing decisions."
+            ],
+            "diagram": "flowchart LR\n  C[Client] --> GW[Gateway: keys, budgets, policy]\n  GW --> TIER{Model tier}\n  TIER --> POOL[Inference pool]\n  POOL --> EPP[Endpoint picker: queue, KV, prefix, LoRA]\n  EPP --> P1[Pod 1]\n  EPP --> P2[Pod 2]\n  EPP --> P3[Pod 3]",
+            "diagramAlt": "Diagram: a client calls the gateway, which applies keys, budgets and policy, chooses a model tier and an inference pool, where an endpoint picker selects a pod based on queue, KV cache, prefix and LoRA signals.",
+            "widget": "routing"
+          }
         }
       ]
     },
@@ -1599,23 +2112,38 @@
           "resources": [
             {
               "title": "FlashAttention",
-              "url": "https://arxiv.org/abs/2205.14135"
+              "url": "https://arxiv.org/abs/2205.14135",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "FlashAttention-2",
-              "url": "https://arxiv.org/abs/2307.08691"
+              "url": "https://arxiv.org/abs/2307.08691",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "FlashAttention GitHub",
-              "url": "https://github.com/Dao-AILab/flash-attention"
+              "url": "https://github.com/Dao-AILab/flash-attention",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "Triton language",
-              "url": "https://triton-lang.org/"
+              "url": "https://triton-lang.org/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Triton language that complements the GPU Kernels & Attention Impls lesson with another author's explanation and examples."
             },
             {
               "title": "CUDA docs",
-              "url": "https://docs.nvidia.com/cuda/"
+              "url": "https://docs.nvidia.com/cuda/",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
             }
           ],
           "project": "Profile attention; write small Triton fused op; compare to PyTorch.",
@@ -1626,7 +2154,8 @@
               "subtopics": [
                 {
                   "id": "i-kern-attn-s1",
-                  "title": "FlashAttention IO awareness"
+                  "title": "FlashAttention IO awareness",
+                  "text": "FlashAttention reorders the attention computation to minimize reads and writes to GPU main memory."
                 },
                 {
                   "id": "i-kern-attn-s2",
@@ -1638,7 +2167,8 @@
                 },
                 {
                   "id": "i-kern-attn-s4",
-                  "title": "MLA variants"
+                  "title": "MLA variants",
+                  "text": "Multi-head latent attention (used in DeepSeek models) compresses keys and values into a smaller latent, needing specialized kernels."
                 },
                 {
                   "id": "i-kern-attn-s5",
@@ -1657,11 +2187,13 @@
                 },
                 {
                   "id": "i-kern-tool-s2",
-                  "title": "Triton"
+                  "title": "Triton",
+                  "text": "Triton is a Python-like language for writing GPU kernels without raw CUDA."
                 },
                 {
                   "id": "i-kern-tool-s3",
-                  "title": "CUDA graphs"
+                  "title": "CUDA graphs",
+                  "text": "CUDA graphs record a sequence of kernel launches once and replay it, removing CPU launch overhead."
                 },
                 {
                   "id": "i-kern-tool-s4",
@@ -1669,7 +2201,8 @@
                 },
                 {
                   "id": "i-kern-tool-s5",
-                  "title": "Roofline"
+                  "title": "Roofline",
+                  "text": "A roofline plot shows whether a kernel is limited by compute or memory bandwidth, telling you what to optimize."
                 }
               ],
               "explainer": "Profile before optimizing. Nsight Systems shows the timeline of kernels, copies and gaps; Nsight Compute digs into one kernel. Triton lets you write custom GPU kernels in Python. CUDA graphs remove CPU launch overhead, which matters a lot in decode. torch.compile fuses operations automatically. The roofline model tells you whether a kernel is limited by compute or memory bandwidth, and therefore which optimization can help."
@@ -1712,7 +2245,31 @@
           ],
           "conceptIds": [
             "flash-attn"
-          ]
+          ],
+          "lesson": {
+            "intuition": "A kernel is a small program that runs on the GPU, such as one matrix multiply or one attention step. Most LLM speedups come from better kernels that move less data between slow and fast memory. FlashAttention is the famous example: it computes exact attention in tiles that stay in fast on-chip memory instead of writing a huge score matrix to slow memory.",
+            "how": [
+              "Profile first (Nsight Systems/Compute, PyTorch profiler) to see which kernels take the time.",
+              "Use a roofline view: is the kernel limited by compute or by memory bandwidth?",
+              "Use optimized implementations: FlashAttention, paged attention kernels, fused ops.",
+              "Reduce launch overhead with CUDA graphs and torch.compile.",
+              "Write custom kernels (e.g. in Triton) only when profiling shows a clear win."
+            ],
+            "example": "Why FlashAttention helps: for one head with sequence length 8,192, the full attention score matrix has 8,192² ≈ 67M entries; in fp16 that's ≈ 134 MB written and read per head per layer. FlashAttention never stores it, processing tiles in on-chip SRAM and keeping running softmax statistics, so memory traffic grows roughly linearly with sequence length instead of quadratically, while computing the same result.",
+            "mistakes": [
+              "Optimizing kernels before profiling.",
+              "Comparing kernels at batch sizes or sequence lengths you don't use.",
+              "Ignoring numeric differences between precision modes."
+            ],
+            "enterprise": "An inference team found that 15% of decode time went to small elementwise kernels. Fusing them and capturing CUDA graphs cut per-token latency by 12% without changing the model.",
+            "takeaways": [
+              "Profile, then optimize.",
+              "Memory movement is usually the bottleneck.",
+              "FlashAttention: exact attention, tiled, no big score matrix."
+            ],
+            "diagram": "flowchart LR\n  HBM[(HBM: large, slow)] -->|load tile Q, K, V| SRAM[On-chip SRAM: small, fast]\n  SRAM --> COMP[Scores + online softmax]\n  COMP --> ACC[Accumulate output]\n  ACC -->|write output only| HBM",
+            "diagramAlt": "Diagram: FlashAttention loads tiles of Q, K and V from slow HBM into fast on-chip SRAM, computes scores with online softmax, accumulates output and writes only the output back."
+          }
         },
         {
           "id": "i-slo",
@@ -1722,15 +2279,24 @@
           "resources": [
             {
               "title": "Google SRE Book",
-              "url": "https://sre.google/sre-book/table-of-contents/"
+              "url": "https://sre.google/sre-book/table-of-contents/",
+              "kind": "book",
+              "level": "intermediate",
+              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "vLLM disaggregated serving guide",
-              "url": "https://blog.vllm.ai/2026/09/29/disaggregated-serving-guide.html"
+              "url": "https://blog.vllm.ai/2026/09/29/disaggregated-serving-guide.html",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             }
           ],
           "project": "Size GPUs for a latency SLO with headroom; write overload runbook.",
@@ -1741,11 +2307,13 @@
               "subtopics": [
                 {
                   "id": "i-slo-plan-s1",
-                  "title": "Load shapes"
+                  "title": "Load shapes",
+                  "text": "Look at daily and weekly patterns, bursts and prompt-length mix, not just average requests per second."
                 },
                 {
                   "id": "i-slo-plan-s2",
-                  "title": "Concurrency vs batch"
+                  "title": "Concurrency vs batch",
+                  "text": "Concurrency is requests in flight; each replica has a maximum before latency targets break."
                 },
                 {
                   "id": "i-slo-plan-s3",
@@ -1757,7 +2325,8 @@
                 },
                 {
                   "id": "i-slo-plan-s5",
-                  "title": "Headroom"
+                  "title": "Headroom",
+                  "text": "Keep spare capacity for spikes and failures, because GPUs can't be added in seconds."
                 }
               ],
               "explainer": "Capacity planning starts with load shape: requests per second, input and output lengths, and how bursty traffic is. Concurrency is not batch size; many concurrent users can be served by continuous batching on few GPUs until KV memory runs out. Autoscale on queue depth or tokens in flight, not CPU. Keep warm pools because cold starts on GPUs take minutes. Hold headroom for spikes and failures."
@@ -1768,7 +2337,8 @@
               "subtopics": [
                 {
                   "id": "i-slo-deg-s1",
-                  "title": "Admission control"
+                  "title": "Admission control",
+                  "text": "Reject or queue new requests when the system is full, instead of letting everyone slow down."
                 },
                 {
                   "id": "i-slo-deg-s2",
@@ -1780,7 +2350,8 @@
                 },
                 {
                   "id": "i-slo-deg-s4",
-                  "title": "Priority lanes"
+                  "title": "Priority lanes",
+                  "text": "Give critical or paying traffic its own queue so it isn't stuck behind bulk jobs."
                 },
                 {
                   "id": "i-slo-deg-s5",
@@ -1829,7 +2400,31 @@
             "cost-model",
             "cost-per-token",
             "cold-start"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Inference capacity planning is site reliability engineering with expensive, slow-to-scale GPUs. You need to know your traffic shape, how many concurrent requests one replica can serve within your latency targets, and what you'll do when demand exceeds supply: queue, shed, downgrade or prioritize. Plan for peaks, not averages.",
+            "how": [
+              "Characterize load: requests per second over the day, input/output lengths, burstiness.",
+              "Benchmark one replica: the maximum concurrency that still meets TTFT and ITL targets (goodput).",
+              "Size replicas for peak plus headroom, and set autoscaling on leading signals with warm pools.",
+              "Define degradation: admission control, priority lanes, shedding non-critical traffic, fallback models.",
+              "Prepare incident communications and practice them."
+            ],
+            "example": "Little's law sizing: peak 30 requests per second, each lasting 8 s on average (prefill + 400 tokens decode), means 30 × 8 = 240 concurrent requests. If one replica meets SLOs up to 40 concurrent requests, you need 6 replicas, plus 30% headroom ≈ 8 replicas at peak.",
+            "mistakes": [
+              "Sizing for average load instead of peak.",
+              "Scaling on GPU utilization, which stays high even when latency is fine or bad.",
+              "No plan for what to shed when demand exceeds capacity."
+            ],
+            "enterprise": "A tax-software company plans for a peak 10× normal traffic in the last week before the filing deadline. It pre-scales by date, reserves a priority lane for paying users, and switches free users to a smaller model when queues exceed 2 seconds.",
+            "takeaways": [
+              "Concurrency = arrival rate × duration.",
+              "Plan for peak with headroom.",
+              "Decide degradation before the incident."
+            ],
+            "diagram": "flowchart LR\n  LOAD[Load shape] --> BENCH[Per-replica goodput]\n  BENCH --> SIZE[Replicas = peak concurrency / per-replica + headroom]\n  SIZE --> AS[Autoscale + warm pool]\n  AS --> DEG{Over capacity?}\n  DEG -->|yes| ADM[Admission control, priority lanes, fallback model]\n  DEG -->|no| OK[Serve]",
+            "diagramAlt": "Diagram: load shape and per-replica goodput give a replica count with headroom, autoscaling with a warm pool, and admission control, priority lanes and fallback models when over capacity."
+          }
         }
       ]
     },
@@ -1845,19 +2440,31 @@
           "resources": [
             {
               "title": "CUDA docs",
-              "url": "https://docs.nvidia.com/cuda/"
+              "url": "https://docs.nvidia.com/cuda/",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
             },
             {
               "title": "NCCL user guide",
-              "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html"
+              "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/overview.html",
+              "kind": "docs",
+              "level": "advanced",
+              "why": "NVIDIA technical documentation; precise details on hardware, libraries and performance tuning."
             },
             {
               "title": "TensorRT-LLM docs",
-              "url": "https://nvidia.github.io/TensorRT-LLM/"
+              "url": "https://nvidia.github.io/TensorRT-LLM/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             }
           ],
           "project": "Design brief: NVLink-heavy vs many smaller GPUs for your ISL/OSL mix.",
@@ -1868,11 +2475,13 @@
               "subtopics": [
                 {
                   "id": "i-hw-plat-s1",
-                  "title": "Blackwell/GB200 class"
+                  "title": "Blackwell/GB200 class",
+                  "text": "GB200 NVL72 links 72 Blackwell GPUs and 36 Grace CPUs in one NVLink domain, acting like one large GPU for some workloads."
                 },
                 {
                   "id": "i-hw-plat-s2",
-                  "title": "AMD ROCm"
+                  "title": "AMD ROCm",
+                  "text": "AMD Instinct GPUs use the ROCm software stack; check engine and kernel support for your models."
                 },
                 {
                   "id": "i-hw-plat-s3",
@@ -1895,7 +2504,8 @@
               "subtopics": [
                 {
                   "id": "i-hw-mem-s1",
-                  "title": "HBM capacity/bandwidth"
+                  "title": "HBM capacity/bandwidth",
+                  "text": "HBM capacity limits model and KV size per GPU; bandwidth limits decode speed."
                 },
                 {
                   "id": "i-hw-mem-s2",
@@ -1903,7 +2513,8 @@
                 },
                 {
                   "id": "i-hw-mem-s3",
-                  "title": "CXL pools"
+                  "title": "CXL pools",
+                  "text": "CXL lets servers attach extra memory over a PCIe-based link, a possible tier for KV caches."
                 },
                 {
                   "id": "i-hw-mem-s4",
@@ -1954,7 +2565,31 @@
           ],
           "conceptIds": [
             "nvlink-ib"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Hardware sets the limits for inference: how much memory each accelerator has, how fast it can read that memory, how many accelerators can talk at high speed, and how much power the rack can deliver. Newer systems like NVIDIA's GB200 NVL72 connect 72 GPUs in one NVLink domain, and memory tiers like CPU memory and CXL change how big KV caches can get.",
+            "how": [
+              "Compare accelerators on HBM capacity, memory bandwidth, low-precision compute (FP8/FP4) and interconnect.",
+              "Consider software maturity: CUDA, ROCm for AMD, and support for other accelerators in your engine.",
+              "Plan memory tiers: HBM for hot data, CPU memory or NVMe for KV offload, emerging CXL pools.",
+              "Check power and cooling: rack density can require liquid cooling.",
+              "Define failure domains: what happens when one GPU in a large NVLink domain fails."
+            ],
+            "example": "Bandwidth bound on decode: a 70B model in FP8 is 70 GB. On an accelerator with 8 TB/s of HBM bandwidth (Blackwell-class B200 is about 8 TB/s), a single sequence can decode at most ≈ 8,000 / 70 ≈ 114 tokens per second; on 3.35 TB/s (H100), ≈ 48 tokens per second. More bandwidth directly raises single-stream speed.",
+            "mistakes": [
+              "Comparing peak FLOPs while your workload is memory-bandwidth-bound.",
+              "Ignoring software support for non-NVIDIA hardware.",
+              "Ordering high-density racks without the power and cooling to run them."
+            ],
+            "enterprise": "A cloud provider tests AMD MI300X for a 70B model because its 192 GB of HBM fits the model and a large KV cache on one GPU, avoiding tensor parallelism, after confirming vLLM support on ROCm for their models.",
+            "takeaways": [
+              "Memory capacity and bandwidth drive inference.",
+              "Software support is part of the hardware choice.",
+              "Power and cooling are hard limits."
+            ],
+            "diagram": "flowchart TB\n  HBM[HBM: fastest, smallest] --> CPU[CPU memory: larger]\n  CPU --> CXL[CXL pool]\n  CXL --> NVME[NVMe: largest, slowest]\n  NVL[NVLink domain: many GPUs] --- HBM",
+            "diagramAlt": "Diagram: memory tiers from fast, small HBM to CPU memory, CXL pools and slow, large NVMe, with an NVLink domain connecting many GPUs' HBM."
+          }
         },
         {
           "id": "i-research",
@@ -1964,23 +2599,38 @@
           "resources": [
             {
               "title": "vLLM documentation",
-              "url": "https://docs.vllm.ai/en/latest/"
+              "url": "https://docs.vllm.ai/en/latest/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "vLLM documentation or blog; how a leading open-source inference engine implements this."
             },
             {
               "title": "SGLang documentation",
-              "url": "https://docs.sglang.io/"
+              "url": "https://docs.sglang.io/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "SGLang documentation; another major inference engine's approach and configuration."
             },
             {
               "title": "PagedAttention / Efficient LLM Serving",
-              "url": "https://arxiv.org/abs/2309.06180"
+              "url": "https://arxiv.org/abs/2309.06180",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "DistServe Prefill/Decode Disaggregation",
-              "url": "https://arxiv.org/abs/2401.09670"
+              "url": "https://arxiv.org/abs/2401.09670",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Speculative Decoding (Leviathan et al.)",
-              "url": "https://arxiv.org/abs/2211.17192"
+              "url": "https://arxiv.org/abs/2211.17192",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             }
           ],
           "project": "Pick one recent inference paper; reproduce a figure or toy the idea.",
@@ -1991,7 +2641,8 @@
               "subtopics": [
                 {
                   "id": "i-res-topics-s1",
-                  "title": "Better speculation"
+                  "title": "Better speculation",
+                  "text": "New drafters and verification schemes aim to raise acceptance rates and keep speedups at larger batch sizes."
                 },
                 {
                   "id": "i-res-topics-s2",
@@ -1999,15 +2650,18 @@
                 },
                 {
                   "id": "i-res-topics-s3",
-                  "title": "Cross-request KV"
+                  "title": "Cross-request KV",
+                  "text": "Sharing or reusing KV caches across requests and nodes reduces repeated prefill work."
                 },
                 {
                   "id": "i-res-topics-s4",
-                  "title": "Energy-aware serving"
+                  "title": "Energy-aware serving",
+                  "text": "Energy-aware serving adjusts frequency, batching and placement to cut power per token."
                 },
                 {
                   "id": "i-res-topics-s5",
-                  "title": "MoE placement"
+                  "title": "MoE placement",
+                  "text": "Deciding which experts sit on which GPUs reduces communication and load imbalance in MoE serving."
                 },
                 {
                   "id": "i-res-topics-s6",
@@ -2052,7 +2706,31 @@
               "why": "Better length estimates improve batching and fairness."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "Inference research moves into production engines within months: PagedAttention, FlashAttention, speculative decoding and disaggregation all started as papers. A watchlist helps you notice ideas that matter for your workload, read them critically and test them, without chasing every new preprint.",
+            "how": [
+              "Follow a few sources: engine release notes (vLLM, SGLang, TensorRT-LLM), major conferences (MLSys, OSDI, NeurIPS) and arXiv.",
+              "For each idea, ask: which bottleneck does it attack (compute, memory, communication, scheduling)? Does my workload have it?",
+              "Check the evaluation setup: model sizes, sequence lengths, batch sizes and hardware.",
+              "Reproduce on your traffic shape before adopting.",
+              "Track adoption: when an engine ships it, test it behind a flag."
+            ],
+            "example": "Reading a claim critically: a paper reports '3× throughput'. The fine print: batch size 1, 128-token outputs, a 7B model on one GPU. Your workload is batch 64 with 1,000-token outputs on a 70B model with TP = 4. Speculative-style gains usually shrink at large batch, so expect much less and measure before planning capacity around it.",
+            "mistakes": [
+              "Adopting a technique because of a headline number from a different workload.",
+              "Ignoring engine release notes, where features land first.",
+              "Testing new features without a flag and a rollback."
+            ],
+            "enterprise": "An inference team reviews new papers monthly in a 30-minute session, keeps a table of ideas mapped to bottlenecks, and runs a benchmark whenever a relevant feature lands in their engine. Prefix-aware routing and FP8 KV both went from 'watch' to production this way.",
+            "takeaways": [
+              "Map each idea to a bottleneck.",
+              "Check the evaluation setup against yours.",
+              "Adopt behind flags, with benchmarks."
+            ],
+            "diagram": "flowchart LR\n  SRC[Papers + release notes] --> MAP[Map to bottleneck]\n  MAP --> FIT{Matches my workload?}\n  FIT -->|no| WATCH[Watchlist]\n  FIT -->|yes| REPRO[Reproduce on my traffic]\n  REPRO --> FLAG[Ship behind flag]\n  FLAG --> PROD[Production]",
+            "diagramAlt": "Diagram: papers and release notes are mapped to bottlenecks; if they match the workload they are reproduced, shipped behind a flag and promoted to production, otherwise kept on a watchlist."
+          }
         }
       ]
     }

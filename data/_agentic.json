@@ -16,15 +16,24 @@
           "resources": [
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "Model Context Protocol",
-              "url": "https://modelcontextprotocol.io/"
+              "url": "https://modelcontextprotocol.io/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "OpenEnv",
-              "url": "https://github.com/meta-pytorch/openenv"
+              "url": "https://github.com/meta-pytorch/openenv",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             }
           ],
           "project": "40-line agent loop with max_steps and hard timeout; log every turn.",
@@ -39,15 +48,18 @@
                 },
                 {
                   "id": "g-mental-loop-s2",
-                  "title": "State vs transcript"
+                  "title": "State vs transcript",
+                  "text": "Keep a structured state (task, facts found, decisions) separate from the raw transcript, and build each prompt from it."
                 },
                 {
                   "id": "g-mental-loop-s3",
-                  "title": "Stop conditions"
+                  "title": "Stop conditions",
+                  "text": "Stop on success criteria, step limits, budget limits, repeated failures or a human request."
                 },
                 {
                   "id": "g-mental-loop-s4",
-                  "title": "Budgets: steps/tokens/$"
+                  "title": "Budgets: steps/tokens/$",
+                  "text": "Cap steps, tokens, wall-clock time and dollars per task."
                 },
                 {
                   "id": "g-mental-loop-s5",
@@ -62,7 +74,8 @@
               "subtopics": [
                 {
                   "id": "g-mental-when-s1",
-                  "title": "Workflow first"
+                  "title": "Workflow first",
+                  "text": "If you can write the steps down in advance, build a workflow first."
                 },
                 {
                   "id": "g-mental-when-s2",
@@ -78,7 +91,8 @@
                 },
                 {
                   "id": "g-mental-when-s5",
-                  "title": "Kill switches"
+                  "title": "Kill switches",
+                  "text": "A kill switch lets operators stop an agent or a whole fleet instantly."
                 }
               ],
               "explainer": "Scope discipline saves projects. Start with a fixed workflow. Move to a single agent with tools only where decisions genuinely depend on intermediate results. Use multi-agent systems last, for parallelism or very different contexts. Put human checkpoints before risky steps and keep a kill switch that stops all agent activity immediately. Try it: take an \"agent\" idea and draw it as a flowchart. Count how many boxes truly need model judgment; often it is one or two."
@@ -121,7 +135,32 @@
           ],
           "conceptIds": [
             "agent-loop"
-          ]
+          ],
+          "lesson": {
+            "intuition": "An agent is not a digital employee with free will. It's a loop: look at the goal and the current state, pick an action, run a tool, observe the result, and repeat until done or until a limit is hit. Thinking of agents as bounded loops, with budgets, stop rules and human checkpoints, makes them predictable enough to ship.",
+            "how": [
+              "Perceive: gather the goal, current state and relevant context.",
+              "Reason: the model chooses the next action (or decides it's done).",
+              "Act: the harness executes a tool call with validated arguments.",
+              "Observe: the result is added to state; the loop checks stop conditions and budgets.",
+              "Log every step so behavior can be debugged and evaluated."
+            ],
+            "example": "Budgeting a loop: an agent averages 6 steps per task with 4,000 input and 300 output tokens per step. At $3 / $15 per 1M tokens, a typical task costs 6 × (0.012 + 0.0045) = $0.099. A cap of 15 steps limits the worst case to 15 × $0.0165 ≈ $0.25 (ignoring context growth), so a looping agent can never cost more than about 2.5× a normal task.",
+            "mistakes": [
+              "Treating the transcript as the state, so it grows until the context overflows.",
+              "Stopping only when the model says 'done'.",
+              "No logs of intermediate steps."
+            ],
+            "enterprise": "A procurement agent researches suppliers in a loop of search, read and compare steps, with a 12-step cap, a $0.50 budget per task and a human approval step before contacting any supplier.",
+            "takeaways": [
+              "An agent is a bounded loop.",
+              "Every loop needs stop conditions and budgets.",
+              "Start with workflows; add autonomy only where needed."
+            ],
+            "diagram": "flowchart LR\n  P[Perceive: goal + state] --> R[Reason: choose action]\n  R --> A[Act: tool call]\n  A --> O[Observe result]\n  O --> S{Stop? done / budget / human}\n  S -->|no| P\n  S -->|yes| END[Finish or escalate]",
+            "diagramAlt": "Diagram: the agent loop of perceive, reason, act and observe, checking stop conditions each turn before finishing or escalating.",
+            "widget": "agentloop"
+          }
         },
         {
           "id": "g-tools",
@@ -131,19 +170,31 @@
           "resources": [
             {
               "title": "Model Context Protocol",
-              "url": "https://modelcontextprotocol.io/"
+              "url": "https://modelcontextprotocol.io/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "MCP specification",
-              "url": "https://modelcontextprotocol.io/specification/2025-11-25"
+              "url": "https://modelcontextprotocol.io/specification/2025-11-25",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "OpenAI prompt engineering",
-              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering"
+              "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Vendor documentation or guide; precise API behavior and recommended practice."
             }
           ],
           "project": "Rewrite messy 15-endpoint toolset into 5 task-oriented tools; A/B selection accuracy.",
@@ -162,11 +213,13 @@
                 },
                 {
                   "id": "g-tools-des-s3",
-                  "title": "Side-effect classes"
+                  "title": "Side-effect classes",
+                  "text": "Mark each tool as read, reversible write or irreversible, so policies and approvals can be applied automatically."
                 },
                 {
                   "id": "g-tools-des-s4",
-                  "title": "Error contracts"
+                  "title": "Error contracts",
+                  "text": "Errors should say what went wrong and how to fix it, without leaking secrets or stack traces."
                 },
                 {
                   "id": "g-tools-des-s5",
@@ -185,11 +238,13 @@
                 },
                 {
                   "id": "g-tools-disc-s2",
-                  "title": "Dynamic toolsets"
+                  "title": "Dynamic toolsets",
+                  "text": "Load toolsets dynamically based on the task so the model chooses among fewer, relevant tools."
                 },
                 {
                   "id": "g-tools-disc-s3",
-                  "title": "Capability tokens"
+                  "title": "Capability tokens",
+                  "text": "Capability tokens grant a tool call specific, limited rights for one user and task."
                 },
                 {
                   "id": "g-tools-disc-s4",
@@ -241,7 +296,31 @@
           "conceptIds": [
             "tool-calling",
             "mcp"
-          ]
+          ],
+          "lesson": {
+            "intuition": "For an agent, tools are its hands and its senses. A model with excellent tools looks smart; the same model with confusing, overlapping or unsafe tools looks broken. Designing tools is designing an API for a literal-minded colleague: clear names, strict schemas, explicit side effects and helpful errors.",
+            "how": [
+              "Design task-oriented tools with names and descriptions that say when to use them.",
+              "Use strict argument schemas (types, enums, required fields).",
+              "Classify side effects: read-only, reversible write, irreversible or external action.",
+              "Return concise, structured results and actionable error messages.",
+              "Version tools, load only relevant toolsets per task, and deprecate carefully."
+            ],
+            "example": "Fewer tools, better choices: an agent with 60 tools averaged 71% correct tool selection on an eval. Grouping them into 5 toolsets loaded by task type (each with 8-12 tools) raised selection accuracy to 92% and cut prompt tokens per call by about 6,000.",
+            "mistakes": [
+              "Overlapping tools with vague descriptions.",
+              "Returning huge raw payloads that flood the context.",
+              "Hiding side effects, so a 'get' tool also writes."
+            ],
+            "enterprise": "A CRM agent exposes find_account, summarize_account, draft_email and log_activity. draft_email never sends; sending happens only after the user clicks Send in the UI. Every call is logged with the user's identity, so reviewers can see exactly what the agent did.",
+            "takeaways": [
+              "Tools define what the agent can do well and safely.",
+              "Schemas and side-effect classes are part of the contract.",
+              "Load only the tools a task needs."
+            ],
+            "diagram": "flowchart LR\n  TASK[Task type] --> TS[Load relevant toolset]\n  TS --> RO[Read-only tools]\n  TS --> RW[Reversible writes]\n  TS --> IRR[Irreversible actions]\n  IRR --> APPR[Human approval]\n  RO --> RES[Concise results / clear errors]\n  RW --> RES\n  APPR --> RES",
+            "diagramAlt": "Diagram: a task type loads a toolset with read-only, reversible and irreversible tools; irreversible actions need approval, and all return concise results or clear errors."
+          }
         },
         {
           "id": "g-harness-intro",
@@ -251,15 +330,24 @@
           "resources": [
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "OpenEnv",
-              "url": "https://github.com/meta-pytorch/openenv"
+              "url": "https://github.com/meta-pytorch/openenv",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "Securing MCP (InfoQ)",
-              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/"
+              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/",
+              "kind": "talk",
+              "level": "intermediate",
+              "why": "Conference talk or article with real-world experience reports."
             }
           ],
           "project": "Harness with schema validation, retries, compaction, loop limit, full trace export.",
@@ -274,11 +362,13 @@
                 },
                 {
                   "id": "g-harness-parts-s2",
-                  "title": "Middleware"
+                  "title": "Middleware",
+                  "text": "Middleware wraps each model or tool call with checks and logging, applied in a defined order."
                 },
                 {
                   "id": "g-harness-parts-s3",
-                  "title": "Compaction"
+                  "title": "Compaction",
+                  "text": "Compaction replaces old turns with a summary so the agent keeps key facts without overflowing context."
                 },
                 {
                   "id": "g-harness-parts-s4",
@@ -297,7 +387,8 @@
               "subtopics": [
                 {
                   "id": "g-harness-fail-s1",
-                  "title": "Infinite loops"
+                  "title": "Infinite loops",
+                  "text": "Without step caps or repetition detection, agents can call the same tool forever."
                 },
                 {
                   "id": "g-harness-fail-s2",
@@ -313,7 +404,8 @@
                 },
                 {
                   "id": "g-harness-fail-s5",
-                  "title": "Non-idempotent retries"
+                  "title": "Non-idempotent retries",
+                  "text": "Retrying a call that already sent an email sends a second email; use idempotency keys."
                 }
               ],
               "explainer": "Common harness failures: infinite loops when the model repeats a failing call; context blowups from giant tool outputs; silent tool failures that return empty results the model treats as truth; prompt injection arriving through tool results; and retries that repeat non-idempotent actions. Each has a harness-level fix, not a prompt fix. Try it: inject a tool that returns an empty list instead of an error and see whether your agent notices or invents an answer."
@@ -357,7 +449,31 @@
           "conceptIds": [
             "agent-loop",
             "harness"
-          ]
+          ],
+          "lesson": {
+            "intuition": "The harness is everything around the model: the loop driver, tool execution, context management, retries, checkpoints and tracing. The same model can be brilliant or useless depending on its harness, the way a great driver needs a working car. Many 'model failures' are really harness bugs.",
+            "how": [
+              "Loop driver: calls the model, parses tool calls and decides when to stop.",
+              "Middleware: validation, policy checks, retries and logging around each step.",
+              "Context management: compaction and summarization when the context fills.",
+              "Checkpoint and resume: save state so long tasks survive crashes.",
+              "Trace export: emit spans for every model and tool call."
+            ],
+            "example": "A harness bug that looked like a model problem: an agent 'forgot' earlier findings after about 20 steps. Traces showed the harness truncated the oldest messages without summarizing them once the context exceeded 100k tokens. Adding a compaction step that preserved a running summary of findings fixed it with no model change.",
+            "mistakes": [
+              "Blaming the model before checking traces.",
+              "Retrying non-idempotent tool calls after timeouts.",
+              "Passing tool output into the prompt without treating it as untrusted."
+            ],
+            "enterprise": "A coding-agent team compared two harnesses with the same model on 300 tasks: one with test-running and file-diff tools and compaction, one without. Success rates were 58% vs 31%, showing the harness mattered as much as the model.",
+            "takeaways": [
+              "Same model + different harness = different results.",
+              "Check traces before blaming the model.",
+              "Compaction, idempotency and checkpointing are core features."
+            ],
+            "diagram": "flowchart LR\n  DRV[Loop driver] --> MW[Middleware: validate, policy, retry, log]\n  MW --> M[Model]\n  MW --> T[Tools]\n  DRV --> CTX[Context manager: compaction]\n  DRV --> CP[(Checkpoints)]\n  MW --> TR[(Traces)]",
+            "diagramAlt": "Diagram: a loop driver uses middleware for validation, policy, retries and logging around model and tool calls, plus a context manager for compaction, checkpoints and traces."
+          }
         },
         {
           "id": "g-patterns",
@@ -367,19 +483,31 @@
           "resources": [
             {
               "title": "Anthropic: Building effective agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "DeepLearning.AI: Agentic AI (Andrew Ng)",
-              "url": "https://www.deeplearning.ai/courses/agentic-ai/"
+              "url": "https://www.deeplearning.ai/courses/agentic-ai/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on DeepLearning.AI: Agentic AI (Andrew Ng) that complements the Agentic Design Patterns: Reflection, Planning, Tools, Multi-Agent, Deep Research lesson with another author's explanation and examples."
             },
             {
               "title": "ReAct paper (arXiv)",
-              "url": "https://arxiv.org/abs/2210.03629"
+              "url": "https://arxiv.org/abs/2210.03629",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Anthropic: How we built our multi-agent research system",
-              "url": "https://www.anthropic.com/engineering/multi-agent-research-system"
+              "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             }
           ],
           "project": "Implement the same research task four ways: single prompt, prompt chain, ReAct agent with web search, and orchestrator plus parallel research sub-agents with a reflection step. Compare citation accuracy, coverage, cost and latency on 15 questions.",
@@ -395,7 +523,8 @@
                 },
                 {
                   "id": "g-patterns-t1-s2",
-                  "title": "External feedback (tests, validators)"
+                  "title": "External feedback (tests, validators)",
+                  "text": "Tests, validators and schema checks give reflection concrete signals, making revisions converge."
                 },
                 {
                   "id": "g-patterns-t1-s3",
@@ -403,7 +532,8 @@
                 },
                 {
                   "id": "g-patterns-t1-s4",
-                  "title": "Iteration caps"
+                  "title": "Iteration caps",
+                  "text": "Stop after a fixed number of rounds or when the evaluator passes."
                 },
                 {
                   "id": "g-patterns-t1-s5",
@@ -418,15 +548,18 @@
               "subtopics": [
                 {
                   "id": "g-patterns-t2-s1",
-                  "title": "Augmented language models: retrieval, tools, memory"
+                  "title": "Augmented language models: retrieval, tools, memory",
+                  "text": "An augmented language model is an LLM plus retrieval, tools and memory, the base of most agents."
                 },
                 {
                   "id": "g-patterns-t2-s2",
-                  "title": "ReAct loop"
+                  "title": "ReAct loop",
+                  "text": "ReAct alternates a thought, an action and an observation each step."
                 },
                 {
                   "id": "g-patterns-t2-s3",
-                  "title": "Plan-and-execute with re-planning"
+                  "title": "Plan-and-execute with re-planning",
+                  "text": "Plan-and-execute is cheaper and easier to audit; re-plan when a step fails."
                 },
                 {
                   "id": "g-patterns-t2-s4",
@@ -449,7 +582,8 @@
               "subtopics": [
                 {
                   "id": "g-patterns-t3-s1",
-                  "title": "Orchestrator-worker"
+                  "title": "Orchestrator-worker",
+                  "text": "An orchestrator delegates sub-tasks to workers and combines their results."
                 },
                 {
                   "id": "g-patterns-t3-s2",
@@ -465,7 +599,8 @@
                 },
                 {
                   "id": "g-patterns-t3-s5",
-                  "title": "Token cost of multi-agent"
+                  "title": "Token cost of multi-agent",
+                  "text": "Multi-agent systems can use several times more tokens than a single agent; justify them with results."
                 }
               ]
             }
@@ -507,7 +642,32 @@
           ],
           "conceptIds": [
             "agent-loop"
-          ]
+          ],
+          "lesson": {
+            "intuition": "A few patterns explain most agent designs. Reflection: check and improve your own work. Tool use: act and look things up. Planning: break a goal into steps. Multi-agent: split work among specialists. Workflows like chaining and routing are simpler cousins. Knowing the menu lets you pick the least complex pattern that solves the problem.",
+            "how": [
+              "Reflection / evaluator-optimizer: generate, critique against criteria or tests, revise, with an iteration cap.",
+              "Tool use: call functions, search or code to get facts and take actions.",
+              "Planning: ReAct interleaves reasoning and acting; plan-and-execute writes a plan then runs it, re-planning on failure.",
+              "Workflows: prompt chaining, routing and parallelization for known steps.",
+              "Multi-agent and deep research: an orchestrator fans out sub-questions to workers and synthesizes a cited report."
+            ],
+            "example": "Choosing a pattern for 'answer customer billing questions': steps are mostly known (look up account, find charge, explain), so use a routing workflow plus one tool-using step. A reflection loop is added only for the 'dispute' route, where a checker verifies the explanation matches the invoice. Multi-agent adds nothing here.",
+            "mistakes": [
+              "Starting with multi-agent when one agent with good tools would do.",
+              "Reflection without external signal or stopping rule.",
+              "Plans that are never re-checked against observations."
+            ],
+            "enterprise": "A consulting firm's research assistant uses an orchestrator that splits a client question into 5 sub-questions, runs them in parallel with web and document search, then a reviewer step checks every claim has a source before the report is shown.",
+            "takeaways": [
+              "Pick the least autonomous pattern that works.",
+              "Reflection needs concrete feedback and a cap.",
+              "Deep research = plan, fan out, extract evidence, synthesize, verify."
+            ],
+            "diagram": "flowchart TD\n  T[Task] --> K{Steps known?}\n  K -->|yes| WF[Workflow: chain / route / parallel]\n  K -->|no| AG[Single agent with tools]\n  AG --> H{Needs breadth or isolation?}\n  H -->|yes| MA[Orchestrator + workers]\n  H -->|no| AG\n  WF --> REF[Add reflection where checkable]\n  MA --> REF",
+            "diagramAlt": "Diagram: if a task's steps are known use a workflow, otherwise a single agent with tools, escalating to orchestrator and workers for breadth or isolation, adding reflection where outputs are checkable.",
+            "widget": "agentloop"
+          }
         }
       ]
     },
@@ -523,15 +683,24 @@
           "resources": [
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "OpenTelemetry",
-              "url": "https://opentelemetry.io/docs/"
+              "url": "https://opentelemetry.io/docs/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
             },
             {
               "title": "E2B",
-              "url": "https://e2b.dev/docs"
+              "url": "https://e2b.dev/docs",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on E2B that complements the Harness Engineering Deep Dive lesson with another author's explanation and examples."
             }
           ],
           "project": "Add checkpoint/resume; kill -9 mid-run and recover; assert trace integrity.",
@@ -550,15 +719,18 @@
                 },
                 {
                   "id": "g-harness-rel-s3",
-                  "title": "Crash recovery"
+                  "title": "Crash recovery",
+                  "text": "Store state after each step so a restarted worker can continue where it left off."
                 },
                 {
                   "id": "g-harness-rel-s4",
-                  "title": "Deterministic replay"
+                  "title": "Deterministic replay",
+                  "text": "Record model and tool outputs so a run can be replayed exactly to reproduce a bug."
                 },
                 {
                   "id": "g-harness-rel-s5",
-                  "title": "Middleware order"
+                  "title": "Middleware order",
+                  "text": "Order matters: for example, run policy checks before execution and logging after redaction."
                 }
               ],
               "explainer": "Reliability features: per-tool timeouts; idempotency keys on every side effect; crash recovery from checkpoints; deterministic replay of recorded tool responses for debugging; and a carefully chosen middleware order (for example, redact before logging, authorize before executing). Each of these exists because real agents crash, retry and misbehave in the middle of work. A harness without them works in demos and fails in production. Try it: kill an agent mid-run, resume from checkpoint, and confirm no side effect happened twice."
@@ -573,7 +745,8 @@
                 },
                 {
                   "id": "g-harness-ctx-s2",
-                  "title": "Tool payload retention"
+                  "title": "Tool payload retention",
+                  "text": "Keep a short extract of each tool result and drop the rest after it's been used."
                 },
                 {
                   "id": "g-harness-ctx-s3",
@@ -581,7 +754,8 @@
                 },
                 {
                   "id": "g-harness-ctx-s4",
-                  "title": "Pin critical spans"
+                  "title": "Pin critical spans",
+                  "text": "Pin critical facts (user constraints, IDs, decisions) so compaction never removes them."
                 },
                 {
                   "id": "g-harness-ctx-s5",
@@ -629,7 +803,31 @@
           "conceptIds": [
             "harness",
             "context-eng"
-          ]
+          ],
+          "lesson": {
+            "intuition": "A deep harness is the control plane that keeps agents reliable on real work: every tool call has a timeout, every side effect an idempotency key, every task a checkpoint it can resume from, and every run a trace you can replay. It also manages context carefully, deciding what to keep, summarize or drop as tasks get long.",
+            "how": [
+              "Set per-tool timeouts and retries with backoff; classify errors as retryable or not.",
+              "Attach idempotency keys to side-effecting calls.",
+              "Checkpoint state after each step to durable storage; resume after crashes.",
+              "Record traces with inputs and outputs so runs can be replayed deterministically for debugging.",
+              "Manage context: compact old turns, trim large tool payloads, pin critical facts, budget tokens."
+            ],
+            "example": "Context control: a research agent's tool results average 8,000 tokens each. After 10 steps that's 80,000 tokens of raw output. Keeping only a 300-token extract per result plus the full text of the latest result reduces this to about 10 × 300 + 8,000 = 11,000 tokens, leaving room for reasoning and cutting cost per step by roughly 85% for that part of the prompt.",
+            "mistakes": [
+              "Keeping every raw tool payload in context forever.",
+              "Retries without idempotency on writes.",
+              "No checkpoints, so a crash at step 40 restarts from zero."
+            ],
+            "enterprise": "A data-migration agent runs for hours. Each step checkpoints to a database; when a node restarted mid-run, the agent resumed at step 37 of 52 with no duplicated writes, because each write carried an idempotency key.",
+            "takeaways": [
+              "Timeouts, idempotency, checkpoints, replay.",
+              "Context is a budget: extract, compact, pin.",
+              "Middleware order matters."
+            ],
+            "diagram": "flowchart LR\n  STEP[Step n] --> TO[Timeout + retry]\n  TO --> IDK[Idempotency key]\n  IDK --> EXEC[Execute tool]\n  EXEC --> EXT[Extract + trim payload]\n  EXT --> CKP[(Checkpoint)]\n  CKP --> CMP[Compact context]\n  CMP --> NEXT[Step n+1]",
+            "diagramAlt": "Diagram: each step applies timeout and retry, an idempotency key, executes the tool, trims the payload, checkpoints and compacts context before the next step."
+          }
         },
         {
           "id": "g-mem",
@@ -639,19 +837,31 @@
           "resources": [
             {
               "title": "MemGPT",
-              "url": "https://arxiv.org/abs/2310.08560"
+              "url": "https://arxiv.org/abs/2310.08560",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "LlamaIndex",
-              "url": "https://developers.llamaindex.ai/python/framework/"
+              "url": "https://developers.llamaindex.ai/python/framework/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on LlamaIndex that complements the Memory Systems lesson with another author's explanation and examples."
             },
             {
               "title": "Retrieval-Augmented Generation",
-              "url": "https://arxiv.org/abs/2005.11401"
+              "url": "https://arxiv.org/abs/2005.11401",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Generative Agents paper (arXiv)",
-              "url": "https://arxiv.org/abs/2304.03442"
+              "url": "https://arxiv.org/abs/2304.03442",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             }
           ],
           "project": "Add working + episodic memory; measure success on a 20-step workflow.",
@@ -666,7 +876,8 @@
                 },
                 {
                   "id": "g-mem-types-s2",
-                  "title": "Episodic / trajectory"
+                  "title": "Episodic / trajectory",
+                  "text": "Episodic memory stores what happened, such as past conversations or task steps, with timestamps."
                 },
                 {
                   "id": "g-mem-types-s3",
@@ -674,7 +885,8 @@
                 },
                 {
                   "id": "g-mem-types-s4",
-                  "title": "Procedural skills"
+                  "title": "Procedural skills",
+                  "text": "Procedural memory stores how to do things, such as reusable skills, scripts or prompts."
                 },
                 {
                   "id": "g-mem-types-s5",
@@ -689,7 +901,8 @@
               "subtopics": [
                 {
                   "id": "g-mem-ops-s1",
-                  "title": "Write policies"
+                  "title": "Write policies",
+                  "text": "Decide when to store (explicit user statements, confirmed facts) and when not to (guesses, sensitive data)."
                 },
                 {
                   "id": "g-mem-ops-s2",
@@ -701,7 +914,8 @@
                 },
                 {
                   "id": "g-mem-ops-s4",
-                  "title": "Privacy/deletion"
+                  "title": "Privacy/deletion",
+                  "text": "Deleting a memory must remove it from every store, including embeddings and summaries."
                 },
                 {
                   "id": "g-mem-ops-s5",
@@ -721,7 +935,8 @@
                 },
                 {
                   "id": "g-mem-x1-s2",
-                  "title": "Relevance, recency and importance scoring"
+                  "title": "Relevance, recency and importance scoring",
+                  "text": "Combine how related, how recent and how important a memory is into one retrieval score."
                 },
                 {
                   "id": "g-mem-x1-s3",
@@ -729,7 +944,8 @@
                 },
                 {
                   "id": "g-mem-x1-s4",
-                  "title": "Contradiction resolution"
+                  "title": "Contradiction resolution",
+                  "text": "When facts conflict, prefer newer, user-confirmed information and keep a history."
                 },
                 {
                   "id": "g-mem-x1-s5",
@@ -786,7 +1002,31 @@
           ],
           "conceptIds": [
             "context-eng"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Context windows are short-term memory: when a conversation or task ends, the model forgets. Agent memory adds longer-term stores: past events (episodic), distilled facts and preferences (semantic) and learned procedures. Good memory remembers what matters, forgets what doesn't, resolves contradictions and lets users see and delete what's stored.",
+            "how": [
+              "Working memory: what's in the current context window.",
+              "Episodic memory: logs of past interactions and task trajectories with timestamps.",
+              "Semantic memory: extracted facts and preferences, often in a vector or key-value store.",
+              "Write policy: decide what to store, and score items by relevance, recency and importance for retrieval.",
+              "Consolidate, evict and resolve contradictions; give users visibility and deletion."
+            ],
+            "example": "Retrieval scoring like the Generative Agents paper: score = relevance + recency + importance, each normalized to 0-1. A memory with relevance 0.8, importance 0.6, from 100 hours ago with hourly decay 0.99 has recency 0.99¹⁰⁰ ≈ 0.37, total ≈ 1.77. A fresh, less relevant memory (0.4 relevance, 0.3 importance, recency 1.0) scores 1.7, so the older, more relevant one wins narrowly.",
+            "mistakes": [
+              "Storing everything, so retrieval returns noise.",
+              "Summaries that drop key details like numbers and names.",
+              "No way for users to see or delete memories."
+            ],
+            "enterprise": "A personal-finance assistant remembers a user's stated goals and risk tolerance as semantic facts, keeps episodic logs for 90 days, and shows a 'What I remember' page where users can edit or delete items.",
+            "takeaways": [
+              "Working, episodic and semantic memory have different jobs.",
+              "Score by relevance, recency and importance.",
+              "Memory needs privacy controls."
+            ],
+            "diagram": "flowchart LR\n  CTX[Working memory: context] --> WR{Write policy}\n  WR --> EP[(Episodic: events + time)]\n  WR --> SEM[(Semantic: facts + prefs)]\n  EP --> RET[Retrieve: relevance + recency + importance]\n  SEM --> RET\n  RET --> CTX\n  EP --> CON[Consolidate / evict]\n  CON --> SEM",
+            "diagramAlt": "Diagram: working memory writes selected items to episodic and semantic stores; retrieval scores them by relevance, recency and importance back into context, and consolidation moves episodes into facts."
+          }
         },
         {
           "id": "g-mcp",
@@ -796,27 +1036,45 @@
           "resources": [
             {
               "title": "Model Context Protocol",
-              "url": "https://modelcontextprotocol.io/"
+              "url": "https://modelcontextprotocol.io/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "MCP specification",
-              "url": "https://modelcontextprotocol.io/specification/2025-11-25"
+              "url": "https://modelcontextprotocol.io/specification/2025-11-25",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "Securing MCP (InfoQ)",
-              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/"
+              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/",
+              "kind": "talk",
+              "level": "intermediate",
+              "why": "Conference talk or article with real-world experience reports."
             },
             {
               "title": "A2A protocol",
-              "url": "https://a2aproject.github.io/A2A/"
+              "url": "https://a2aproject.github.io/A2A/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "MCP specification",
-              "url": "https://modelcontextprotocol.io/specification/2025-06-18"
+              "url": "https://modelcontextprotocol.io/specification/2025-06-18",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "JSON-RPC 2.0 specification",
-              "url": "https://www.jsonrpc.org/specification"
+              "url": "https://www.jsonrpc.org/specification",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on JSON-RPC 2.0 specification that complements the MCP & Tool Protocols lesson with another author's explanation and examples."
             }
           ],
           "project": "Expose one internal API as MCP server with OAuth; connect two hosts.",
@@ -827,15 +1085,18 @@
               "subtopics": [
                 {
                   "id": "g-mcp-arch-s1",
-                  "title": "Host / client / server"
+                  "title": "Host / client / server",
+                  "text": "The host is the AI app, the client is its connection to one server, and the server exposes capabilities."
                 },
                 {
                   "id": "g-mcp-arch-s2",
-                  "title": "Resources, tools, prompts"
+                  "title": "Resources, tools, prompts",
+                  "text": "Tools are actions the model can call, resources are readable data, and prompts are reusable templates."
                 },
                 {
                   "id": "g-mcp-arch-s3",
-                  "title": "Transports"
+                  "title": "Transports",
+                  "text": "Local servers usually talk over stdio; remote servers use Streamable HTTP."
                 },
                 {
                   "id": "g-mcp-arch-s4",
@@ -854,15 +1115,18 @@
               "subtopics": [
                 {
                   "id": "g-mcp-sec-s1",
-                  "title": "OAuth scoped tokens"
+                  "title": "OAuth scoped tokens",
+                  "text": "Use OAuth to issue tokens scoped to one server and the user's permissions."
                 },
                 {
                   "id": "g-mcp-sec-s2",
-                  "title": "Manifest pinning"
+                  "title": "Manifest pinning",
+                  "text": "Record the hash of each approved tool manifest and alert when it changes."
                 },
                 {
                   "id": "g-mcp-sec-s3",
-                  "title": "Egress allowlists"
+                  "title": "Egress allowlists",
+                  "text": "Limit which network destinations an MCP server may reach."
                 },
                 {
                   "id": "g-mcp-sec-s4",
@@ -882,7 +1146,8 @@
               "subtopics": [
                 {
                   "id": "g-mcp-ops-s1",
-                  "title": "Approved server registry"
+                  "title": "Approved server registry",
+                  "text": "Keep a list of approved servers and versions, and block everything else."
                 },
                 {
                   "id": "g-mcp-ops-s2",
@@ -890,11 +1155,13 @@
                 },
                 {
                   "id": "g-mcp-ops-s3",
-                  "title": "Per-tool rate limits"
+                  "title": "Per-tool rate limits",
+                  "text": "Rate-limit each tool separately so one busy tool can't exhaust shared capacity."
                 },
                 {
                   "id": "g-mcp-ops-s4",
-                  "title": "Token audience scoping"
+                  "title": "Token audience scoping",
+                  "text": "Issue tokens whose audience is a specific server so they can't be replayed elsewhere."
                 },
                 {
                   "id": "g-mcp-ops-s5",
@@ -909,7 +1176,8 @@
               "subtopics": [
                 {
                   "id": "g-mcp-x1-s1",
-                  "title": "JSON-RPC 2.0 requests, responses, notifications"
+                  "title": "JSON-RPC 2.0 requests, responses, notifications",
+                  "text": "Requests have jsonrpc, id, method and params; responses echo the id with result or error; notifications have no id."
                 },
                 {
                   "id": "g-mcp-x1-s2",
@@ -921,7 +1189,8 @@
                 },
                 {
                   "id": "g-mcp-x1-s4",
-                  "title": "stdio framing vs Streamable HTTP"
+                  "title": "stdio framing vs Streamable HTTP",
+                  "text": "Over stdio, each JSON-RPC message is one line of JSON; Streamable HTTP uses POST with optional SSE streams."
                 },
                 {
                   "id": "g-mcp-x1-s5",
@@ -990,7 +1259,31 @@
           "conceptIds": [
             "mcp",
             "prompt-injection-defense"
-          ]
+          ],
+          "lesson": {
+            "intuition": "The Model Context Protocol (MCP) is a standard plug for connecting AI apps to tools and data, often compared to USB-C. A host app (like an IDE or chat client) runs MCP clients that connect to MCP servers, each exposing tools, resources and prompts. Write a server once and many AI apps can use it, which also means you must secure and govern those servers.",
+            "how": [
+              "Host and client: the AI application runs one client per server connection.",
+              "Server: exposes tools (functions), resources (data) and prompts (templates).",
+              "Transport: stdio for local servers, Streamable HTTP for remote ones.",
+              "Session: initialize handshake, capability negotiation, then tools/list, tools/call and so on, all JSON-RPC 2.0.",
+              "Production: OAuth-scoped tokens, approved server registry, gateway logging, rate limits, version pinning."
+            ],
+            "example": "Raw JSON-RPC: the client sends {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"demo\",\"version\":\"1.0\"}}}. The server replies with the same id and its capabilities. The client then sends the notification {\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"} (no id, no reply), and can call tools/list. Every later request follows the same pattern: a method name, parameters and an id that the response echoes back, which is how the client matches answers to questions.",
+            "mistakes": [
+              "Installing community MCP servers without reviewing what they can access.",
+              "Passing a user's broad token to a server instead of a scoped one.",
+              "Unpinned server versions that can change behavior silently."
+            ],
+            "enterprise": "An enterprise runs an MCP gateway: only servers in its approved registry are reachable, each tool call is authenticated with a per-user token scoped to that server, and every call is logged.",
+            "takeaways": [
+              "MCP standardizes tool and data access for AI apps.",
+              "It's JSON-RPC 2.0 underneath.",
+              "Govern servers like any third-party integration."
+            ],
+            "diagram": "sequenceDiagram\n  participant C as MCP client\n  participant S as MCP server\n  C->>S: initialize (id 1, version, capabilities)\n  S-->>C: result (id 1, server capabilities)\n  C->>S: notifications/initialized (no id)\n  C->>S: tools/list (id 2)\n  S-->>C: tools with JSON schemas\n  C->>S: tools/call (id 3, name, arguments)\n  S-->>C: result content",
+            "diagramAlt": "Sequence diagram: an MCP client initializes with the server, sends the initialized notification, lists tools and calls a tool, receiving results."
+          }
         },
         {
           "id": "g-a2a",
@@ -1000,19 +1293,31 @@
           "resources": [
             {
               "title": "A2A protocol",
-              "url": "https://a2aproject.github.io/A2A/"
+              "url": "https://a2aproject.github.io/A2A/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "A2A GitHub",
-              "url": "https://github.com/google/A2A"
+              "url": "https://github.com/google/A2A",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "Model Context Protocol",
-              "url": "https://modelcontextprotocol.io/"
+              "url": "https://modelcontextprotocol.io/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             }
           ],
           "project": "Prototype supervisor delegating one subtask via A2A-style handoff or simulated equivalent.",
@@ -1023,15 +1328,18 @@
               "subtopics": [
                 {
                   "id": "g-a2a-concepts-s1",
-                  "title": "Delegation vs tools"
+                  "title": "Delegation vs tools",
+                  "text": "Tools are functions you control; delegation hands a goal to another agent that decides its own steps."
                 },
                 {
                   "id": "g-a2a-concepts-s2",
-                  "title": "Discovery"
+                  "title": "Discovery",
+                  "text": "An Agent Card is a JSON description of an agent's skills, endpoint and authentication."
                 },
                 {
                   "id": "g-a2a-concepts-s3",
-                  "title": "Task lifecycle"
+                  "title": "Task lifecycle",
+                  "text": "A task has a lifecycle with states so long-running work can be tracked and resumed."
                 },
                 {
                   "id": "g-a2a-concepts-s4",
@@ -1050,11 +1358,13 @@
               "subtopics": [
                 {
                   "id": "g-a2a-ops-s1",
-                  "title": "Contracts/SLAs"
+                  "title": "Contracts/SLAs",
+                  "text": "Agree on what each remote agent does, its response time and error handling, like any service contract."
                 },
                 {
                   "id": "g-a2a-ops-s2",
-                  "title": "Observability across agents"
+                  "title": "Observability across agents",
+                  "text": "Propagate trace IDs across agent calls so a multi-agent task shows as one trace."
                 },
                 {
                   "id": "g-a2a-ops-s3",
@@ -1066,7 +1376,8 @@
                 },
                 {
                   "id": "g-a2a-ops-s5",
-                  "title": "When not to multi-agent"
+                  "title": "When not to multi-agent",
+                  "text": "If one team owns all the pieces, a single agent or a workflow is usually simpler than A2A."
                 }
               ],
               "explainer": "Operating multi-agent systems needs contracts: what each agent promises, with SLAs. Trace requests across agents with shared trace ids. Version agent interfaces. Consider abuse: a compromised agent can send malicious tasks. And often the right answer is a single agent with tools, which is simpler to debug and secure. Rule of thumb: add an agent boundary only when it matches a real ownership or trust boundary, such as a different team or vendor. Try it: trace one task across two agents with a shared trace id."
@@ -1110,7 +1421,31 @@
           "conceptIds": [
             "multi-agent",
             "a2a"
-          ]
+          ],
+          "lesson": {
+            "intuition": "If MCP connects an agent to tools, A2A (Agent2Agent) connects agents to other agents. Instead of calling a function, one agent delegates a whole task to another agent, possibly built by another team or vendor, and tracks it through a lifecycle until it's done. It's useful across organizational boundaries and risky if trust and permissions are fuzzy.",
+            "how": [
+              "Discovery: agents publish an Agent Card describing skills, endpoint and auth requirements.",
+              "Delegation: a client agent sends a task with a message; the remote agent works on it.",
+              "Lifecycle: tasks move through states (submitted, working, input-required, completed, failed), with streaming updates.",
+              "Authorization: authenticate both sides and limit what the remote agent may access.",
+              "Operations: contracts and SLAs, cross-agent tracing, versioning and abuse handling."
+            ],
+            "example": "Tool vs delegation: 'get the exchange rate' is a tool call (one function, fast, deterministic). 'Prepare a compliant travel booking for this trip' might be delegated to a travel agency's agent over A2A, because it involves many internal steps the caller shouldn't control. The caller gets status updates and a final itinerary artifact.",
+            "mistakes": [
+              "Using agent-to-agent delegation where a simple tool call would do.",
+              "Trusting remote agents' outputs without validation.",
+              "No tracing across agents, so failures can't be located."
+            ],
+            "enterprise": "A logistics company lets partner carriers' agents receive shipment-booking tasks over A2A. Each partner has a contract specifying response times and allowed data fields, and every task is traced end to end.",
+            "takeaways": [
+              "A2A = delegate tasks to other agents.",
+              "Agent Cards for discovery; task lifecycle for tracking.",
+              "Authorize, validate and trace across boundaries."
+            ],
+            "diagram": "sequenceDiagram\n  participant A as Client agent\n  participant B as Remote agent\n  A->>B: GET Agent Card (skills, auth)\n  A->>B: send task + message\n  B-->>A: status: working (stream)\n  B-->>A: status: input-required\n  A->>B: additional info\n  B-->>A: completed + artifact",
+            "diagramAlt": "Sequence diagram: a client agent reads a remote agent's Agent Card, sends a task, receives working and input-required updates, provides more information and receives the completed artifact."
+          }
         },
         {
           "id": "g-frameworks",
@@ -1120,27 +1455,45 @@
           "resources": [
             {
               "title": "LangGraph docs",
-              "url": "https://langchain-ai.github.io/langgraph/"
+              "url": "https://langchain-ai.github.io/langgraph/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "OpenAI Agents SDK",
-              "url": "https://openai.github.io/openai-agents-python/"
+              "url": "https://openai.github.io/openai-agents-python/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Claude Agent SDK overview",
-              "url": "https://docs.claude.com/en/api/agent-sdk/overview"
+              "url": "https://docs.claude.com/en/api/agent-sdk/overview",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Vendor documentation with exact API behavior and examples."
             },
             {
               "title": "Google Agent Development Kit (ADK)",
-              "url": "https://google.github.io/adk-docs/"
+              "url": "https://google.github.io/adk-docs/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Amazon Bedrock AgentCore",
-              "url": "https://aws.amazon.com/bedrock/agentcore/"
+              "url": "https://aws.amazon.com/bedrock/agentcore/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "AWS documentation; exact service behavior, limits and configuration."
             },
             {
               "title": "Hugging Face smolagents",
-              "url": "https://huggingface.co/docs/smolagents/index"
+              "url": "https://huggingface.co/docs/smolagents/index",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Hugging Face documentation or guide with practical, code-level detail."
             }
           ],
           "project": "Build one support agent (two tools, one MCP server, human approval for refunds) in three stacks: plain Python, LangGraph, and one of OpenAI Agents SDK / Claude Agent SDK / Google ADK. Deploy one version on a managed platform (Bedrock AgentCore, Vertex AI Agent Engine or Azure AI Foundry Agent Service). Compare lines of code, tracing, state persistence, identity integration and eval results.",
@@ -1152,19 +1505,23 @@
               "subtopics": [
                 {
                   "id": "g-frameworks-t1-s1",
-                  "title": "LangGraph graphs, checkpoints, interrupts"
+                  "title": "LangGraph graphs, checkpoints, interrupts",
+                  "text": "LangGraph models agents as graphs with persistent state, checkpointing and interrupts for human approval."
                 },
                 {
                   "id": "g-frameworks-t1-s2",
-                  "title": "OpenAI Agents SDK hand-offs and guardrails"
+                  "title": "OpenAI Agents SDK hand-offs and guardrails",
+                  "text": "The OpenAI Agents SDK provides agents, hand-offs between agents, guardrails and tracing."
                 },
                 {
                   "id": "g-frameworks-t1-s3",
-                  "title": "Claude Agent SDK and Claude Code harness"
+                  "title": "Claude Agent SDK and Claude Code harness",
+                  "text": "The Claude Agent SDK exposes the harness behind Claude Code (tools, context management, permissions) for building your own agents."
                 },
                 {
                   "id": "g-frameworks-t1-s4",
-                  "title": "Google ADK and A2A"
+                  "title": "Google ADK and A2A",
+                  "text": "Google's Agent Development Kit (ADK) builds multi-agent systems and integrates with Vertex AI and A2A."
                 },
                 {
                   "id": "g-frameworks-t1-s5",
@@ -1179,11 +1536,13 @@
               "subtopics": [
                 {
                   "id": "g-frameworks-t2-s1",
-                  "title": "Bedrock AgentCore, Agents, Knowledge Bases"
+                  "title": "Bedrock AgentCore, Agents, Knowledge Bases",
+                  "text": "Amazon Bedrock AgentCore provides runtime, memory, identity, gateway and observability services for agents built with any framework."
                 },
                 {
                   "id": "g-frameworks-t2-s2",
-                  "title": "Vertex AI Agent Engine"
+                  "title": "Vertex AI Agent Engine",
+                  "text": "Vertex AI Agent Engine is Google Cloud's managed runtime for deploying and scaling agents."
                 },
                 {
                   "id": "g-frameworks-t2-s3",
@@ -1206,15 +1565,18 @@
               "subtopics": [
                 {
                   "id": "g-frameworks-t3-s1",
-                  "title": "Selection criteria"
+                  "title": "Selection criteria",
+                  "text": "Compare frameworks on state management, observability, durability, ecosystem and lock-in."
                 },
                 {
                   "id": "g-frameworks-t3-s2",
-                  "title": "Tools via MCP for portability"
+                  "title": "Tools via MCP for portability",
+                  "text": "Tools exposed via MCP work across frameworks, reducing lock-in."
                 },
                 {
                   "id": "g-frameworks-t3-s3",
-                  "title": "Framework-agnostic evals"
+                  "title": "Framework-agnostic evals",
+                  "text": "Write evals against your task, not the framework, so you can switch frameworks and compare."
                 },
                 {
                   "id": "g-frameworks-t3-s4",
@@ -1264,7 +1626,31 @@
           ],
           "conceptIds": [
             "agent-loop"
-          ]
+          ],
+          "lesson": {
+            "intuition": "There are many agent frameworks and managed platforms, and teams lose months choosing. Underneath, they offer similar pieces: a loop, tool calling, state and checkpoints, human-in-the-loop interrupts, tracing and sometimes deployment. Knowing what each one emphasizes lets you choose quickly and keep your tools and evals portable.",
+            "how": [
+              "List needs: control flow (graph vs free loop), state and checkpoints, human interrupts, multi-agent, deployment, observability, cloud fit.",
+              "Open-source options: LangGraph (graphs, checkpoints, interrupts), OpenAI Agents SDK (hand-offs, guardrails), Claude Agent SDK, Google ADK, CrewAI, AutoGen, smolagents, LlamaIndex.",
+              "Managed platforms: Bedrock AgentCore and Agents, Vertex AI Agent Engine, Azure AI Foundry Agent Service, Databricks Mosaic AI Agent Framework, Snowflake Cortex Agents.",
+              "Stay portable: expose tools via MCP, keep evals framework-agnostic, wrap the framework thinly.",
+              "Prototype the hardest part of your use case in two candidates before committing."
+            ],
+            "example": "A one-day bake-off: implement the same 'triage ticket, look up account, draft reply with approval' flow in LangGraph and in the OpenAI Agents SDK, using the same MCP tools and the same 50-case eval. Compare success rate, lines of code, how the human-approval interrupt works, and tracing. The eval, not the docs, decides.",
+            "mistakes": [
+              "Choosing a framework from GitHub stars instead of your requirements.",
+              "Coupling tools tightly to one framework's types.",
+              "Building evals inside a framework so you can't compare alternatives."
+            ],
+            "enterprise": "A bank standardizes on LangGraph for complex workflows needing checkpoints and approvals, and uses its cloud's managed agent service for simple internal assistants. Tools are shared through an MCP gateway and evaluated with one framework-agnostic harness.",
+            "takeaways": [
+              "Frameworks differ mostly in control flow, state and deployment.",
+              "MCP tools and independent evals keep you portable.",
+              "Bake off on your hardest case."
+            ],
+            "diagram": "flowchart TB\n  NEED[Needs: control flow, state, HITL, deploy, cloud] --> OSS[Open source: LangGraph, Agents SDK, ADK, CrewAI, smolagents...]\n  NEED --> MAN[Managed: AgentCore, Agent Engine, Foundry Agent Service, Mosaic AI]\n  OSS --> MCP[Tools via MCP]\n  MAN --> MCP\n  OSS --> EV[Framework-agnostic evals]\n  MAN --> EV",
+            "diagramAlt": "Diagram: requirements lead to open-source frameworks or managed platforms, both connecting to tools via MCP and evaluated with framework-agnostic evals."
+          }
         }
       ]
     },
@@ -1280,15 +1666,24 @@
           "resources": [
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "A2A protocol",
-              "url": "https://a2aproject.github.io/A2A/"
+              "url": "https://a2aproject.github.io/A2A/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "LangChain",
-              "url": "https://docs.langchain.com/oss/python/langchain/overview"
+              "url": "https://docs.langchain.com/oss/python/langchain/overview",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on LangChain that complements the Multi-Agent Patterns lesson with another author's explanation and examples."
             }
           ],
           "project": "Supervisor-worker on a research task; compare to single agent on cost/latency/errors.",
@@ -1299,7 +1694,8 @@
               "subtopics": [
                 {
                   "id": "g-multi-topo-s1",
-                  "title": "Supervisor-worker"
+                  "title": "Supervisor-worker",
+                  "text": "A supervisor plans and delegates to workers, then combines their results."
                 },
                 {
                   "id": "g-multi-topo-s2",
@@ -1307,7 +1703,8 @@
                 },
                 {
                   "id": "g-multi-topo-s3",
-                  "title": "Debate/critic"
+                  "title": "Debate/critic",
+                  "text": "A critic agent reviews another agent's output against criteria, catching errors before release."
                 },
                 {
                   "id": "g-multi-topo-s4",
@@ -1326,7 +1723,8 @@
               "subtopics": [
                 {
                   "id": "g-multi-coord-s1",
-                  "title": "Shared state via tools/MCP"
+                  "title": "Shared state via tools/MCP",
+                  "text": "Agents read and write a shared store through tools instead of exchanging long transcripts."
                 },
                 {
                   "id": "g-multi-coord-s2",
@@ -1338,7 +1736,8 @@
                 },
                 {
                   "id": "g-multi-coord-s4",
-                  "title": "Failure containment"
+                  "title": "Failure containment",
+                  "text": "Limit each agent's permissions and validate its outputs so one failure stays local."
                 },
                 {
                   "id": "g-multi-coord-s5",
@@ -1385,7 +1784,31 @@
           ],
           "conceptIds": [
             "multi-agent"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Multi-agent systems split work across several agents, like a team with a manager and specialists. They help when work can be parallelized, when different parts need different permissions, or when an independent critic improves quality. They also cost more tokens and add coordination failures, so add agents only for a clear reason.",
+            "how": [
+              "Choose a topology: supervisor-worker, pipeline of specialists, debate/critic, or hierarchy.",
+              "Define contracts: what each agent receives, returns and is allowed to do.",
+              "Share state through tools, a shared store or MCP, not by pasting whole transcripts.",
+              "Hand off with explicit protocols and contain failures so one agent's error doesn't spread.",
+              "Attribute cost and trace across agents."
+            ],
+            "example": "Parallel speedup vs cost: a research task with 6 independent sub-questions takes a single agent 6 × 40 s = 240 s. A supervisor with 6 parallel workers finishes in about 40 s + 20 s for synthesis = 60 s, 4× faster, but uses about 1.5× the tokens because each worker re-reads the task context and the supervisor reads all results.",
+            "mistakes": [
+              "A swarm of agents for a task one agent could do.",
+              "Agents sharing full transcripts, multiplying tokens.",
+              "No ownership of the final answer, so errors slip through."
+            ],
+            "enterprise": "A security operations team uses a supervisor agent that dispatches alert triage to specialist agents (endpoint, network, identity) with read-only access to their own systems. Only the supervisor can open incidents, after a human confirms.",
+            "takeaways": [
+              "Add agents for parallelism, isolation or critique.",
+              "Contracts and shared state beat transcript sharing.",
+              "Trace and cost per agent."
+            ],
+            "diagram": "flowchart TD\n  SUP[Supervisor] --> W1[Worker: endpoint]\n  SUP --> W2[Worker: network]\n  SUP --> W3[Worker: identity]\n  W1 --> ST[(Shared state via tools)]\n  W2 --> ST\n  W3 --> ST\n  ST --> SUP\n  SUP --> CR[Critic]\n  CR --> OUT[Final answer]",
+            "diagramAlt": "Diagram: a supervisor dispatches endpoint, network and identity workers that write to shared state; the supervisor reads it, a critic reviews, and the final answer is produced."
+          }
         },
         {
           "id": "g-secure",
@@ -1395,23 +1818,38 @@
           "resources": [
             {
               "title": "Firecracker",
-              "url": "https://firecracker-microvm.github.io/"
+              "url": "https://firecracker-microvm.github.io/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "gVisor",
-              "url": "https://gvisor.dev/"
+              "url": "https://gvisor.dev/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on gVisor that complements the Agent Security & Sandboxing lesson with another author's explanation and examples."
             },
             {
               "title": "E2B",
-              "url": "https://e2b.dev/docs"
+              "url": "https://e2b.dev/docs",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on E2B that complements the Agent Security & Sandboxing lesson with another author's explanation and examples."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
-              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+              "kind": "security",
+              "level": "intermediate",
+              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
             },
             {
               "title": "Securing MCP (InfoQ)",
-              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/"
+              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/",
+              "kind": "talk",
+              "level": "intermediate",
+              "why": "Conference talk or article with real-world experience reports."
             }
           ],
           "project": "Run code tools in disposable sandbox with allowlist; prove blocked exfil.",
@@ -1426,7 +1864,8 @@
                 },
                 {
                   "id": "g-sec-iso-s2",
-                  "title": "MicroVMs"
+                  "title": "MicroVMs",
+                  "text": "MicroVMs such as Firecracker start in milliseconds and give each task its own kernel boundary."
                 },
                 {
                   "id": "g-sec-iso-s3",
@@ -1434,7 +1873,8 @@
                 },
                 {
                   "id": "g-sec-iso-s4",
-                  "title": "Ephemeral FS"
+                  "title": "Ephemeral FS",
+                  "text": "Give each task a fresh file system that is deleted afterward, so nothing persists between users."
                 },
                 {
                   "id": "g-sec-iso-s5",
@@ -1449,7 +1889,8 @@
               "subtopics": [
                 {
                   "id": "g-sec-pol-s1",
-                  "title": "Human approval for writes"
+                  "title": "Human approval for writes",
+                  "text": "Show the user exactly what will be written or sent, and require explicit confirmation."
                 },
                 {
                   "id": "g-sec-pol-s2",
@@ -1457,7 +1898,8 @@
                 },
                 {
                   "id": "g-sec-pol-s3",
-                  "title": "Sensitive-action classifiers"
+                  "title": "Sensitive-action classifiers",
+                  "text": "A classifier can flag sensitive actions, such as money movement or data export, for extra checks."
                 },
                 {
                   "id": "g-sec-pol-s4",
@@ -1509,7 +1951,31 @@
           "conceptIds": [
             "threat-model",
             "prompt-injection-defense"
-          ]
+          ],
+          "lesson": {
+            "intuition": "An agent that can run code, browse or call APIs is effectively a remote-code-execution product controlled partly by text from strangers. Agent security assumes the model can be manipulated and puts hard limits around it: sandboxes, network policies, approvals for writes, spend limits and audit logs.",
+            "how": [
+              "Run code and browsers in isolated sandboxes (containers with gVisor, microVMs like Firecracker).",
+              "Use ephemeral file systems and strict network policy (egress allowlists).",
+              "Require human approval for writes and external actions; classify sensitive actions automatically.",
+              "Limit rate and spend per user and task.",
+              "Defend against injection with input separation, output validation, and log everything for audit."
+            ],
+            "example": "Sandbox blast radius: an agent's code tool runs in a microVM with no network except a package mirror, a 2 GB writable scratch disk deleted after each task, 2 vCPUs and a 10-minute limit. If injected code tries to read cloud credentials or exfiltrate data, there are no credentials inside and no route out.",
+            "mistakes": [
+              "Running agent code on the same host as production services.",
+              "Giving agents unrestricted internet access.",
+              "Approvals that are rubber-stamped because they lack context."
+            ],
+            "enterprise": "A data-analysis product runs every user's agent code in a fresh Firecracker microVM with read-only access to that user's uploaded files and no internet. Exports to email need the user's confirmation.",
+            "takeaways": [
+              "Treat agents like untrusted code execution.",
+              "Sandbox + egress control + approvals.",
+              "Audit every action."
+            ],
+            "diagram": "flowchart LR\n  AG[Agent] --> POL{Policy: classify action}\n  POL -->|read| SBX[Sandbox: microVM, no creds]\n  POL -->|write / external| APPR[Human approval]\n  APPR --> ACT[Execute]\n  SBX --> NET[Egress allowlist]\n  ACT --> AUD[(Audit log)]\n  SBX --> AUD",
+            "diagramAlt": "Diagram: agent actions are classified by policy; reads run in a sandbox with egress allowlists and no credentials, writes and external actions need human approval, and everything is audited."
+          }
         },
         {
           "id": "g-eval",
@@ -1519,23 +1985,38 @@
           "resources": [
             {
               "title": "SWE-bench",
-              "url": "https://arxiv.org/abs/2310.06770"
+              "url": "https://arxiv.org/abs/2310.06770",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Ragas",
-              "url": "https://docs.ragas.io/en/stable/"
+              "url": "https://docs.ragas.io/en/stable/",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "RAG evaluation library documentation; metric definitions you can run."
             },
             {
               "title": "OpenAI Evals",
-              "url": "https://github.com/openai/evals"
+              "url": "https://github.com/openai/evals",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "lm-evaluation-harness",
-              "url": "https://github.com/EleutherAI/lm-evaluation-harness"
+              "url": "https://github.com/EleutherAI/lm-evaluation-harness",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "OpenEnv",
-              "url": "https://github.com/meta-pytorch/openenv"
+              "url": "https://github.com/meta-pytorch/openenv",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             }
           ],
           "project": "Eval with outcome + tool-trace checks including forbidden-call detection.",
@@ -1546,11 +2027,13 @@
               "subtopics": [
                 {
                   "id": "g-eval-what-s1",
-                  "title": "Task success"
+                  "title": "Task success",
+                  "text": "Check the end state, such as the correct record updated or tests passing, rather than the agent's description of it."
                 },
                 {
                   "id": "g-eval-what-s2",
-                  "title": "Trajectory efficiency"
+                  "title": "Trajectory efficiency",
+                  "text": "Count steps and redundant tool calls; two agents with the same success rate can differ a lot in cost."
                 },
                 {
                   "id": "g-eval-what-s3",
@@ -1558,7 +2041,8 @@
                 },
                 {
                   "id": "g-eval-what-s4",
-                  "title": "Abstention"
+                  "title": "Abstention",
+                  "text": "Include tasks where the right move is to refuse, ask a question or escalate."
                 },
                 {
                   "id": "g-eval-what-s5",
@@ -1573,7 +2057,8 @@
               "subtopics": [
                 {
                   "id": "g-eval-how-s1",
-                  "title": "Deterministic graders"
+                  "title": "Deterministic graders",
+                  "text": "Code-based graders are cheap, consistent and hard to fool; use them wherever possible."
                 },
                 {
                   "id": "g-eval-how-s2",
@@ -1589,7 +2074,8 @@
                 },
                 {
                   "id": "g-eval-how-s5",
-                  "title": "Flake control"
+                  "title": "Flake control",
+                  "text": "Fix seeds, snapshot environments and avoid live external services to keep results stable."
                 }
               ],
               "explainer": "Use deterministic graders (tests, state checks) wherever possible. Rubric-based LLM judges handle open-ended outputs. Keep held-out environments the agent was never tuned on. Run continuous evals on production samples. Control flakiness by fixing seeds, mocking unstable tools, and running multiple trials per task. Agents are nondeterministic, so one run per task proves little. Try it: run each task five times, report pass rate per task, and investigate tasks that pass sometimes but not always."
@@ -1632,7 +2118,32 @@
           ],
           "conceptIds": [
             "evals"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Evaluating an agent means checking the whole journey, not just the final answer. Did it complete the task? Did it take a sensible path, use the right tools, stay within policy, and know when to stop or ask? Agent evals run tasks in controlled environments with graders for outcomes and trajectories, and keep running in production.",
+            "how": [
+              "Define task success with deterministic checks where possible (final state, tests, exact values).",
+              "Score trajectories: steps taken, tool choice, wasted calls, policy violations.",
+              "Score abstention and escalation: did it stop or ask when it should?",
+              "Use rubric judges for open-ended parts, calibrated against humans.",
+              "Run in held-out environments, control flakiness, and evaluate continuously in production."
+            ],
+            "example": "pass@k vs pass^k: an agent solves a task 70% of the time per attempt. pass@3 (at least one of 3 succeeds) = 1 − 0.3³ = 97.3%, which flatters it. pass^3 (all 3 succeed, i.e. reliably) = 0.7³ = 34.3%. For production reliability, pass^k is the more honest metric.",
+            "mistakes": [
+              "Grading only the final text.",
+              "Tests that depend on live websites or data and flake.",
+              "Reporting pass@k when users need consistent success."
+            ],
+            "enterprise": "An airline's rebooking agent is evaluated on 400 simulated disruptions in a sandboxed booking system. Graders check the final reservation state, policy compliance (fare rules) and number of steps; any policy violation fails the case regardless of outcome.",
+            "takeaways": [
+              "Grade outcome and trajectory.",
+              "Prefer deterministic graders on final state.",
+              "Measure reliability (pass^k), not just best-of-k."
+            ],
+            "diagram": "flowchart LR\n  TASKS[Task suite] --> ENV[Sandboxed environment]\n  ENV --> RUN[Agent run]\n  RUN --> OUT[Outcome grader: final state]\n  RUN --> TRJ[Trajectory grader: tools, steps, policy]\n  RUN --> ABS[Abstention check]\n  OUT --> REP[Report: pass^k, cost, latency]\n  TRJ --> REP\n  ABS --> REP",
+            "diagramAlt": "Diagram: a task suite runs in a sandboxed environment; outcome, trajectory and abstention graders feed a report with pass^k, cost and latency.",
+            "widget": "eval"
+          }
         },
         {
           "id": "g-browser",
@@ -1642,19 +2153,31 @@
           "resources": [
             {
               "title": "SWE-bench",
-              "url": "https://arxiv.org/abs/2310.06770"
+              "url": "https://arxiv.org/abs/2310.06770",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "E2B",
-              "url": "https://e2b.dev/docs"
+              "url": "https://e2b.dev/docs",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on E2B that complements the Browser & Computer-Use Agents lesson with another author's explanation and examples."
             },
             {
               "title": "OWASP Top 10 for LLM Apps",
-              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+              "kind": "security",
+              "level": "intermediate",
+              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
             }
           ],
           "project": "Coding agent on a repo task with tests as grader; resume after kill -9.",
@@ -1665,7 +2188,8 @@
               "subtopics": [
                 {
                   "id": "g-browser-ground-s1",
-                  "title": "DOM vs screenshots"
+                  "title": "DOM vs screenshots",
+                  "text": "The DOM or accessibility tree gives structured elements; screenshots show the visual layout, including canvas and images."
                 },
                 {
                   "id": "g-browser-ground-s2",
@@ -1673,7 +2197,8 @@
                 },
                 {
                   "id": "g-browser-ground-s3",
-                  "title": "Element stability"
+                  "title": "Element stability",
+                  "text": "Prefer stable identifiers (labels, roles, test IDs) over positions that change with layout."
                 },
                 {
                   "id": "g-browser-ground-s4",
@@ -1692,11 +2217,13 @@
               "subtopics": [
                 {
                   "id": "g-browser-safe-s1",
-                  "title": "Domain allowlists"
+                  "title": "Domain allowlists",
+                  "text": "Restrict navigation to approved domains to limit phishing and injection exposure."
                 },
                 {
                   "id": "g-browser-safe-s2",
-                  "title": "Credential isolation"
+                  "title": "Credential isolation",
+                  "text": "Use dedicated accounts with minimal permissions, never a user's personal logged-in session."
                 },
                 {
                   "id": "g-browser-safe-s3",
@@ -1751,7 +2278,31 @@
           ],
           "conceptIds": [
             "computer-use"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Browser and computer-use agents operate software the way people do: they look at the screen or page structure and click, type and scroll. This unlocks apps without APIs, but grounding (finding the right element), page changes and malicious content make it fragile and risky. Use APIs when they exist, and put browser agents in a tight sandbox when they don't.",
+            "how": [
+              "Perceive the page through the DOM / accessibility tree, screenshots, or both.",
+              "Choose actions from a defined action space: click, type, scroll, navigate.",
+              "Ground actions on stable selectors or visual coordinates, with OCR fallback.",
+              "Run in an isolated browser with domain allowlists and separate credentials.",
+              "Verify results (check the page state or use tests), snapshot sessions for debugging."
+            ],
+            "example": "DOM vs screenshots: a page's accessibility tree might be 3,000 tokens and gives precise element IDs, but misses canvas content. A screenshot might cost ~1,500 image tokens and shows everything visually, but clicks need coordinates. Many agents combine them: use the tree for actions and screenshots to confirm what the user would see.",
+            "mistakes": [
+              "Using browser automation when an API is available.",
+              "Letting the agent browse any domain with the user's logged-in session.",
+              "No verification after actions, so silent failures pass."
+            ],
+            "enterprise": "An insurance company uses a browser agent to pull policy documents from a legacy portal with no API. It runs in an isolated browser limited to that portal's domain, uses a service account, and verifies each downloaded file's name and size.",
+            "takeaways": [
+              "Prefer APIs; browse when you must.",
+              "Combine DOM and screenshots for grounding.",
+              "Isolate sessions, allowlist domains, verify outcomes."
+            ],
+            "diagram": "flowchart LR\n  PAGE[Page] --> DOM[Accessibility tree]\n  PAGE --> SS[Screenshot]\n  DOM --> M[Model: choose action]\n  SS --> M\n  M --> ACT[Click / type / scroll]\n  ACT --> PAGE\n  ACT --> VER{Verify state}\n  SBX[Isolated browser + domain allowlist] -.-> PAGE",
+            "diagramAlt": "Diagram: a page is perceived through the accessibility tree and a screenshot, the model chooses an action that changes the page, results are verified, all inside an isolated browser with a domain allowlist."
+          }
         }
       ]
     },
@@ -1767,19 +2318,31 @@
           "resources": [
             {
               "title": "SWE-bench",
-              "url": "https://arxiv.org/abs/2310.06770"
+              "url": "https://arxiv.org/abs/2310.06770",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "MemGPT",
-              "url": "https://arxiv.org/abs/2310.08560"
+              "url": "https://arxiv.org/abs/2310.08560",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "OpenEnv",
-              "url": "https://github.com/meta-pytorch/openenv"
+              "url": "https://github.com/meta-pytorch/openenv",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             }
           ],
           "project": "Long job with subtask graph, checkpoints, and verifier gates between phases.",
@@ -1790,7 +2353,8 @@
               "subtopics": [
                 {
                   "id": "g-long-state-s1",
-                  "title": "Workspace snapshots"
+                  "title": "Workspace snapshots",
+                  "text": "Save the agent's working files and state regularly so it can resume or rewind."
                 },
                 {
                   "id": "g-long-state-s2",
@@ -1798,7 +2362,8 @@
                 },
                 {
                   "id": "g-long-state-s3",
-                  "title": "Subtask graphs"
+                  "title": "Subtask graphs",
+                  "text": "Represent the work as a graph of subtasks with dependencies and status."
                 },
                 {
                   "id": "g-long-state-s4",
@@ -1821,7 +2386,8 @@
                 },
                 {
                   "id": "g-long-ver-s2",
-                  "title": "PEV loops"
+                  "title": "PEV loops",
+                  "text": "Plan-execute-verify: after each step, check the result before moving on."
                 },
                 {
                   "id": "g-long-ver-s3",
@@ -1833,7 +2399,8 @@
                 },
                 {
                   "id": "g-long-ver-s5",
-                  "title": "Rollback"
+                  "title": "Rollback",
+                  "text": "Keep the ability to undo a step, such as reverting a commit, when verification fails later."
                 }
               ],
               "explainer": "Verification keeps long runs on track. Tests act as graders. Plan-execute-verify (PEV) loops check each step. Critic agents review work. Human review points catch drift on high-stakes steps. Make rollback easy, for example via git, so a bad step can be undone cheaply. Verification should be cheaper than doing the work, or it will be skipped. Try it: add a test-run step after every code edit and count how many errors it catches before the end of the task."
@@ -1876,7 +2443,31 @@
           ],
           "conceptIds": [
             "harness"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Some agent tasks take hours or days: migrating a codebase, researching a market, processing a backlog. Long-horizon agents need persistence and verification: saved workspaces, a task graph of what's done, the ability to rewind, and regular checks (tests, critics, humans) so errors don't compound over hundreds of steps.",
+            "how": [
+              "Break the goal into a subtask graph with clear done criteria.",
+              "Persist workspace snapshots and diffs so progress survives crashes and can be rewound.",
+              "Use plan-execute-verify loops: tests or checks after each subtask.",
+              "Add critic agents and human review points at milestones.",
+              "Track partial credit and support rollback of bad steps."
+            ],
+            "example": "Error compounding: if each step is 99% reliable, a 100-step task succeeds end to end about 0.99¹⁰⁰ ≈ 37% of the time. Adding verification that catches and fixes 90% of step errors raises effective per-step reliability to 99.9%, and end-to-end success to 0.999¹⁰⁰ ≈ 90%.",
+            "mistakes": [
+              "Long runs with no intermediate checks, so an early mistake ruins everything.",
+              "No snapshots, so a failure means starting over.",
+              "Measuring only final success, hiding partial progress."
+            ],
+            "enterprise": "A software company runs an agent to upgrade 300 services to a new framework version. Each service is a subtask with its own test suite; the agent commits per service, a human reviews every 20 services, and failed upgrades roll back automatically.",
+            "takeaways": [
+              "Small per-step errors compound over long horizons.",
+              "Verify after every subtask.",
+              "Snapshot, checkpoint and allow rollback."
+            ],
+            "diagram": "flowchart LR\n  G[Goal] --> GR[Subtask graph]\n  GR --> P[Plan subtask]\n  P --> E[Execute]\n  E --> V{Verify: tests / critic}\n  V -->|pass| SNAP[(Snapshot + mark done)]\n  V -->|fail| RB[Rollback + retry]\n  SNAP --> HR{Milestone?}\n  HR -->|yes| HUM[Human review]\n  HR -->|no| GR",
+            "diagramAlt": "Diagram: a goal becomes a subtask graph; each subtask is planned, executed and verified, snapshotted on success or rolled back on failure, with human review at milestones."
+          }
         },
         {
           "id": "g-train",
@@ -1886,23 +2477,38 @@
           "resources": [
             {
               "title": "DeepSeekMath / GRPO",
-              "url": "https://arxiv.org/abs/2402.03300"
+              "url": "https://arxiv.org/abs/2402.03300",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Hugging Face TRL docs",
-              "url": "https://huggingface.co/docs/trl/index"
+              "url": "https://huggingface.co/docs/trl/index",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Hugging Face documentation or guide with practical, code-level detail."
             },
             {
               "title": "OpenEnv",
-              "url": "https://github.com/meta-pytorch/openenv"
+              "url": "https://github.com/meta-pytorch/openenv",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "InstructGPT",
-              "url": "https://arxiv.org/abs/2203.02155"
+              "url": "https://arxiv.org/abs/2203.02155",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             },
             {
               "title": "Direct Preference Optimization",
-              "url": "https://arxiv.org/abs/2305.18290"
+              "url": "https://arxiv.org/abs/2305.18290",
+              "kind": "paper",
+              "level": "advanced",
+              "why": "The primary research paper behind this idea. Read the abstract, figures and method section to see where the technique comes from and what was actually measured."
             }
           ],
           "project": "Toy GRPO/env loop or reproduce metrics from a public harness-RL report; write reward notes.",
@@ -1913,11 +2519,13 @@
               "subtopics": [
                 {
                   "id": "g-train-trace-s1",
-                  "title": "Token ids + logprobs"
+                  "title": "Token ids + logprobs",
+                  "text": "Keep the exact tokens and probabilities the model produced; re-tokenizing text can differ and break RL math."
                 },
                 {
                   "id": "g-train-trace-s2",
-                  "title": "Loss masks"
+                  "title": "Loss masks",
+                  "text": "Only the tokens the model generated should contribute to the loss."
                 },
                 {
                   "id": "g-train-trace-s3",
@@ -1948,11 +2556,13 @@
                 },
                 {
                   "id": "g-train-gen-s3",
-                  "title": "Entropy collapse"
+                  "title": "Entropy collapse",
+                  "text": "Entropy collapse is when RL makes the model's outputs too deterministic, reducing exploration and diversity."
                 },
                 {
                   "id": "g-train-gen-s4",
-                  "title": "Distill vs RL"
+                  "title": "Distill vs RL",
+                  "text": "Distillation copies a stronger model's behavior; RL discovers behavior from rewards. They can be combined."
                 },
                 {
                   "id": "g-train-gen-s5",
@@ -2000,7 +2610,31 @@
           "conceptIds": [
             "rlhf-dpo-grpo",
             "harness"
-          ]
+          ],
+          "lesson": {
+            "intuition": "When prompting and tools aren't enough, teams train agents inside the same harness they run in production, using recorded trajectories and rewards. The details matter: which tokens to train on, how to reward success without being gamed, and whether skills learned in one harness transfer to others.",
+            "how": [
+              "Record trajectories with exact token IDs and log-probabilities from the serving engine.",
+              "Mask the loss so the model trains only on its own outputs, not on tool results or user text.",
+              "Design rewards from task outcomes and policy checks; watch for hacking.",
+              "Train with RL or distillation, across diverse environments and harnesses.",
+              "Evaluate on held-out environments to check generalization; watch for entropy collapse."
+            ],
+            "example": "Loss masking: a trajectory has 12,000 tokens: 2,000 system and user, 7,000 tool outputs and 3,000 model-generated. Only the 3,000 model tokens should get gradient. Training on all 12,000 would teach the model to imitate tool outputs and users, wasting 75% of the signal and potentially teaching it to hallucinate tool results.",
+            "mistakes": [
+              "Re-tokenizing logged text instead of using the original token IDs, causing train/serve mismatch.",
+              "Training on tool output tokens.",
+              "Training in one harness and expecting the same skill elsewhere."
+            ],
+            "enterprise": "A coding-agent team records trajectories from their production harness with exact token IDs, trains with RL on test-based rewards across three different repository environments, and evaluates on a fourth held-out environment.",
+            "takeaways": [
+              "Train in the harness you'll run.",
+              "Mask loss to model-generated tokens.",
+              "Diversity and held-out envs test generalization."
+            ],
+            "diagram": "flowchart LR\n  H[Production harness] --> TR[Trajectories: token ids + logprobs]\n  TR --> MASK[Loss mask: model tokens only]\n  ENVS[Diverse environments] --> RW[Rewards]\n  MASK --> RL[RL / distillation]\n  RW --> RL\n  RL --> HO[Held-out env eval]",
+            "diagramAlt": "Diagram: trajectories from the production harness with token IDs and logprobs are loss-masked, combined with rewards from diverse environments, used for RL or distillation, and evaluated on held-out environments."
+          }
         },
         {
           "id": "g-redteam",
@@ -2010,19 +2644,31 @@
           "resources": [
             {
               "title": "OWASP Top 10 for LLM Apps",
-              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+              "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+              "kind": "security",
+              "level": "intermediate",
+              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
             },
             {
               "title": "MITRE ATLAS",
-              "url": "https://atlas.mitre.org/"
+              "url": "https://atlas.mitre.org/",
+              "kind": "security",
+              "level": "reference",
+              "why": "MITRE ATLAS knowledge base of adversary tactics and techniques against AI systems."
             },
             {
               "title": "NIST AI RMF",
-              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+              "kind": "standard",
+              "level": "reference",
+              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
             },
             {
               "title": "Securing MCP (InfoQ)",
-              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/"
+              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/",
+              "kind": "talk",
+              "level": "intermediate",
+              "why": "Conference talk or article with real-world experience reports."
             }
           ],
           "project": "10-case red-team suite for your agent; fail CI on policy regressions.",
@@ -2033,7 +2679,8 @@
               "subtopics": [
                 {
                   "id": "g-red-cases-s1",
-                  "title": "Direct/indirect injection"
+                  "title": "Direct/indirect injection",
+                  "text": "Direct injection comes from the user; indirect injection hides in documents, web pages or tool results."
                 },
                 {
                   "id": "g-red-cases-s2",
@@ -2041,7 +2688,8 @@
                 },
                 {
                   "id": "g-red-cases-s3",
-                  "title": "Data exfil attempts"
+                  "title": "Data exfil attempts",
+                  "text": "Try to make the agent send data outside, such as via links, images, emails or tool arguments."
                 },
                 {
                   "id": "g-red-cases-s4",
@@ -2060,7 +2708,8 @@
               "subtopics": [
                 {
                   "id": "g-red-ops-s1",
-                  "title": "Coverage tracking"
+                  "title": "Coverage tracking",
+                  "text": "Track which tools, data sources and flows have been tested, and target the gaps."
                 },
                 {
                   "id": "g-red-ops-s2",
@@ -2068,7 +2717,8 @@
                 },
                 {
                   "id": "g-red-ops-s3",
-                  "title": "CI gates"
+                  "title": "CI gates",
+                  "text": "Run attack suites on every release and block if critical cases regress."
                 },
                 {
                   "id": "g-red-ops-s4",
@@ -2119,7 +2769,31 @@
           ],
           "conceptIds": [
             "threat-model"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Red-teaming is hiring a friendly burglar. You deliberately attack your own agents with injections, tool abuse and data-exfiltration attempts to find weaknesses before real attackers do. For agents this has to be continuous, because every new tool, prompt or model version can open a new hole.",
+            "how": [
+              "Define scope and threat cases: direct and indirect injection, tool abuse, data exfiltration, privilege escalation, malicious plugins.",
+              "Build attack datasets and automated attack generators; include human creative testing.",
+              "Rate findings with a severity rubric (impact × likelihood).",
+              "Turn findings into regression tests in CI.",
+              "Track coverage over tools and data paths, and retest on every significant change."
+            ],
+            "example": "Severity scoring: a finding where a hidden instruction in a shared document makes the agent email a file externally has impact 5 (data leak) and likelihood 4 (any shared doc can carry it): severity 20, critical. A finding where the agent uses a rude tone after a jailbreak has impact 1 and likelihood 3: severity 3, low. Fix the 20 first.",
+            "mistakes": [
+              "One-time red-team before launch, never again.",
+              "Findings fixed but not added as regression tests.",
+              "Testing only the chat box, not documents, tools and integrations."
+            ],
+            "enterprise": "A legal-tech company maintains 800 attack cases across its agent's tools and document types, runs them in CI on every release, and does a human red-team exercise each quarter focused on new features.",
+            "takeaways": [
+              "Attack yourself continuously.",
+              "Every finding becomes a regression test.",
+              "Cover all input paths, not just chat."
+            ],
+            "diagram": "flowchart LR\n  SCOPE[Scope + threat cases] --> ATK[Attacks: automated + human]\n  ATK --> FIND[Findings]\n  FIND --> SEV[Severity rubric]\n  SEV --> FIX[Fix]\n  FIX --> REG[Regression tests in CI]\n  REG --> ATK",
+            "diagramAlt": "Diagram: scope and threat cases drive automated and human attacks, findings are rated by severity, fixed, and turned into CI regression tests that feed future attacks."
+          }
         }
       ]
     },
@@ -2135,19 +2809,31 @@
           "resources": [
             {
               "title": "NIST AI RMF",
-              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+              "kind": "standard",
+              "level": "reference",
+              "why": "Official NIST publication; the primary source for the framework's terms and requirements."
             },
             {
               "title": "EU AI Act",
-              "url": "https://artificialintelligenceact.eu/"
+              "url": "https://artificialintelligenceact.eu/",
+              "kind": "regulation",
+              "level": "reference",
+              "why": "Browsable text and summaries of the EU AI Act; check dates against the Official Journal."
             },
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             },
             {
               "title": "Team Topologies",
-              "url": "https://teamtopologies.com/"
+              "url": "https://teamtopologies.com/",
+              "kind": "guide",
+              "level": "intro",
+              "why": "Concepts for organizing teams and platforms; light reading with strong ideas."
             }
           ],
           "project": "Define L0–L5 for a finance back-office process; map controls per level.",
@@ -2162,11 +2848,13 @@
                 },
                 {
                   "id": "g-org-levels-s2",
-                  "title": "Draft + human send"
+                  "title": "Draft + human send",
+                  "text": "The agent prepares the action; a human reviews and executes it."
                 },
                 {
                   "id": "g-org-levels-s3",
-                  "title": "Scoped auto"
+                  "title": "Scoped auto",
+                  "text": "The agent acts on its own within strict limits on scope, amount and rate."
                 },
                 {
                   "id": "g-org-levels-s4",
@@ -2189,11 +2877,13 @@
                 },
                 {
                   "id": "g-org-risk-s2",
-                  "title": "Blast-radius limits"
+                  "title": "Blast-radius limits",
+                  "text": "Cap how much harm one error can do: money, records changed, messages sent, per hour."
                 },
                 {
                   "id": "g-org-risk-s3",
-                  "title": "Simulation before prod"
+                  "title": "Simulation before prod",
+                  "text": "Replay historical cases or a simulated environment before letting an agent act on real systems."
                 },
                 {
                   "id": "g-org-risk-s4",
@@ -2242,7 +2932,31 @@
               "why": "They bound damage from any failure."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "Autonomy is a dial, not a switch. An agent can suggest, draft for a human to send, act within a narrow scope, coordinate other agents under supervision, or run unattended with audits. Organizations move along that dial one workflow at a time, based on evidence, with kill switches and limits on how much damage any mistake can do.",
+            "how": [
+              "Define autonomy levels: suggest only → draft + human send → scoped automation → supervised multi-agent → lights-out with audit.",
+              "Assign a level per workflow and per action, not per product.",
+              "Limit blast radius: caps on money, records, recipients and rate.",
+              "Simulate before production, and keep kill switches at agent and fleet level.",
+              "Report to executives with metrics on outcomes, incidents and autonomy levels."
+            ],
+            "example": "Blast-radius limits: a refund agent at 'scoped auto' may refund up to $100 per order, $2,000 per hour in total and 20 orders per customer per year. Even if it is completely wrong for an hour, the maximum loss is $2,000, which the business accepts given it saves 400 agent-hours a month.",
+            "mistakes": [
+              "Jumping straight to lights-out autonomy.",
+              "One autonomy level for all actions in a product.",
+              "No fleet-wide kill switch."
+            ],
+            "enterprise": "A telecom company runs its billing-dispute agent at 'draft + human send' for six months. With a 97% unchanged-approval rate on small disputes, it moves those under $50 to scoped auto with hourly caps, and keeps larger disputes at human approval.",
+            "takeaways": [
+              "Autonomy is earned per action.",
+              "Cap blast radius so mistakes stay small.",
+              "Simulate, monitor, and keep a kill switch."
+            ],
+            "diagram": "flowchart LR\n  L1[Suggest] --> L2[Draft + human send]\n  L2 --> L3[Scoped auto + caps]\n  L3 --> L4[Supervised multi-agent]\n  L4 --> L5[Lights-out + audit]\n  EV[Evidence: approval rates, incidents] -.promotes.-> L3\n  KS[Kill switch] -.-> L3\n  KS -.-> L4\n  KS -.-> L5",
+            "diagramAlt": "Diagram: autonomy levels from suggest to lights-out, with evidence promoting workflows up the ladder and a kill switch covering the automated levels."
+          }
         },
         {
           "id": "g-eco",
@@ -2252,19 +2966,31 @@
           "resources": [
             {
               "title": "Model Context Protocol",
-              "url": "https://modelcontextprotocol.io/"
+              "url": "https://modelcontextprotocol.io/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "A2A protocol",
-              "url": "https://a2aproject.github.io/A2A/"
+              "url": "https://a2aproject.github.io/A2A/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Securing MCP (InfoQ)",
-              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/"
+              "url": "https://www.infoq.com/articles/securing-mcp-production-gateway/",
+              "kind": "talk",
+              "level": "intermediate",
+              "why": "Conference talk or article with real-world experience reports."
             },
             {
               "title": "Anthropic Building Effective Agents",
-              "url": "https://www.anthropic.com/engineering/building-effective-agents"
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             }
           ],
           "project": "Quarterly brief: protocol changes, incidents, buy/build advice for Sapient Edge.",
@@ -2275,7 +3001,8 @@
               "subtopics": [
                 {
                   "id": "g-eco-std-s1",
-                  "title": "MCP evolution"
+                  "title": "MCP evolution",
+                  "text": "MCP has versioned specifications; check what changed in auth, transports and features before upgrading."
                 },
                 {
                   "id": "g-eco-std-s2",
@@ -2283,7 +3010,8 @@
                 },
                 {
                   "id": "g-eco-std-s3",
-                  "title": "Skill packaging"
+                  "title": "Skill packaging",
+                  "text": "Skills package instructions, scripts and resources an agent can load when relevant."
                 },
                 {
                   "id": "g-eco-std-s4",
@@ -2306,7 +3034,8 @@
                 },
                 {
                   "id": "g-eco-mkt-s2",
-                  "title": "Managed agent platforms"
+                  "title": "Managed agent platforms",
+                  "text": "Cloud and SaaS vendors offer managed runtimes, memory, identity and evals for agents."
                 },
                 {
                   "id": "g-eco-mkt-s3",
@@ -2318,7 +3047,8 @@
                 },
                 {
                   "id": "g-eco-mkt-s5",
-                  "title": "Commodity vs moat"
+                  "title": "Commodity vs moat",
+                  "text": "Plumbing tends to become commodity; proprietary data, evals and workflow integration are harder to copy."
                 }
               ],
               "explainer": "The market includes host apps (IDEs, chat clients), managed agent platforms, vertical agents for specific industries, and growing compliance requirements. Ask which parts are commodities and where durable advantage lives: usually proprietary data, workflows and evals, not the model itself. Models improve and get cheaper fast, so value built only on model access erodes. Try it: for one agent product you use or build, write which parts a competitor could copy in a month and which would take years."
@@ -2359,7 +3089,31 @@
               "why": "Standard interfaces make components swappable."
             }
           ],
-          "conceptIds": []
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "Agent standards and products change monthly. MCP gains new features, A2A evolves, skill packaging formats appear, and managed agent platforms ship constantly. An ecosystem watch helps you adopt what's stable, avoid betting on what's fading, and spot where commodity tools are replacing custom work.",
+            "how": [
+              "Track standards: MCP spec versions, A2A, skill/plugin packaging, eval standards.",
+              "Track the market: host apps, managed agent platforms, vertical agents.",
+              "For each change, ask: does it remove custom code, reduce risk, or lock us in?",
+              "Pilot new features behind flags; keep abstractions thin.",
+              "Review quarterly what is now commodity vs a real differentiator."
+            ],
+            "example": "Commodity vs moat: in 2024 a team built a custom tool-calling adapter for each model provider. By 2026 gateways and MCP made that commodity, so they replaced 3,000 lines of adapter code with a gateway and focused engineering on their proprietary evaluation data and workflow integrations, which competitors can't easily copy.",
+            "mistakes": [
+              "Rewriting systems for every new framework release.",
+              "Ignoring spec changes until a client breaks.",
+              "Treating plumbing that's becoming commodity as a differentiator."
+            ],
+            "enterprise": "A platform team publishes a quarterly 'agent ecosystem radar' with adopt / trial / assess / hold rings for protocols, frameworks and platforms, linked to internal pilots and evals.",
+            "takeaways": [
+              "Watch standards and markets deliberately.",
+              "Adopt what removes code or risk.",
+              "Invest where you're truly different."
+            ],
+            "diagram": "flowchart LR\n  NEWS[Spec + product changes] --> Q{Removes code? reduces risk? locks in?}\n  Q --> ADOPT[Adopt]\n  Q --> TRIAL[Trial behind flag]\n  Q --> HOLD[Hold]\n  ADOPT --> RADAR[Quarterly radar]\n  TRIAL --> RADAR\n  HOLD --> RADAR",
+            "diagramAlt": "Diagram: spec and product changes are assessed for code removal, risk reduction and lock-in, sorted into adopt, trial or hold, and recorded on a quarterly radar."
+          }
         }
       ]
     }

@@ -16,19 +16,31 @@
           "resources": [
             {
               "title": "Apache Iceberg docs",
-              "url": "https://iceberg.apache.org/docs/latest/"
+              "url": "https://iceberg.apache.org/docs/latest/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Apache Iceberg docs that complements the Data Engineering Foundations for AI lesson with another author's explanation and examples."
             },
             {
               "title": "Delta Lake documentation",
-              "url": "https://docs.delta.io/latest/index.html"
+              "url": "https://docs.delta.io/latest/index.html",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Delta Lake documentation that complements the Data Engineering Foundations for AI lesson with another author's explanation and examples."
             },
             {
               "title": "Fundamentals of Data Engineering (O'Reilly)",
-              "url": "https://www.oreilly.com/library/view/fundamentals-of-data-engineering/9781098108298/"
+              "url": "https://www.oreilly.com/library/view/fundamentals-of-data-engineering/9781098108298/",
+              "kind": "book",
+              "level": "intermediate",
+              "why": "Practitioner book; broad, well-edited coverage from experienced engineers."
             },
             {
               "title": "dbt documentation",
-              "url": "https://docs.getdbt.com/docs/introduction"
+              "url": "https://docs.getdbt.com/docs/introduction",
+              "kind": "docs",
+              "level": "intro",
+              "why": "dbt documentation; approachable guides to modeling and testing data."
             }
           ],
           "project": "Build a mini lakehouse locally: load a public dataset into Iceberg tables with DuckDB or Spark, create bronze/silver/gold layers with dbt, and write a one-page data dictionary an LLM can read. Ask an LLM 10 questions with and without the dictionary in context and record the accuracy difference.",
@@ -44,7 +56,8 @@
                 },
                 {
                   "id": "d-found-t1-s2",
-                  "title": "Iceberg/Delta snapshots and time travel"
+                  "title": "Iceberg/Delta snapshots and time travel",
+                  "text": "Iceberg and Delta keep snapshots of table state, so you can query a table as of an earlier time and roll back bad writes."
                 },
                 {
                   "id": "d-found-t1-s3",
@@ -52,7 +65,8 @@
                 },
                 {
                   "id": "d-found-t1-s4",
-                  "title": "Compaction and small-file problems"
+                  "title": "Compaction and small-file problems",
+                  "text": "Many small files slow down queries; compaction merges them into larger files on a schedule."
                 },
                 {
                   "id": "d-found-t1-s5",
@@ -67,7 +81,8 @@
               "subtopics": [
                 {
                   "id": "d-found-t2-s1",
-                  "title": "Bronze/silver/gold responsibilities"
+                  "title": "Bronze/silver/gold responsibilities",
+                  "text": "Bronze stores raw data as received, silver cleans and conforms it, and gold shapes it for specific business uses."
                 },
                 {
                   "id": "d-found-t2-s2",
@@ -79,7 +94,8 @@
                 },
                 {
                   "id": "d-found-t2-s4",
-                  "title": "Slowly changing dimensions (SCD2)"
+                  "title": "Slowly changing dimensions (SCD2)",
+                  "text": "SCD Type 2 keeps history by adding a new row with validity dates when an attribute changes."
                 },
                 {
                   "id": "d-found-t2-s5",
@@ -94,7 +110,8 @@
               "subtopics": [
                 {
                   "id": "d-found-t3-s1",
-                  "title": "Row vs columnar storage"
+                  "title": "Row vs columnar storage",
+                  "text": "Row stores are fast for reading or writing one record; columnar stores are fast for scanning a few columns over many rows."
                 },
                 {
                   "id": "d-found-t3-s2",
@@ -102,7 +119,8 @@
                 },
                 {
                   "id": "d-found-t3-s3",
-                  "title": "Choosing SQL vs retrieval for a question"
+                  "title": "Choosing SQL vs retrieval for a question",
+                  "text": "Use SQL for questions about numbers and records; use retrieval for questions answered in documents."
                 },
                 {
                   "id": "d-found-t3-s4",
@@ -152,7 +170,31 @@
           ],
           "conceptIds": [
             "agent-data-arch"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Agents are only as good as the data they can reach. Data engineering for AI is about getting the company's data into well-organized, trustworthy, fresh stores, and picking the right kind of store for each question: a transactional database for 'what is this order's status', a warehouse for 'what were sales last quarter', and a search index for 'what does the policy say'.",
+            "how": [
+              "Land raw data in object storage as columnar files (Parquet) managed by an open table format (Iceberg or Delta) with a catalog.",
+              "Transform in layers: bronze (raw), silver (cleaned, conformed), gold (business-ready), with tested models (for example dbt).",
+              "Make loads incremental and idempotent; track history with slowly changing dimensions where needed.",
+              "Orchestrate pipelines with a scheduler (Airflow, Dagster, Prefect) and alert on failures.",
+              "Serve each question type from the right store: OLTP replica, warehouse, or search/vector index, with latency budgets."
+            ],
+            "example": "Columnar wins for analytics: a 1-billion-row orders table with 40 columns. A question needs 3 columns. A columnar format reads roughly 3/40 of the data (plus compression), about 7.5%, while a row store reads every row in full. Partitioning by month and querying one month cuts it further, to about 1/36 of that if data spans 3 years.",
+            "mistakes": [
+              "Pointing agents at production OLTP databases for heavy analytical queries.",
+              "Non-idempotent loads that duplicate rows on retry.",
+              "Thousands of tiny files that make table queries slow; schedule compaction."
+            ],
+            "enterprise": "A retailer gives its merchandising agent three tools: an order-status lookup on a read replica, a sales-metrics query on gold warehouse tables, and a policy search over an index. Each tool has its own latency budget and permissions.",
+            "takeaways": [
+              "Open table formats + catalog = reliable lakehouse.",
+              "Bronze/silver/gold with tested, idempotent transforms.",
+              "Match the store to the question."
+            ],
+            "diagram": "flowchart LR\n  SRC[Sources] --> BR[Bronze: raw]\n  BR --> SI[Silver: cleaned]\n  SI --> GO[Gold: business-ready]\n  GO --> WH[(Warehouse / lakehouse)]\n  SI --> IDX[(Search / vector index)]\n  OLTP[(OLTP)] --> REP[(Read replica)]\n  WH --> AG[Agent tools]\n  IDX --> AG\n  REP --> AG",
+            "diagramAlt": "Diagram: sources flow through bronze, silver and gold layers into a lakehouse; silver data also feeds a search index; an OLTP read replica, the lakehouse and the index all serve agent tools."
+          }
         },
         {
           "id": "d-model",
@@ -162,15 +204,24 @@
           "resources": [
             {
               "title": "dbt Semantic Layer",
-              "url": "https://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl"
+              "url": "https://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl",
+              "kind": "docs",
+              "level": "intro",
+              "why": "dbt documentation; approachable guides to modeling and testing data."
             },
             {
               "title": "Cube semantic layer docs",
-              "url": "https://cube.dev/docs/product/introduction"
+              "url": "https://cube.dev/docs/product/introduction",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Cube semantic layer docs that complements the Data Modeling and the Semantic Layer lesson with another author's explanation and examples."
             },
             {
               "title": "Kimball dimensional modeling techniques",
-              "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/"
+              "url": "https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Kimball dimensional modeling techniques that complements the Data Modeling and the Semantic Layer lesson with another author's explanation and examples."
             }
           ],
           "project": "Define 8 metrics (revenue, active customers, churn, etc.) in a semantic layer over your lakehouse. Build two agent tools: raw text-to-SQL and 'query_metric(metric, dimensions, filters)'. Run 30 business questions through both and compare accuracy and latency.",
@@ -182,7 +233,8 @@
               "subtopics": [
                 {
                   "id": "d-model-t1-s1",
-                  "title": "Facts, dimensions and grain"
+                  "title": "Facts, dimensions and grain",
+                  "text": "A fact table records events (orders, clicks); the grain says what one row means, such as one order line."
                 },
                 {
                   "id": "d-model-t1-s2",
@@ -198,7 +250,8 @@
                 },
                 {
                   "id": "d-model-t1-s5",
-                  "title": "Wide denormalized tables for agents"
+                  "title": "Wide denormalized tables for agents",
+                  "text": "Wide, well-named denormalized tables are easier for LLMs to query correctly than deep join chains."
                 }
               ]
             },
@@ -209,7 +262,8 @@
               "subtopics": [
                 {
                   "id": "d-model-t2-s1",
-                  "title": "Measures, metrics and derived metrics"
+                  "title": "Measures, metrics and derived metrics",
+                  "text": "A measure is an aggregation (sum of amount); a metric adds filters and logic; derived metrics combine metrics, like conversion rate."
                 },
                 {
                   "id": "d-model-t2-s2",
@@ -217,7 +271,8 @@
                 },
                 {
                   "id": "d-model-t2-s3",
-                  "title": "Synonyms and descriptions for LLMs"
+                  "title": "Synonyms and descriptions for LLMs",
+                  "text": "Add plain-language descriptions and synonyms ('sales', 'bookings') so the model maps questions to the right metric."
                 },
                 {
                   "id": "d-model-t2-s4",
@@ -236,7 +291,8 @@
               "subtopics": [
                 {
                   "id": "d-model-t3-s1",
-                  "title": "Schema pruning and table retrieval"
+                  "title": "Schema pruning and table retrieval",
+                  "text": "Retrieve only the few tables relevant to the question so the model isn't confused by hundreds of schemas."
                 },
                 {
                   "id": "d-model-t3-s2",
@@ -248,11 +304,13 @@
                 },
                 {
                   "id": "d-model-t3-s4",
-                  "title": "SQL validation with parsers (sqlglot)"
+                  "title": "SQL validation with parsers (sqlglot)",
+                  "text": "Parse generated SQL (for example with sqlglot) to block writes, check tables and add limits before execution."
                 },
                 {
                   "id": "d-model-t3-s5",
-                  "title": "Execution-accuracy evals"
+                  "title": "Execution-accuracy evals",
+                  "text": "Run generated and reference SQL and compare results, since different SQL can be equally correct."
                 }
               ]
             }
@@ -294,7 +352,31 @@
           ],
           "conceptIds": [
             "agent-data-arch"
-          ]
+          ],
+          "lesson": {
+            "intuition": "If you hand an LLM a raw database with cryptic table names, it guesses joins and definitions and often gets them wrong. A good data model and a semantic layer give it definitions instead: 'revenue' means this measure at this grain with these filters. Then text-to-SQL becomes choosing metrics and dimensions, which models do much more reliably.",
+            "how": [
+              "Model data dimensionally: fact tables (events at a defined grain) and dimension tables (who, what, where, when).",
+              "Define metrics as code in a semantic layer: measures, filters, time grains and derived metrics, with descriptions and synonyms.",
+              "Expose the semantic layer to agents through an API or tool, so they request metrics by name.",
+              "For free-form SQL, retrieve only relevant tables, add examples from query logs, and run under read-only roles with limits.",
+              "Validate SQL with a parser and evaluate with execution accuracy on golden questions."
+            ],
+            "example": "Why definitions matter: asked 'What was revenue last quarter?', an LLM writing raw SQL summed orders.amount including refunds and test orders and got $12.4M. The semantic layer's revenue metric excludes refunds and test accounts and uses recognized dates, giving $11.1M, the number finance reports. A golden question catches the difference.",
+            "mistakes": [
+              "Letting the model write SQL against hundreds of raw tables.",
+              "Running generated SQL with write permissions or no row limits.",
+              "Evaluating text-to-SQL by comparing SQL strings instead of execution results."
+            ],
+            "enterprise": "A SaaS company exposes 40 certified metrics (ARR, churn, active users) through a semantic layer tool. Its analytics agent answers 85% of executive questions through that tool; the rest fall back to SQL over a curated set of 12 gold tables with a read-only role.",
+            "takeaways": [
+              "Give models definitions, not guesses.",
+              "Metrics as code, with descriptions and synonyms.",
+              "Read-only, limited, validated SQL with execution-accuracy evals."
+            ],
+            "diagram": "flowchart LR\n  Q[Question] --> R{Metric known?}\n  R -->|yes| SL[Semantic layer: metric + dims + time grain]\n  R -->|no| T2S[Text-to-SQL]\n  T2S --> PR[Schema pruning + examples]\n  PR --> VAL[Parse + validate SQL]\n  VAL --> RO[Read-only role, limits, timeout]\n  SL --> ANS[Answer]\n  RO --> ANS",
+            "diagramAlt": "Diagram: a question uses the semantic layer if a metric exists, otherwise text-to-SQL with schema pruning, examples, validation and a read-only role with limits, producing an answer."
+          }
         }
       ]
     },
@@ -310,15 +392,24 @@
           "resources": [
             {
               "title": "Debezium documentation",
-              "url": "https://debezium.io/documentation/reference/stable/index.html"
+              "url": "https://debezium.io/documentation/reference/stable/index.html",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Debezium documentation that complements the CDC and Streaming: Fresh Context for Agents lesson with another author's explanation and examples."
             },
             {
               "title": "Apache Kafka documentation",
-              "url": "https://kafka.apache.org/documentation/"
+              "url": "https://kafka.apache.org/documentation/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Apache Kafka documentation that complements the CDC and Streaming: Fresh Context for Agents lesson with another author's explanation and examples."
             },
             {
               "title": "Apache Flink documentation",
-              "url": "https://nightlies.apache.org/flink/flink-docs-stable/"
+              "url": "https://nightlies.apache.org/flink/flink-docs-stable/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Apache Flink documentation that complements the CDC and Streaming: Fresh Context for Agents lesson with another author's explanation and examples."
             }
           ],
           "project": "Run Postgres + Debezium + Kafka (or Redpanda) in Docker Compose. Stream a 'tickets' table into an Iceberg table and a pgvector index. Update and delete rows and measure end-to-end freshness (p50/p95 seconds) and confirm deleted tickets disappear from retrieval.",
@@ -330,7 +421,8 @@
               "subtopics": [
                 {
                   "id": "d-cdc-t1-s1",
-                  "title": "WAL/binlog and replication slots"
+                  "title": "WAL/binlog and replication slots",
+                  "text": "Databases log every change for recovery and replication; CDC tools read that log via replication slots or binlog positions."
                 },
                 {
                   "id": "d-cdc-t1-s2",
@@ -342,7 +434,8 @@
                 },
                 {
                   "id": "d-cdc-t1-s4",
-                  "title": "Outbox pattern"
+                  "title": "Outbox pattern",
+                  "text": "The outbox pattern writes events to a table in the same transaction as the business change, so events never go missing."
                 },
                 {
                   "id": "d-cdc-t1-s5",
@@ -361,7 +454,8 @@
                 },
                 {
                   "id": "d-cdc-t2-s2",
-                  "title": "Watermarks and late data"
+                  "title": "Watermarks and late data",
+                  "text": "A watermark tells the stream processor how long to wait for late events before closing a time window."
                 },
                 {
                   "id": "d-cdc-t2-s3",
@@ -369,7 +463,8 @@
                 },
                 {
                   "id": "d-cdc-t2-s4",
-                  "title": "At-least-once + idempotent sinks"
+                  "title": "At-least-once + idempotent sinks",
+                  "text": "Because events can be delivered more than once, sinks should upsert by key so duplicates do no harm."
                 },
                 {
                   "id": "d-cdc-t2-s5",
@@ -384,7 +479,8 @@
               "subtopics": [
                 {
                   "id": "d-cdc-t3-s1",
-                  "title": "Content hashing to skip re-embeds"
+                  "title": "Content hashing to skip re-embeds",
+                  "text": "Store a hash of each chunk's text and skip re-embedding when it hasn't changed."
                 },
                 {
                   "id": "d-cdc-t3-s2",
@@ -392,7 +488,8 @@
                 },
                 {
                   "id": "d-cdc-t3-s3",
-                  "title": "ACL changes as events"
+                  "title": "ACL changes as events",
+                  "text": "Treat permission changes as events that update index ACLs immediately."
                 },
                 {
                   "id": "d-cdc-t3-s4",
@@ -442,7 +539,31 @@
           ],
           "conceptIds": [
             "cdc-freshness"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Agents acting on yesterday's export make yesterday's decisions. Change data capture (CDC) reads a database's own change log and streams every insert, update and delete as an event, so downstream systems, including search indexes and embeddings, stay fresh within seconds or minutes without hammering the production database.",
+            "how": [
+              "Read the database's write-ahead log or binlog (for example with Debezium), starting with an initial snapshot.",
+              "Publish change events (before and after images, deletes as tombstones) to a stream like Kafka, with schemas in a registry.",
+              "Process streams with event-time semantics, watermarks and keyed state.",
+              "Write to sinks idempotently (upserts by key), since delivery is usually at-least-once.",
+              "Keep indexes in sync: re-embed only changed content, delete removed records, propagate permission changes, alert on lag."
+            ],
+            "example": "Skipping unnecessary re-embeds: a knowledge base gets 50,000 update events a day, but many only change metadata like view counts. Hashing the text content and re-embedding only when the hash changes reduces embedding calls to 6,000 a day. At 500 tokens each and $0.02 per 1M tokens, cost falls from $0.50 to $0.06 a day, and more importantly index load drops by 88%.",
+            "mistakes": [
+              "Polling production tables with heavy queries instead of reading the log.",
+              "Non-idempotent sinks that create duplicates on redelivery.",
+              "Forgetting deletes and permission changes, so removed or restricted content stays searchable."
+            ],
+            "enterprise": "A bank streams changes from its product and policy databases with CDC into Kafka; a consumer updates the search index and embeddings within 2 minutes, and an alert fires if lag exceeds 10 minutes.",
+            "takeaways": [
+              "CDC = read the log, stream the changes.",
+              "At-least-once delivery needs idempotent sinks.",
+              "Sync deletes and ACL changes, not just inserts."
+            ],
+            "diagram": "flowchart LR\n  DB[(Database)] --> LOG[WAL / binlog]\n  LOG --> CDC[CDC connector: snapshot + stream]\n  CDC --> K[(Event stream)]\n  K --> PROC[Stream processing]\n  PROC --> HASH{Content changed?}\n  HASH -->|yes| EMB[Re-embed + upsert]\n  HASH -->|no| META[Update metadata]\n  K --> DEL[Deletes / ACL changes]\n  EMB --> IDX[(Index)]\n  META --> IDX\n  DEL --> IDX",
+            "diagramAlt": "Diagram: database log changes flow through a CDC connector into an event stream, processed so that changed content is re-embedded, metadata updated and deletes or ACL changes applied to the index."
+          }
         },
         {
           "id": "d-unstruct",
@@ -452,15 +573,24 @@
           "resources": [
             {
               "title": "Unstructured open-source docs",
-              "url": "https://docs.unstructured.io/open-source/introduction/overview"
+              "url": "https://docs.unstructured.io/open-source/introduction/overview",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Unstructured open-source docs that complements the Unstructured Data Pipelines at Scale lesson with another author's explanation and examples."
             },
             {
               "title": "Docling (IBM) document conversion",
-              "url": "https://github.com/docling-project/docling"
+              "url": "https://github.com/docling-project/docling",
+              "kind": "code",
+              "level": "intermediate",
+              "why": "Source repository: read the README and examples to see how it is used in practice."
             },
             {
               "title": "Apache Tika",
-              "url": "https://tika.apache.org/"
+              "url": "https://tika.apache.org/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Apache Tika that complements the Unstructured Data Pipelines at Scale lesson with another author's explanation and examples."
             }
           ],
           "project": "Build a pipeline over 500 mixed documents (PDF, DOCX, HTML, scanned images). Compare two parsers on 30 hand-checked pages for table and heading fidelity. Store chunk → source page → ACL lineage, deduplicate near-duplicates with MinHash, and report retrieval recall@10 on a 40-question golden set before and after improvements.",
@@ -472,7 +602,8 @@
               "subtopics": [
                 {
                   "id": "d-unstruct-t1-s1",
-                  "title": "Text vs layout vs VLM parsing"
+                  "title": "Text vs layout vs VLM parsing",
+                  "text": "Plain text extraction is cheap; layout parsers keep structure; VLM parsing handles complex visuals at higher cost."
                 },
                 {
                   "id": "d-unstruct-t1-s2",
@@ -480,7 +611,8 @@
                 },
                 {
                   "id": "d-unstruct-t1-s3",
-                  "title": "Table structure recognition"
+                  "title": "Table structure recognition",
+                  "text": "Table recognition rebuilds rows and columns so tables don't turn into jumbled text."
                 },
                 {
                   "id": "d-unstruct-t1-s4",
@@ -488,7 +620,8 @@
                 },
                 {
                   "id": "d-unstruct-t1-s5",
-                  "title": "Routing by document class"
+                  "title": "Routing by document class",
+                  "text": "Detect the document type first (form, contract, slide deck, scan) and send it to the parser that handles it best."
                 }
               ]
             },
@@ -503,7 +636,8 @@
                 },
                 {
                   "id": "d-unstruct-t2-s2",
-                  "title": "Contextual chunk headers"
+                  "title": "Contextual chunk headers",
+                  "text": "Prefix each chunk with its document title and section path so it makes sense on its own."
                 },
                 {
                   "id": "d-unstruct-t2-s3",
@@ -515,7 +649,8 @@
                 },
                 {
                   "id": "d-unstruct-t2-s5",
-                  "title": "Near-duplicate detection (MinHash/SimHash)"
+                  "title": "Near-duplicate detection (MinHash/SimHash)",
+                  "text": "MinHash and SimHash estimate similarity cheaply, finding near-duplicates among millions of documents."
                 }
               ]
             },
@@ -530,11 +665,13 @@
                 },
                 {
                   "id": "d-unstruct-t3-s2",
-                  "title": "Blue/green re-indexing with aliases"
+                  "title": "Blue/green re-indexing with aliases",
+                  "text": "Build a new index alongside the old one, then switch an alias so queries move over atomically."
                 },
                 {
                   "id": "d-unstruct-t3-s3",
-                  "title": "Parse-failure and quality monitors"
+                  "title": "Parse-failure and quality monitors",
+                  "text": "Track parse failures, empty chunks and OCR confidence to catch broken documents early."
                 },
                 {
                   "id": "d-unstruct-t3-s4",
@@ -584,7 +721,31 @@
           ],
           "conceptIds": [
             "unstructured-pipeline"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Most enterprise knowledge lives in PDFs, slides, emails and tickets. Turning millions of messy files into clean, cited, permissioned chunks is real engineering: routing each document to the right parser, chunking by structure, enriching with metadata, removing duplicates and personal data, and operating the whole pipeline with versioning and monitoring.",
+            "how": [
+              "Classify documents and route them: text extraction for digital files, OCR for scans, layout or VLM parsing for complex pages.",
+              "Chunk by structure (sections, tables), add contextual headers (document title, section path).",
+              "Enrich with metadata (source, owner, date, permissions) and PII tags.",
+              "Deduplicate near-identical documents (MinHash or SimHash).",
+              "Operate: version each stage, re-index blue/green behind aliases, monitor parse failures, track throughput and cost per 1,000 pages."
+            ],
+            "example": "Cost per 1,000 pages: 70% digital PDFs at $0.10 per 1,000 pages for extraction, 25% scans with OCR at $1.50 per 1,000, and 5% complex pages sent to a VLM at $10 per 1,000. Blended: 0.7 × 0.10 + 0.25 × 1.50 + 0.05 × 10 = $0.07 + $0.375 + $0.50 = $0.945 per 1,000 pages, before embeddings. Routing correctly matters: sending everything to the VLM would cost $10.",
+            "mistakes": [
+              "One parser for every document type.",
+              "Chunks with no context, like a paragraph that starts 'This policy…' without saying which policy.",
+              "Re-indexing in place, so users see half-updated results."
+            ],
+            "enterprise": "An engineering firm processes 4 million legacy documents: deduplication removes 30%, scans are OCRed, drawings get VLM descriptions, and each chunk carries project, revision and access-group metadata. A new index version is built in parallel and swapped in by alias overnight.",
+            "takeaways": [
+              "Route documents to the right parser.",
+              "Contextual headers and metadata make chunks useful.",
+              "Version, swap by alias, and monitor."
+            ],
+            "diagram": "flowchart LR\n  FILES[Files] --> CLS{Document class}\n  CLS -->|digital| TXT[Text extraction]\n  CLS -->|scan| OCR[OCR]\n  CLS -->|complex| VLM[Layout / VLM parse]\n  TXT --> CH[Structure-aware chunks + headers]\n  OCR --> CH\n  VLM --> CH\n  CH --> ENR[Metadata + PII tags]\n  ENR --> DD[Dedup]\n  DD --> IDXV2[(Index v2)]\n  IDXV2 --> AL[Alias swap]",
+            "diagramAlt": "Diagram: files are classified and routed to text extraction, OCR or VLM parsing, chunked with headers, enriched with metadata and PII tags, deduplicated, indexed as a new version and swapped in by alias."
+          }
         },
         {
           "id": "d-quality",
@@ -594,15 +755,24 @@
           "resources": [
             {
               "title": "Open Data Contract Standard (Bitol)",
-              "url": "https://bitol-io.github.io/open-data-contract-standard/latest/"
+              "url": "https://bitol-io.github.io/open-data-contract-standard/latest/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Great Expectations docs",
-              "url": "https://docs.greatexpectations.io/docs/home/"
+              "url": "https://docs.greatexpectations.io/docs/home/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Great Expectations docs that complements the Data Contracts and Data Quality for Agents lesson with another author's explanation and examples."
             },
             {
               "title": "Soda documentation",
-              "url": "https://docs.soda.io/"
+              "url": "https://docs.soda.io/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Soda documentation that complements the Data Contracts and Data Quality for Agents lesson with another author's explanation and examples."
             }
           ],
           "project": "Write an ODCS contract for a 'customers' gold table with schema, freshness and quality rules. Enforce it in CI with dbt tests or Soda, break it deliberately (rename a column, stale load), and make the agent's tool return 'data unavailable: contract failed' instead of an answer.",
@@ -614,7 +784,8 @@
               "subtopics": [
                 {
                   "id": "d-quality-t1-s1",
-                  "title": "Schema, semantics and SLAs"
+                  "title": "Schema, semantics and SLAs",
+                  "text": "Beyond column types, say what each field means, units, allowed values and how fresh the data will be."
                 },
                 {
                   "id": "d-quality-t1-s2",
@@ -626,11 +797,13 @@
                 },
                 {
                   "id": "d-quality-t1-s4",
-                  "title": "ODCS structure"
+                  "title": "ODCS structure",
+                  "text": "ODCS (Open Data Contract Standard) is a YAML format for writing data contracts."
                 },
                 {
                   "id": "d-quality-t1-s5",
-                  "title": "Descriptions as LLM documentation"
+                  "title": "Descriptions as LLM documentation",
+                  "text": "Clear field descriptions in contracts double as documentation agents can read."
                 }
               ]
             },
@@ -641,7 +814,8 @@
               "subtopics": [
                 {
                   "id": "d-quality-t2-s1",
-                  "title": "Validity, completeness, uniqueness"
+                  "title": "Validity, completeness, uniqueness",
+                  "text": "Validity checks formats and ranges, completeness checks missing values, uniqueness checks duplicate keys."
                 },
                 {
                   "id": "d-quality-t2-s2",
@@ -649,11 +823,13 @@
                 },
                 {
                   "id": "d-quality-t2-s3",
-                  "title": "Distribution drift checks"
+                  "title": "Distribution drift checks",
+                  "text": "Compare today's value distribution with history to catch silent changes, like a spike in zeros."
                 },
                 {
                   "id": "d-quality-t2-s4",
-                  "title": "CI vs runtime checks"
+                  "title": "CI vs runtime checks",
+                  "text": "CI checks catch broken transformations before deploy; runtime checks catch bad data as it arrives."
                 },
                 {
                   "id": "d-quality-t2-s5",
@@ -672,15 +848,18 @@
                 },
                 {
                   "id": "d-quality-t3-s2",
-                  "title": "Tool-level pre-checks"
+                  "title": "Tool-level pre-checks",
+                  "text": "Agent tools check dataset health before running a query."
                 },
                 {
                   "id": "d-quality-t3-s3",
-                  "title": "Graceful 'data unavailable' responses"
+                  "title": "Graceful 'data unavailable' responses",
+                  "text": "An honest 'data unavailable' is better than a confident answer from bad data."
                 },
                 {
                   "id": "d-quality-t3-s4",
-                  "title": "Blocking actions on failed data"
+                  "title": "Blocking actions on failed data",
+                  "text": "If data fails checks, block write actions that depend on it."
                 },
                 {
                   "id": "d-quality-t3-s5",
@@ -726,7 +905,31 @@
           ],
           "conceptIds": [
             "agent-data-arch"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Agents amplify bad data. A broken column in a dashboard confuses a few analysts; the same column feeding an agent produces thousands of confident wrong answers or actions. Data contracts say what a dataset promises, quality checks verify it, and circuit breakers stop agents from using data that has failed its checks.",
+            "how": [
+              "Write a data contract per dataset: schema, meanings, freshness SLA, owner and consumers, versioning rules.",
+              "Check validity, completeness, uniqueness, freshness, volume and distribution, in CI and at runtime.",
+              "Route alerts using lineage to the owners and to downstream consumers, including agents.",
+              "Publish health status in the catalog, and have agent tools check it before using data.",
+              "When checks fail, return 'data unavailable' and block actions, then resume after backfill."
+            ],
+            "example": "A circuit breaker in action: a pricing table's freshness SLA is 1 hour. At 10:00 the upstream job fails; at 11:05 the freshness check turns red. The quoting agent's tool checks health first, sees red and responds 'Current prices are temporarily unavailable; a specialist will follow up', instead of quoting stale prices to customers. The fix lands at 11:40 and the breaker resets automatically.",
+            "mistakes": [
+              "Contracts that describe schema only, not meaning or SLAs.",
+              "Quality checks that alert a dashboard but don't stop agents.",
+              "Breaking schema changes without versioning."
+            ],
+            "enterprise": "An insurer requires a contract for every dataset its claims agent reads. When an upstream change set 3% of claim amounts to zero, a distribution check failed, the agent switched to read-only mode for that data, and adjusters were notified within 15 minutes.",
+            "takeaways": [
+              "Contracts = schema + meaning + SLA + owner.",
+              "Check data continuously; route alerts by lineage.",
+              "Agents must check data health before acting."
+            ],
+            "diagram": "flowchart LR\n  DS[Dataset] --> CON[Contract: schema, meaning, SLA, owner]\n  DS --> CHK[Checks: validity, freshness, volume, drift]\n  CHK --> HEALTH[(Health status in catalog)]\n  HEALTH --> TOOL{Agent tool pre-check}\n  TOOL -->|green| USE[Use data]\n  TOOL -->|red| UNAV[Data unavailable + block actions]\n  CHK --> ALERT[Alerts via lineage]",
+            "diagramAlt": "Diagram: a dataset has a contract and checks whose health status is stored in the catalog; agent tools pre-check health and either use the data or report unavailable and block actions, with alerts routed via lineage."
+          }
         }
       ]
     },
@@ -742,19 +945,31 @@
           "resources": [
             {
               "title": "OpenLineage",
-              "url": "https://openlineage.io/docs/"
+              "url": "https://openlineage.io/docs/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on OpenLineage that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
             },
             {
               "title": "DataHub documentation",
-              "url": "https://docs.datahub.com/docs/"
+              "url": "https://docs.datahub.com/docs/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on DataHub documentation that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
             },
             {
               "title": "Unity Catalog (open source)",
-              "url": "https://docs.unitycatalog.io/"
+              "url": "https://docs.unitycatalog.io/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Unity Catalog (open source) that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
             },
             {
               "title": "OpenMetadata docs",
-              "url": "https://docs.open-metadata.org/"
+              "url": "https://docs.open-metadata.org/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on OpenMetadata docs that complements the Metadata, Catalogs and Lineage lesson with another author's explanation and examples."
             }
           ],
           "project": "Stand up OpenMetadata or DataHub, ingest your lakehouse, add descriptions and PII classifications, and emit OpenLineage from your dbt and embedding jobs so lineage reaches the vector index. Build an MCP tool 'find_dataset(question)' that searches the catalog and returns the best gold table with its description and owner.",
@@ -766,7 +981,8 @@
               "subtopics": [
                 {
                   "id": "d-catalog-t1-s1",
-                  "title": "Technical, business, operational, governance"
+                  "title": "Technical, business, operational, governance",
+                  "text": "Technical metadata describes structure, business metadata meaning, operational metadata freshness and usage, governance metadata ownership and policy."
                 },
                 {
                   "id": "d-catalog-t1-s2",
@@ -782,7 +998,8 @@
                 },
                 {
                   "id": "d-catalog-t1-s5",
-                  "title": "Classification tags (PII, PCI, PHI)"
+                  "title": "Classification tags (PII, PCI, PHI)",
+                  "text": "Tags mark sensitive data so policies can block or mask it automatically."
                 }
               ]
             },
@@ -797,7 +1014,8 @@
                 },
                 {
                   "id": "d-catalog-t2-s2",
-                  "title": "OpenLineage events and facets"
+                  "title": "OpenLineage events and facets",
+                  "text": "OpenLineage is an open standard for emitting lineage events from pipelines, with facets for extra details."
                 },
                 {
                   "id": "d-catalog-t2-s3",
@@ -805,7 +1023,8 @@
                 },
                 {
                   "id": "d-catalog-t2-s4",
-                  "title": "Impact analysis"
+                  "title": "Impact analysis",
+                  "text": "Before changing a dataset, find everything downstream that depends on it."
                 },
                 {
                   "id": "d-catalog-t2-s5",
@@ -820,11 +1039,13 @@
               "subtopics": [
                 {
                   "id": "d-catalog-t3-s1",
-                  "title": "Catalog search APIs and MCP"
+                  "title": "Catalog search APIs and MCP",
+                  "text": "Agents can search the catalog through an API or MCP server to find the right dataset."
                 },
                 {
                   "id": "d-catalog-t3-s2",
-                  "title": "Certified asset lists"
+                  "title": "Certified asset lists",
+                  "text": "Certified assets are reviewed and supported by an owner, so agents should prefer them."
                 },
                 {
                   "id": "d-catalog-t3-s3",
@@ -832,7 +1053,8 @@
                 },
                 {
                   "id": "d-catalog-t3-s4",
-                  "title": "Usage telemetry"
+                  "title": "Usage telemetry",
+                  "text": "Track which agents use which datasets to prioritize stewardship and spot unused assets."
                 },
                 {
                   "id": "d-catalog-t3-s5",
@@ -878,7 +1100,31 @@
           ],
           "conceptIds": [
             "agent-data-arch"
-          ]
+          ],
+          "lesson": {
+            "intuition": "A data catalog is the map of the data estate: what exists, what it means, who owns it, how fresh and sensitive it is, and where it came from. For people it's documentation; for agents it's a runtime service they can search to find the right, certified data; for auditors it's evidence of lineage and controls.",
+            "how": [
+              "Ingest metadata automatically: technical (schemas), business (glossary, descriptions), operational (freshness, usage), governance (owners, tags).",
+              "Classify sensitive data with tags such as PII, PCI and PHI.",
+              "Capture lineage at table and column level, including how indexes and embeddings were built (for example with OpenLineage events).",
+              "Expose catalog search to agents (API or MCP), preferring certified assets and checking health and classification at runtime.",
+              "Collect usage telemetry and route feedback to data stewards."
+            ],
+            "example": "Impact analysis with lineage: a source column customer.email will be renamed. Column-level lineage shows it feeds 14 tables, 3 dashboards, 2 vector indexes and the support agent's lookup tool. The owner notifies those consumers and schedules the change with a compatibility view, instead of breaking the agent on release day.",
+            "mistakes": [
+              "Catalogs filled by hand that go stale.",
+              "No lineage for derived AI assets like embeddings.",
+              "Agents choosing tables by name similarity instead of certification."
+            ],
+            "enterprise": "A pharmaceutical company's research agent searches the catalog for 'certified' datasets matching a question, checks each dataset's PHI tag against the user's clearance, and cites the dataset and its owner in every answer.",
+            "takeaways": [
+              "The catalog is the agent's map.",
+              "Lineage must include indexes and embeddings.",
+              "Prefer certified, healthy, permitted assets at runtime."
+            ],
+            "diagram": "flowchart LR\n  SYS[Systems] -->|auto ingest| CAT[(Catalog: technical, business, ops, governance)]\n  PIPE[Pipelines] -->|OpenLineage| CAT\n  CAT --> AGENT[Agent: search certified assets]\n  AGENT --> CHK{Health + classification OK?}\n  CHK -->|yes| USE[Use + cite]\n  CHK -->|no| SKIP[Skip / escalate]\n  AGENT --> TEL[Usage telemetry] --> STEW[Stewards]",
+            "diagramAlt": "Diagram: systems and pipelines feed the catalog with metadata and lineage; agents search certified assets, check health and classification, use and cite them or skip, and telemetry goes to stewards."
+          }
         },
         {
           "id": "d-connect",
@@ -888,19 +1134,31 @@
           "resources": [
             {
               "title": "Model Context Protocol specification",
-              "url": "https://modelcontextprotocol.io/specification/2025-06-18"
+              "url": "https://modelcontextprotocol.io/specification/2025-06-18",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "MCP authorization spec",
-              "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization"
+              "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The official MCP specification and docs; the source of truth for protocol behavior."
             },
             {
               "title": "OAuth 2.0 Token Exchange (RFC 8693)",
-              "url": "https://www.rfc-editor.org/rfc/rfc8693"
+              "url": "https://www.rfc-editor.org/rfc/rfc8693",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on OAuth 2.0 Token Exchange (RFC 8693) that complements the Connecting Agents to Enterprise Data: APIs, MCP and Text-to-Data lesson with another author's explanation and examples."
             },
             {
               "title": "Anthropic: Writing effective tools for agents",
-              "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+              "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Vendor engineering write-up or guide with practical patterns from building with LLMs."
             }
           ],
           "project": "Build an MCP server over a sample CRM (or SQLite stand-in) exposing search_accounts, get_account, query_metric and a write tool create_task that requires approval. Propagate a user token, enforce per-user row access, cap response size, and log every call. Measure task success on 20 scenarios with two different MCP clients.",
@@ -920,11 +1178,13 @@
                 },
                 {
                   "id": "d-connect-t1-s3",
-                  "title": "Action tools on systems of record"
+                  "title": "Action tools on systems of record",
+                  "text": "Action tools change records in systems like CRM or ERP; they need confirmations, idempotency and narrow scopes."
                 },
                 {
                   "id": "d-connect-t1-s4",
-                  "title": "Tool routing by question type"
+                  "title": "Tool routing by question type",
+                  "text": "Route each question to the tool type that can answer it reliably, rather than letting the model guess among dozens."
                 },
                 {
                   "id": "d-connect-t1-s5",
@@ -939,15 +1199,18 @@
               "subtopics": [
                 {
                   "id": "d-connect-t2-s1",
-                  "title": "Tools vs resources vs prompts"
+                  "title": "Tools vs resources vs prompts",
+                  "text": "In MCP, tools are actions the model calls, resources are data the client reads, prompts are reusable templates."
                 },
                 {
                   "id": "d-connect-t2-s2",
-                  "title": "Task-shaped tool design"
+                  "title": "Task-shaped tool design",
+                  "text": "Design tools around user tasks ('find_customer_orders') instead of mirroring raw API endpoints."
                 },
                 {
                   "id": "d-connect-t2-s3",
-                  "title": "Concise structured outputs and pagination"
+                  "title": "Concise structured outputs and pagination",
+                  "text": "Return compact JSON with only needed fields, and paginate large results."
                 },
                 {
                   "id": "d-connect-t2-s4",
@@ -966,7 +1229,8 @@
               "subtopics": [
                 {
                   "id": "d-connect-t3-s1",
-                  "title": "OAuth on-behalf-of / token exchange"
+                  "title": "OAuth on-behalf-of / token exchange",
+                  "text": "Token exchange turns the user's token into one for the target system with the user's permissions."
                 },
                 {
                   "id": "d-connect-t3-s2",
@@ -978,7 +1242,8 @@
                 },
                 {
                   "id": "d-connect-t3-s4",
-                  "title": "Tool output as untrusted input"
+                  "title": "Tool output as untrusted input",
+                  "text": "Text inside a record or document can contain instructions; never let it change what tools may do."
                 },
                 {
                   "id": "d-connect-t3-s5",
@@ -993,11 +1258,13 @@
               "subtopics": [
                 {
                   "id": "d-connect-x1-s1",
-                  "title": "Databricks Genie spaces"
+                  "title": "Databricks Genie spaces",
+                  "text": "Databricks Genie answers natural-language questions over Unity Catalog tables using curated instructions and example queries."
                 },
                 {
                   "id": "d-connect-x1-s2",
-                  "title": "Snowflake Cortex Analyst and semantic models"
+                  "title": "Snowflake Cortex Analyst and semantic models",
+                  "text": "Snowflake Cortex Analyst uses a semantic model to turn questions into SQL over Snowflake tables."
                 },
                 {
                   "id": "d-connect-x1-s3",
@@ -1052,7 +1319,31 @@
           "conceptIds": [
             "agent-data-arch",
             "permission-aware-rag"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Connecting agents to enterprise data comes down to three kinds of tools. Retrieve tools search documents. Query tools ask structured data questions, through SQL or a semantic layer. Act tools change systems of record. Each needs the right identity, scopes and limits, and every result must be treated as untrusted input.",
+            "how": [
+              "Classify the question: document lookup (retrieve), number or record question (query), or change request (act).",
+              "Design task-shaped tools (often as MCP servers) with concise, paginated structured outputs and clear descriptions.",
+              "Call tools on behalf of the user with OAuth token exchange and least-privilege scopes.",
+              "Apply rate limits, quotas and confirmations for writes; make writes idempotent.",
+              "Treat outputs as untrusted, and audit every tool call."
+            ],
+            "example": "On-behalf-of access: a sales rep asks the agent for 'my open opportunities over $50k'. The agent exchanges the user's sign-in token for a CRM token scoped to read opportunities as that user. The CRM returns only records the rep can see, 12 rows, paginated at 10. The agent never holds an admin credential, so it can't over-share even if manipulated.",
+            "mistakes": [
+              "One powerful service account shared by all agent users.",
+              "Tools that dump entire tables into the context.",
+              "Write tools without confirmations or idempotency."
+            ],
+            "enterprise": "A manufacturer exposes three MCP servers to its operations agent: a document search over maintenance manuals, a semantic-layer query tool for plant metrics, and a work-order tool that can only create drafts. All use the employee's identity and are listed in an internal MCP registry.",
+            "takeaways": [
+              "Retrieve, query, act: three tool types with different risks.",
+              "Use the user's identity with least privilege.",
+              "Paginate, limit, confirm and audit."
+            ],
+            "diagram": "flowchart LR\n  Q[User question] --> RT{Type}\n  RT -->|documents| RET[Retrieve tool]\n  RT -->|numbers / records| QRY[Query tool: SQL / semantic layer]\n  RT -->|change| ACT[Action tool: draft + confirm]\n  ID[User token -> scoped token] -.-> RET\n  ID -.-> QRY\n  ID -.-> ACT\n  RET --> AUD[(Audit per call)]\n  QRY --> AUD\n  ACT --> AUD",
+            "diagramAlt": "Diagram: user questions are routed to retrieve, query or action tools, all called with a scoped token derived from the user's identity and audited per call."
+          }
         },
         {
           "id": "d-perm",
@@ -1062,19 +1353,31 @@
           "resources": [
             {
               "title": "Microsoft Graph permissions overview",
-              "url": "https://learn.microsoft.com/en-us/graph/permissions-overview"
+              "url": "https://learn.microsoft.com/en-us/graph/permissions-overview",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Microsoft Learn documentation with step-by-step guidance and architecture notes."
             },
             {
               "title": "OpenFGA (relationship-based access control)",
-              "url": "https://openfga.dev/docs/fga"
+              "url": "https://openfga.dev/docs/fga",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on OpenFGA (relationship-based access control) that complements the Permission-Aware Retrieval and Data Security lesson with another author's explanation and examples."
             },
             {
               "title": "Google Zanzibar paper",
-              "url": "https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/"
+              "url": "https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Google Zanzibar paper that complements the Permission-Aware Retrieval and Data Security lesson with another author's explanation and examples."
             },
             {
               "title": "OWASP Top 10 for LLM Applications",
-              "url": "https://genai.owasp.org/llm-top-10/"
+              "url": "https://genai.owasp.org/llm-top-10/",
+              "kind": "security",
+              "level": "intermediate",
+              "why": "OWASP community guidance listing risks and mitigations; good for threat modeling checklists."
             }
           ],
           "project": "Index 200 documents with three permission groups. Implement retrieval with pre-filtering on ACL metadata and with an OpenFGA check, then attack it: query as a low-privilege user, poison the semantic cache, and revoke a group mid-session. Report leaks found, fixes and the latency overhead of each authorization method.",
@@ -1090,11 +1393,13 @@
                 },
                 {
                   "id": "d-perm-t1-s2",
-                  "title": "Principal IDs and group expansion"
+                  "title": "Principal IDs and group expansion",
+                  "text": "Map each user to all their groups, including nested ones, and store document access as principal IDs."
                 },
                 {
                   "id": "d-perm-t1-s3",
-                  "title": "Revocation latency"
+                  "title": "Revocation latency",
+                  "text": "Measure how long it takes for a removed permission to stop showing results, and set a target."
                 },
                 {
                   "id": "d-perm-t1-s4",
@@ -1117,11 +1422,13 @@
                 },
                 {
                   "id": "d-perm-t2-s2",
-                  "title": "Why post-filtering leaks"
+                  "title": "Why post-filtering leaks",
+                  "text": "Post-filtering can return too few results and exposes restricted content to intermediate steps."
                 },
                 {
                   "id": "d-perm-t2-s3",
-                  "title": "ReBAC with OpenFGA/SpiceDB"
+                  "title": "ReBAC with OpenFGA/SpiceDB",
+                  "text": "Relationship-based access control models permissions as relationships, like 'user is member of team that owns folder'."
                 },
                 {
                   "id": "d-perm-t2-s4",
@@ -1140,7 +1447,8 @@
               "subtopics": [
                 {
                   "id": "d-perm-t3-s1",
-                  "title": "Per-scope semantic caches"
+                  "title": "Per-scope semantic caches",
+                  "text": "A cache shared across permission scopes can return restricted answers; key caches by scope."
                 },
                 {
                   "id": "d-perm-t3-s2",
@@ -1148,7 +1456,8 @@
                 },
                 {
                   "id": "d-perm-t3-s3",
-                  "title": "Fine-tuning memorization risk"
+                  "title": "Fine-tuning memorization risk",
+                  "text": "A model fine-tuned on restricted documents may reveal them to anyone; don't train on data broader than the audience."
                 },
                 {
                   "id": "d-perm-t3-s4",
@@ -1198,7 +1507,31 @@
           ],
           "conceptIds": [
             "permission-aware-rag"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Enterprise search must respect who can see what. If the assistant indexes everything but checks permissions only after retrieving, or not at all, it will eventually show an intern a confidential memo. Permission-aware retrieval brings each document's access rules into the index and filters before results are returned.",
+            "how": [
+              "Ingest ACLs and sensitivity labels with each document, and resolve users and groups to principal IDs.",
+              "Expand group membership and track revocations so changes take effect quickly.",
+              "Pre-filter retrieval by the user's principals inside the vector or search store.",
+              "For complex sharing, check fine-grained permissions with a relationship-based system (OpenFGA, SpiceDB) on the top candidates.",
+              "Close leak paths beyond the index: caches, memories, summaries, fine-tuned models, logs."
+            ],
+            "example": "Why post-filtering leaks or fails: a user can see 2% of 10M chunks. Retrieving the top 20 by similarity and then filtering leaves, on average, 0.4 visible results, often zero, so the assistant answers badly. Worse, if any stage (like a reranker log or cache) handles the unfiltered 20, restricted content leaves the boundary. Pre-filtering searches only the 200,000 visible chunks.",
+            "mistakes": [
+              "Indexing documents without their permissions.",
+              "Filtering after retrieval or after generation.",
+              "Caches and memories shared across users with different access."
+            ],
+            "enterprise": "A law firm's assistant indexes documents with matter-level access groups. Searches pre-filter by the user's matters; a revocation event removes access within 5 minutes; summaries and caches are scoped per matter.",
+            "takeaways": [
+              "Bring ACLs into the index.",
+              "Pre-filter; never post-filter.",
+              "Every derived store needs the same permissions."
+            ],
+            "diagram": "flowchart LR\n  SRC[Source docs + ACLs] --> ING[Ingest ACLs + labels]\n  ING --> IDX[(Index with principal IDs)]\n  U[User] --> PR[Resolve principals + groups]\n  PR --> PF[Pre-filtered search]\n  IDX --> PF\n  PF --> REBAC{Fine-grained check: ReBAC}\n  REBAC --> RES[Results]\n  REV[Revocations] --> ING",
+            "diagramAlt": "Diagram: source documents and ACLs are ingested into an index with principal IDs; a user's resolved principals drive a pre-filtered search, a fine-grained ReBAC check refines results, and revocations update the index."
+          }
         }
       ]
     },
@@ -1214,15 +1547,24 @@
           "resources": [
             {
               "title": "Data Mesh principles (Zhamak Dehghani)",
-              "url": "https://martinfowler.com/articles/data-mesh-principles.html"
+              "url": "https://martinfowler.com/articles/data-mesh-principles.html",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Data Mesh principles (Zhamak Dehghani) that complements the Data Products and Data Mesh for Agents lesson with another author's explanation and examples."
             },
             {
               "title": "Open Data Product Standard (Bitol)",
-              "url": "https://bitol-io.github.io/open-data-product-standard/latest/"
+              "url": "https://bitol-io.github.io/open-data-product-standard/latest/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Databricks: What is a lakehouse",
-              "url": "https://www.databricks.com/glossary/data-lakehouse"
+              "url": "https://www.databricks.com/glossary/data-lakehouse",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "Databricks documentation or guide on platform features discussed here."
             }
           ],
           "project": "Package one domain (e.g. Support) as an AI-ready data product: gold tables with an ODCS contract, a semantic-layer metric set, a permission-aware ticket index, an MCP server, 25 example questions and an eval suite. Publish it in the catalog with an owner and SLA, then have a second team's agent consume it without help.",
@@ -1234,7 +1576,8 @@
               "subtopics": [
                 {
                   "id": "d-products-t1-s1",
-                  "title": "Output ports: tables, metrics, index, tools"
+                  "title": "Output ports: tables, metrics, index, tools",
+                  "text": "Output ports are the interfaces a product offers: tables, metrics, an index or tools."
                 },
                 {
                   "id": "d-products-t1-s2",
@@ -1246,7 +1589,8 @@
                 },
                 {
                   "id": "d-products-t1-s4",
-                  "title": "Example questions and eval set"
+                  "title": "Example questions and eval set",
+                  "text": "Example questions and an eval set show consumers what the product answers reliably."
                 },
                 {
                   "id": "d-products-t1-s5",
@@ -1261,7 +1605,8 @@
               "subtopics": [
                 {
                   "id": "d-products-t2-s1",
-                  "title": "Domain ownership"
+                  "title": "Domain ownership",
+                  "text": "The team that produces the data owns its quality, documentation and support."
                 },
                 {
                   "id": "d-products-t2-s2",
@@ -1269,7 +1614,8 @@
                 },
                 {
                   "id": "d-products-t2-s3",
-                  "title": "Global standards as code"
+                  "title": "Global standards as code",
+                  "text": "Encode global rules (naming, security, quality) as automated checks applied to every product."
                 },
                 {
                   "id": "d-products-t2-s4",
@@ -1288,11 +1634,13 @@
               "subtopics": [
                 {
                   "id": "d-products-t3-s1",
-                  "title": "Consumption telemetry"
+                  "title": "Consumption telemetry",
+                  "text": "Measure who calls each data product and how often."
                 },
                 {
                   "id": "d-products-t3-s2",
-                  "title": "Agent task success by product"
+                  "title": "Agent task success by product",
+                  "text": "Track whether agent tasks using a product succeed more often, a direct measure of its value."
                 },
                 {
                   "id": "d-products-t3-s3",
@@ -1304,7 +1652,8 @@
                 },
                 {
                   "id": "d-products-t3-s5",
-                  "title": "Deprecation decisions"
+                  "title": "Deprecation decisions",
+                  "text": "Retire products with little use or value, with notice to consumers."
                 }
               ]
             }
@@ -1346,7 +1695,31 @@
           ],
           "conceptIds": [
             "agent-data-arch"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Data mesh treats data like a product owned by the domain team that knows it best. An AI-ready data product publishes not just tables but everything an agent needs: metrics, a search index, tools, a contract with SLOs, an owner, example questions and an eval set. This lets agents across the company use data without a central bottleneck.",
+            "how": [
+              "Define output ports: tables, metrics, a retrieval index and agent tools (for example an MCP server).",
+              "Publish a contract with SLOs, an owner and support channel.",
+              "Include example questions and an eval set showing what the product can answer.",
+              "Certify products against platform standards (security, quality, documentation).",
+              "Measure consumption, agent task success, SLO attainment and cost; deprecate unused products."
+            ],
+            "example": "Product value: the 'Customer 360' data product costs $8,000 a month to run. Telemetry shows 9 agents call it 400,000 times a month, with tasks using it succeeding 91% of the time against 74% for tasks that bypass it. That justifies the cost and suggests routing the bypassing agents to it.",
+            "mistakes": [
+              "Publishing tables with no owner, contract or SLA.",
+              "A central team trying to model every domain.",
+              "No consumption telemetry, so nobody knows what's used."
+            ],
+            "enterprise": "A bank's payments domain team publishes a 'Payments' data product with certified metrics, a dispute-policy index and a read-only MCP tool. Fraud, support and finance agents all use it, and the domain team is on call for its SLOs.",
+            "takeaways": [
+              "Domains own and publish data as products.",
+              "AI-ready = tables + metrics + index + tools + contract + evals.",
+              "Measure use and value."
+            ],
+            "diagram": "flowchart LR\n  DOM[Domain team] --> DP[Data product]\n  DP --> T[(Tables)]\n  DP --> M[Metrics]\n  DP --> IX[(Index)]\n  DP --> TL[MCP tools]\n  DP --> C[Contract + SLOs + evals]\n  PLAT[Self-serve platform + standards] -.-> DP\n  T --> AG[Agents]\n  M --> AG\n  IX --> AG\n  TL --> AG",
+            "diagramAlt": "Diagram: a domain team publishes a data product with tables, metrics, an index, MCP tools and a contract with SLOs and evals, on a self-serve platform with standards, consumed by agents."
+          }
         },
         {
           "id": "d-memory",
@@ -1356,15 +1729,24 @@
           "resources": [
             {
               "title": "LangGraph memory concepts",
-              "url": "https://langchain-ai.github.io/langgraph/concepts/memory/"
+              "url": "https://langchain-ai.github.io/langgraph/concepts/memory/",
+              "kind": "docs",
+              "level": "reference",
+              "why": "Project documentation; the authoritative description of the spec or tool."
             },
             {
               "title": "Letta (MemGPT) docs",
-              "url": "https://docs.letta.com/"
+              "url": "https://docs.letta.com/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Letta (MemGPT) docs that complements the Agent Memory, Feedback and Write-Back Data lesson with another author's explanation and examples."
             },
             {
               "title": "OpenTelemetry GenAI semantic conventions",
-              "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+              "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/",
+              "kind": "spec",
+              "level": "reference",
+              "why": "OpenTelemetry documentation and semantic conventions; the vendor-neutral standard for traces."
             }
           ],
           "project": "Add long-term memory to an agent with a typed schema (fact, source run, confidence, expiry, scope). Implement view/delete for users, a nightly job that expires and deduplicates memories, and a pipeline that turns thumbs-down traces into redacted eval cases. Show that a deleted memory no longer influences answers.",
@@ -1380,7 +1762,8 @@
                 },
                 {
                   "id": "d-memory-t1-s2",
-                  "title": "Typed memory records"
+                  "title": "Typed memory records",
+                  "text": "Give each memory a type, source, owner, scope and expiry instead of storing free-form text."
                 },
                 {
                   "id": "d-memory-t1-s3",
@@ -1392,7 +1775,8 @@
                 },
                 {
                   "id": "d-memory-t1-s5",
-                  "title": "User view/delete rights"
+                  "title": "User view/delete rights",
+                  "text": "Users should be able to see and delete what the agent remembers about them."
                 }
               ]
             },
@@ -1407,11 +1791,13 @@
                 },
                 {
                   "id": "d-memory-t2-s2",
-                  "title": "Explicit and implicit feedback"
+                  "title": "Explicit and implicit feedback",
+                  "text": "Explicit feedback is a rating or comment; implicit feedback includes edits, retries and abandonment."
                 },
                 {
                   "id": "d-memory-t2-s3",
-                  "title": "Linking feedback to context"
+                  "title": "Linking feedback to context",
+                  "text": "Store feedback with the exact prompt, context and versions so it can be analyzed and reused."
                 },
                 {
                   "id": "d-memory-t2-s4",
@@ -1419,7 +1805,8 @@
                 },
                 {
                   "id": "d-memory-t2-s5",
-                  "title": "Consent for training use"
+                  "title": "Consent for training use",
+                  "text": "Only use user data for training when users have agreed and policy allows."
                 }
               ]
             },
@@ -1438,7 +1825,8 @@
                 },
                 {
                   "id": "d-memory-t3-s3",
-                  "title": "Run-to-write audit links"
+                  "title": "Run-to-write audit links",
+                  "text": "Record the agent run ID on every write so you can trace any record back to the decision that made it."
                 },
                 {
                   "id": "d-memory-t3-s4",
@@ -1446,7 +1834,8 @@
                 },
                 {
                   "id": "d-memory-t3-s5",
-                  "title": "Human reversal as a quality signal"
+                  "title": "Human reversal as a quality signal",
+                  "text": "When humans undo agent actions, that's a strong signal of errors worth reviewing."
                 }
               ]
             }
@@ -1488,7 +1877,31 @@
           ],
           "conceptIds": [
             "agent-data-arch"
-          ]
+          ],
+          "lesson": {
+            "intuition": "Agents don't just read data, they create it: memories about users, traces of what they did, feedback, and writes to business systems. If that data isn't governed, it becomes a privacy and accuracy liability. Treat agent-generated data as first-class datasets with schemas, scopes, retention, consent and audit links.",
+            "how": [
+              "Store memories as typed records (fact, preference, episode, procedure) scoped to user and tenant, with sources and expiry.",
+              "Capture traces with redaction, and link feedback to the exact context and versions.",
+              "Mine failures into eval sets, and use data for training only with consent.",
+              "Write to systems of record only through validated APIs with idempotency keys and audit links from run to write.",
+              "Reconcile regularly, and treat human reversals as quality signals."
+            ],
+            "example": "Reconciliation: an agent created 1,240 purchase-order drafts this week. A nightly job compares agent run logs with the ERP: 1,236 match, 3 drafts were deleted by humans (reversal signal) and 1 run logged a write that never landed. The missing write is retried using its idempotency key; the reversals are reviewed for a pattern.",
+            "mistakes": [
+              "Untyped, unscoped memory blobs.",
+              "Feedback stored without the context that produced it.",
+              "Agent writes with no link back to the run and no reconciliation."
+            ],
+            "enterprise": "A real-estate company's leasing agent stores tenant preferences as typed, expiring facts, keeps traces 60 days with PII redacted, and writes lease drafts to its property system with run IDs; a weekly report shows reversal rates by agent version.",
+            "takeaways": [
+              "Agent-created data is governed data.",
+              "Link feedback and writes to runs and versions.",
+              "Reconcile and learn from reversals."
+            ],
+            "diagram": "flowchart LR\n  AG[Agent run] --> MEM[(Typed memory: scoped, expiring)]\n  AG --> TR[(Redacted traces)]\n  U[User feedback] --> FB[(Feedback linked to context)]\n  AG --> API[Validated write API + idempotency key]\n  API --> SOR[(System of record)]\n  SOR --> REC[Reconciliation job]\n  AG -.run id.-> REC\n  REC --> SIG[Reversal / mismatch signals]",
+            "diagramAlt": "Diagram: an agent run writes typed memories, redacted traces and validated writes to a system of record; user feedback is linked to context; a reconciliation job compares runs and writes to produce reversal and mismatch signals."
+          }
         }
       ]
     },
@@ -1504,15 +1917,24 @@
           "resources": [
             {
               "title": "Google SRE: Service Level Objectives",
-              "url": "https://sre.google/sre-book/service-level-objectives/"
+              "url": "https://sre.google/sre-book/service-level-objectives/",
+              "kind": "book",
+              "level": "intermediate",
+              "why": "Google's SRE books, freely online; the canonical source for SLOs, error budgets and incident practice."
             },
             {
               "title": "Monte Carlo: What is data observability",
-              "url": "https://www.montecarlodata.com/blog-what-is-data-observability/"
+              "url": "https://www.montecarlodata.com/blog-what-is-data-observability/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "An external guide on Monte Carlo: What is data observability that complements the Data Ops for Agent Fleets lesson with another author's explanation and examples."
             },
             {
               "title": "FinOps Foundation: FinOps for AI",
-              "url": "https://www.finops.org/wg/finops-for-ai-overview/"
+              "url": "https://www.finops.org/wg/finops-for-ai-overview/",
+              "kind": "framework",
+              "level": "intermediate",
+              "why": "FinOps Foundation guidance; shared vocabulary and practices for cloud cost management."
             }
           ],
           "project": "Define freshness, availability and quality SLOs for three data products used by agents. Build a dashboard with per-agent warehouse/search/embedding cost, simulate a bad data load, and run a game day: detect it, use lineage to list affected agent runs, pause dependent agents and write the post-incident review.",
@@ -1528,7 +1950,8 @@
                 },
                 {
                   "id": "d-fleetdata-t1-s2",
-                  "title": "Tiered SLO targets"
+                  "title": "Tiered SLO targets",
+                  "text": "Not all data is equally critical; set stricter targets for data that drives autonomous actions."
                 },
                 {
                   "id": "d-fleetdata-t1-s3",
@@ -1540,7 +1963,8 @@
                 },
                 {
                   "id": "d-fleetdata-t1-s5",
-                  "title": "Autonomy tied to data tier"
+                  "title": "Autonomy tied to data tier",
+                  "text": "Only let agents act without approval when the data they rely on is within its SLO."
                 }
               ]
             },
@@ -1551,15 +1975,18 @@
               "subtopics": [
                 {
                   "id": "d-fleetdata-t2-s1",
-                  "title": "Dedicated compute and quotas"
+                  "title": "Dedicated compute and quotas",
+                  "text": "Give agent workloads their own compute or quotas so they don't slow other users."
                 },
                 {
                   "id": "d-fleetdata-t2-s2",
-                  "title": "Result caching and pre-aggregation"
+                  "title": "Result caching and pre-aggregation",
+                  "text": "Cache common results and pre-aggregate popular metrics to cut repeated queries."
                 },
                 {
                   "id": "d-fleetdata-t2-s3",
-                  "title": "Query tagging by agent and tenant"
+                  "title": "Query tagging by agent and tenant",
+                  "text": "Tag each query with the agent and tenant so costs and load can be attributed."
                 },
                 {
                   "id": "d-fleetdata-t2-s4",
@@ -1582,7 +2009,8 @@
                 },
                 {
                   "id": "d-fleetdata-t3-s2",
-                  "title": "Lineage-driven blast radius"
+                  "title": "Lineage-driven blast radius",
+                  "text": "Lineage shows which agents and tasks consumed bad data so you can pause and re-run only those."
                 },
                 {
                   "id": "d-fleetdata-t3-s3",
@@ -1590,7 +2018,8 @@
                 },
                 {
                   "id": "d-fleetdata-t3-s4",
-                  "title": "Backfill and task re-run"
+                  "title": "Backfill and task re-run",
+                  "text": "Record which tasks used which data versions so affected tasks can be re-run automatically."
                 },
                 {
                   "id": "d-fleetdata-t3-s5",
@@ -1637,7 +2066,31 @@
           "conceptIds": [
             "cdc-freshness",
             "agentops-loop"
-          ]
+          ],
+          "lesson": {
+            "intuition": "When hundreds of agents depend on the same data, data operations become production SRE. Data needs its own SLOs and error budgets, agents need isolated compute so one can't slow the rest, costs must be attributed per agent, and bad-data incidents need a playbook: detect, find the blast radius with lineage, pause dependent agents, fix and re-run.",
+            "how": [
+              "Define SLIs for data (freshness, quality, availability) with tiered targets by criticality.",
+              "Tie agent autonomy to data tier: agents act autonomously only on data meeting its SLO.",
+              "Isolate load with dedicated compute or quotas, cache results, and tag queries by agent and tenant.",
+              "Report data cost per agent and per task.",
+              "Run incident playbooks: detect, use lineage for blast radius, pause dependent agents, backfill, re-run affected tasks, review."
+            ],
+            "example": "Error budget for freshness: a tier-1 dataset promises freshness under 15 minutes 99.5% of the time. In a 30-day month (43,200 minutes) the budget is 216 minutes of stale data. A 3-hour pipeline outage uses 180 of them, so the team freezes risky pipeline changes for the rest of the month and adds a standby path.",
+            "mistakes": [
+              "No data SLOs, so agents silently use stale data.",
+              "Agents sharing warehouse compute with heavy batch jobs.",
+              "No way to find and re-run tasks affected by bad data."
+            ],
+            "enterprise": "A logistics company tags every agent query with agent ID and tenant. When a bad currency-conversion table hit 37 agents, lineage identified them in minutes, they were paused, the table fixed, and 2,300 affected tasks were re-run automatically.",
+            "takeaways": [
+              "Data SLOs and error budgets, tiered by criticality.",
+              "Isolate, cache and attribute cost per agent.",
+              "Lineage-driven incident response."
+            ],
+            "diagram": "flowchart LR\n  DATA[(Datasets with SLIs)] --> SLO{SLO met?}\n  SLO -->|yes| AUTO[Agents act autonomously]\n  SLO -->|no| RO[Agents read-only / paused]\n  INC[Bad data detected] --> LIN[Lineage: blast radius]\n  LIN --> PAUSE[Pause dependent agents]\n  PAUSE --> FIX[Fix + backfill]\n  FIX --> RERUN[Re-run affected tasks]\n  RERUN --> PIR[Post-incident review]",
+            "diagramAlt": "Diagram: datasets with SLIs gate whether agents act autonomously or go read-only; bad-data incidents use lineage to find the blast radius, pause agents, fix and backfill, re-run tasks and review."
+          }
         }
       ]
     }
