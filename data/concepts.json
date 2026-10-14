@@ -683,5 +683,31 @@
     "body": "A degradation chain defines what happens when the preferred model is unavailable, too slow, or too expensive. Each tier has a trigger: errors, timeouts, rate limits, or a budget threshold from a cost kill switch. Lower tiers are cheaper and usually worse, so each tier has its own eval score, and you choose which features may degrade. For example, summaries can drop to a local model, but legal answers should abstain instead.\n\nCommon mistakes: fallbacks that are never tested, correlated providers (two models on the same cloud region), and silent degradation. Tell users, log the tier, and run chaos drills.\n\nMental model: a circuit breaker plus a price ladder.",
     "mermaid": "flowchart LR\n  R[Request] --> C{Semantic cache hit?}\n  C -->|yes| OUT[Response]\n  C -->|no| F[Frontier]\n  F -->|ok| OUT\n  F -->|error / timeout / budget| M[Mid-tier]\n  M -->|ok| OUT\n  M -->|fail| L[Local model]\n  L -->|ok| OUT\n  L -->|fail| D[Canned answer + degraded notice]\n  OUT --> LOG[(Tier, cost, quality logs)]",
     "example": "1M requests per month × 1,000 tokens = 1B tokens. All frontier at $10/M = $10,000. In degraded mode after the 80% budget kill switch: 30% cache hits ($0), 50% mid-tier at $1/M (0.5B tokens = $500), 20% frontier for critical features (0.2B = $2,000), total $2,500, 75% cheaper. Availability with independent failures, frontier 2% and mid 1%: both down 0.02 × 0.01 = 0.02% of the time, and the local tier covers that."
+  },
+  {
+    "id": "fde-gate",
+    "title": "FDE Pilot-to-Production Gate",
+    "trackHints": [
+      "architect",
+      "backend",
+      "trust"
+    ],
+    "summary": "A single go/no-go gate where value evidence, security, residency, legal, procurement and operational readiness are checked together, all planned from week 1 of the pilot.",
+    "body": "Enterprise pilots rarely fail on the demo. They stall at the gate between 'it works' and 'we accept the risk'. The gate has five inputs that run in parallel with the build: (1) value evidence, meaning eval results and pilot metrics against the SOW's baseline and thresholds; (2) security, meaning the questionnaire, architecture review, data-flow diagram and evidence pack; (3) data residency and legal, meaning regional design, DPA, sub-processors and SCCs; (4) procurement, meaning vendor onboarding, insurance and pricing approval; and (5) operations, meaning runbook, on-call, monitoring, rollback and kill switch. Each input has an owner on both sides and a due date.\n\nCommon mistakes: starting security review after the pilot, gates negotiated at the end instead of written in the SOW, and data-flow diagrams that leave out the model provider or logs.\n\nMental model: a launch checklist with five parallel tracks that converge on one date.",
+    "mermaid": "flowchart LR\n  SOW[\"SOW: thresholds + gates\"] --> B[\"Pilot build\"]\n  SOW --> SEC[\"Security review\"]\n  SOW --> RES[\"Residency + legal\"]\n  SOW --> PRO[\"Procurement\"]\n  SOW --> OPS[\"Ops readiness\"]\n  B --> EV[\"Eval + pilot metrics\"]\n  EV --> G{\"Go / no-go\"}\n  SEC --> G\n  RES --> G\n  PRO --> G\n  OPS --> G\n  G -->|\"go\"| PROD[\"Production\"]\n  G -->|\"no-go\"| FIX[\"Fix + re-review\"]",
+    "example": "A 6-week pilot has five tracks. If each track starts at the end of the pilot and they run one after another (security 4 weeks, legal 4, procurement 3, ops 1), go-live slips to week 6 + 12 = week 18. Run in parallel from week 1, the longest track (4 weeks) finishes before the pilot ends, so go-live is week 6–7. That is 11–12 weeks sooner, and for a $40k/month benefit it's about $110k–120k of value not lost to waiting."
+  },
+  {
+    "id": "enterprise-integration-map",
+    "title": "Enterprise Integration Map",
+    "trackHints": [
+      "architect",
+      "backend",
+      "data"
+    ],
+    "summary": "One diagram and table listing every user, identity provider, network path, system, data object, action and credential an AI system uses. It's the artefact security, IT and the FDE share.",
+    "body": "An integration map makes an AI deployment reviewable. Rows are integrations: system (ServiceNow, Salesforce, SAP, SharePoint), network path (SaaS over TLS, site-to-site VPN, private endpoint, outbound connector), authentication (SSO for users; OAuth client credentials, on-behalf-of or a technical user for services), objects and actions allowed (read incident, write work notes), rate limits, data classification and the owner on the customer side. The diagram shows trust boundaries and where data crosses them, including model providers and logs. Every agent tool maps to exactly one row, and every row is enforced in code and logged.\n\nCommon mistakes: admin integration users, undocumented 'temporary' VPNs, tools that call systems not on the map, and missing rate-limit planning.\n\nMental model: a building's floor plan plus key register. Every door, which key opens it, and who holds the key.",
+    "mermaid": "flowchart LR\n  U[\"Users\"] -->|\"SAML / OIDC\"| IDP[\"IdP\"]\n  IDP --> AI[\"AI assistant\"]\n  AI -->|\"TLS, OAuth, scoped\"| SN[\"ServiceNow\"]\n  AI -->|\"TLS, OAuth, scoped\"| SF[\"Salesforce\"]\n  AI -->|\"outbound connector\"| SAP[\"SAP (on-prem)\"]\n  AI -->|\"zero-retention endpoint, EU\"| LLM[\"Model provider\"]\n  AI --> LOG[(\"Audit log, EU\")]",
+    "example": "A support assistant's map has 5 rows: ServiceNow (read incident, write 2 fields, about 6,000 calls/day), Salesforce (read Account, about 4,000 of a 100,000-call daily limit), SAP via an outbound connector (read sales orders), the model provider (EU endpoint, zero retention) and the audit log (EU, 1-year retention). The security review found one tool calling a SharePoint search that wasn't on the map. It was blocked until a row with a read-only site scope was added and approved."
   }
 ]
