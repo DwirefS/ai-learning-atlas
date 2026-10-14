@@ -17,8 +17,10 @@ def subjects():
     for t in cur["tracks"]:
         for l in t["levels"]: yield from l["subjects"]
 S = list(subjects()); errs = []
+V10 = {"b-", "a-discovery", "a-pilot", "a-entint", "a-adoption", "a-roi"}
 for s in S:
     L = s["lesson"]; sid = s["id"]
+    if sid.startswith("b-") or sid in V10: continue   # owned by build_v10
     if sid in CASES:
         L["case"] = dict(CASES[sid]); L["enterpriseLabel"] = "Illustrative scenario"
     else:
