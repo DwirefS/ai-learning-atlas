@@ -8,7 +8,7 @@
   const RANKS=[[0,'Curious Novice 🌱'],[200,'Apprentice ⚙️'],[600,'Practitioner 🧩'],[1500,'Engineer 🚀'],[3000,'Architect 🏔️'],[6000,'Atlas Master 🌌']];
   function rank(xp){let r=RANKS[0][1];for(const [m,n] of RANKS) if(xp>=m) r=n; return r;}
   const HERO = new Proxy({}, {get:(_,k)=>`<img class="svg-hero" src="assets/img/hero-${k}.svg" alt="${k} illustration" loading="lazy"/>`});
-  const ICONS={shared:'◎',architect:'✦',engineer:'⚒',inference:'⚡',infra:'▣',agentic:'✶',data:'⛁',trust:'⛨'};
+  const ICONS={shared:'◎',architect:'✦',engineer:'⚒',inference:'⚡',infra:'▣',agentic:'✶',data:'⛁',trust:'⛨',backend:'⌘'};
 
   function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"done":{},"xp":0,"streak":0,"last":null}');}catch(e){return {done:{},xp:0,streak:0,last:null};}}
   function save(){localStorage.setItem(LS,JSON.stringify(state.progress));}

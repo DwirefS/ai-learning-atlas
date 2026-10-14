@@ -1426,6 +1426,163 @@
             "enterpriseLabel": "Illustrative scenario",
             "conceptual": true
           }
+        },
+        {
+          "id": "a-discovery",
+          "title": "FDE Discovery, Requirements and Scoping to an SOW",
+          "why": "Most failed AI engagements fail at scoping: a vague goal, no baseline, no owner and no definition of done. A crisp statement of work with success metrics is the FDE's first deliverable.",
+          "explainer": "Discovery turns 'we want AI for support' into a scoped, measurable engagement. Shadow the workflow, map who does what and where the time goes, collect real examples (including the ugly ones), find the data and systems involved, and identify the economic buyer, the day-to-day owner and the blockers (security, legal, works council).\n\nThen write it down as a statement of work (SOW): objectives, in-scope and out-of-scope items, deliverables, milestones, assumptions, customer dependencies, acceptance criteria tied to metrics with a baseline, and a change-control process. A good SOW protects both sides and makes the pilot's success provable.",
+          "resources": [
+            {
+              "title": "The Mom Test",
+              "url": "https://www.momtestbook.com/",
+              "kind": "book",
+              "level": "intro",
+              "why": "Rob Fitzpatrick's rules for customer conversations: talk about their life and past behaviour, not your idea. Essential for discovery interviews."
+            },
+            {
+              "title": "HBR: Know Your Customers' 'Jobs to Be Done'",
+              "url": "https://hbr.org/2016/09/know-your-customers-jobs-to-be-done",
+              "kind": "article",
+              "level": "intro",
+              "why": "Christensen, Hall, Dillon and Duncan explain how understanding the job a customer hires a product for makes innovation less hit-or-miss."
+            },
+            {
+              "title": "Google: Rules of Machine Learning",
+              "url": "https://developers.google.com/machine-learning/guides/rules-of-ml",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Martin Zinkevich's best practices, including launching with simple heuristics, designing and implementing metrics first, and choosing objectives you can measure."
+            },
+            {
+              "title": "Anthropic: Building effective agents",
+              "url": "https://www.anthropic.com/engineering/building-effective-agents",
+              "kind": "guide",
+              "level": "intro",
+              "why": "Helps scope the solution: start with the simplest workflow that meets the requirement, and add agentic autonomy only where it's needed."
+            }
+          ],
+          "project": "Run a mock discovery for an 'AI support assistant': interview notes, a workflow map with time per step, 50 labelled example tickets, a stakeholder map, and a two-page SOW with baseline metrics, acceptance criteria and change control.",
+          "topics": [
+            {
+              "id": "a-discovery-disc",
+              "title": "Discovery that finds the real problem",
+              "explainer": "Customers describe solutions ('we need a chatbot'). Discovery finds the job behind them ('resolve password and billing tickets without an agent touching them'). Ask about past behaviour, not hypotheticals: what happened last week, how long it took, what it cost. Shadow the work and time each step. Collect 50–200 real examples, because they become your eval set. Map the systems (ticketing, CRM, knowledge base, identity) and the data each step uses. Map the people too: an executive sponsor with budget, a process owner, the users, IT and security, and anyone who can veto. End discovery with a written problem statement the sponsor agrees with.",
+              "subtopics": [
+                {
+                  "id": "a-discovery-disc-s1",
+                  "title": "Jobs to be done",
+                  "text": "Frame the goal as the outcome the user is trying to achieve, not the feature they asked for."
+                },
+                {
+                  "id": "a-discovery-disc-s2",
+                  "title": "Ask about past behaviour",
+                  "text": "'Walk me through the last time…' gives facts; 'would you use…' gives polite fiction."
+                },
+                {
+                  "id": "a-discovery-disc-s3",
+                  "title": "Workflow and time mapping",
+                  "text": "Shadow users and time each step; the biggest time sink is usually the best first target."
+                },
+                {
+                  "id": "a-discovery-disc-s4",
+                  "title": "Stakeholder map",
+                  "text": "Name the sponsor, owner, users, security reviewer and potential vetoes before writing a line of code."
+                }
+              ]
+            },
+            {
+              "id": "a-discovery-sow",
+              "title": "Scoping to a statement of work",
+              "explainer": "The SOW is the contract for the engagement's content. State the objective in one sentence with a metric, for example 'deflect 30% of tier-1 tickets at CSAT ≥ 4.2'. List deliverables, what is explicitly out of scope, milestones and dates, and the customer's dependencies (API access, SSO tenant, sample data, a named owner and response times). Record assumptions that, if false, change the plan. Define acceptance criteria as measurable thresholds against a baseline captured before the work starts. Add a change-control process so new requests become explicit trade-offs rather than silent scope creep.",
+              "subtopics": [
+                {
+                  "id": "a-discovery-sow-s1",
+                  "title": "Objective and success metrics",
+                  "text": "One outcome metric with a baseline and target, plus guardrail metrics such as CSAT, accuracy and cost."
+                },
+                {
+                  "id": "a-discovery-sow-s2",
+                  "title": "In scope and out of scope",
+                  "text": "Explicit exclusions prevent the pilot from becoming a platform rebuild."
+                },
+                {
+                  "id": "a-discovery-sow-s3",
+                  "title": "Dependencies and assumptions",
+                  "text": "Customer-owned prerequisites with dates; assumptions that trigger re-planning if false."
+                },
+                {
+                  "id": "a-discovery-sow-s4",
+                  "title": "Acceptance criteria and change control",
+                  "text": "Measurable sign-off thresholds and a lightweight process for scope changes."
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "A customer says 'we need a chatbot'. Best discovery question?",
+              "choices": [
+                "'Walk me through the last 5 tickets your team handled and how long each took'",
+                "'Would you like a chatbot?'",
+                "'Which model do you prefer?'",
+                "'How big should the context window be?'"
+              ],
+              "answer": 0,
+              "why": "Past behaviour reveals the real job and the baseline."
+            },
+            {
+              "q": "Which belongs in an SOW's acceptance criteria?",
+              "choices": [
+                "'Deflect ≥30% of tier-1 tickets with CSAT ≥4.2 over 4 weeks, versus the baseline'",
+                "'The AI should be good'",
+                "'Use the latest model'",
+                "'Make users happy'"
+              ],
+              "answer": 0,
+              "why": "Acceptance must be measurable against a baseline."
+            },
+            {
+              "q": "Mid-pilot, the customer asks to add Spanish support. What should happen?",
+              "choices": [
+                "Run it through change control: assess impact, then agree to adjust scope, dates or price",
+                "Quietly add it",
+                "Refuse all changes",
+                "Drop English to make room"
+              ],
+              "answer": 0,
+              "why": "Change control turns scope creep into an explicit trade-off."
+            }
+          ],
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "Discovery is a doctor's appointment, not a sales demo. You ask what hurts, when it started and what was tried, and you run tests before prescribing. The SOW is the treatment plan both of you sign: what will be done, what won't, how you'll know it worked, and what happens if the symptoms change.",
+            "how": [
+              "Interview about past behaviour and shadow the workflow; time each step.",
+              "Collect real examples and map systems, data and stakeholders.",
+              "Write a one-sentence objective with a baseline metric and target.",
+              "Draft the SOW: scope, exclusions, deliverables, milestones, dependencies, assumptions, acceptance criteria and change control.",
+              "Get the sponsor and owner to sign off before building."
+            ],
+            "example": "Discovery at a 300-agent support centre: 42,000 tickets a month, average handle time 9.5 minutes, and 31% are 'where is my order' or password resets. The SOW objective: 'Resolve 25% of tier-1 tickets end to end with an AI assistant at CSAT ≥4.2 (baseline 4.3) within 8 weeks.' Acceptance is measured over 4 weeks on live traffic against the baseline period. The customer provides Zendesk API access, the Okta tenant and a named process owner by week 1. Out of scope: voice and non-English languages.",
+            "conceptual": true,
+            "mistakes": [
+              "Accepting the customer's solution ('a chatbot') as the requirement.",
+              "No baseline captured before work starts, so success can't be proven.",
+              "Missing out-of-scope list and change control.",
+              "Not identifying the security reviewer and other vetoes early."
+            ],
+            "enterprise": "A global manufacturer's 'AI for procurement' request becomes, after two weeks of shadowing, a narrow SOW: classify and route incoming supplier invoices with exceptions to humans. With a baseline of 6.1 minutes per invoice and a named AP owner, the pilot has a clear finish line, unlike the previous vendor's open-ended proof of concept.",
+            "takeaways": [
+              "Find the job behind the request through past behaviour and shadowing.",
+              "Real examples from discovery become the eval set.",
+              "An SOW needs a baselined metric, exclusions, dependencies and change control.",
+              "Map stakeholders and vetoes before you build."
+            ],
+            "diagram": "flowchart LR\n  I[\"Interviews (past behaviour)\"] --> W[\"Workflow + time map\"]\n  W --> EX[\"50-200 real examples\"]\n  W --> ST[\"Stakeholder + systems map\"]\n  EX --> BL[\"Baseline metrics\"]\n  ST --> SOW[\"SOW: objective, scope, exclusions, deliverables, dependencies, acceptance, change control\"]\n  BL --> SOW\n  SOW --> SIGN[\"Sponsor + owner sign-off\"]",
+            "diagramAlt": "Discovery flow: interviews about past behaviour feed a workflow and time map, which produces real examples and a stakeholder and systems map. Examples give baseline metrics; together they feed an SOW covering objective, scope, exclusions, deliverables, dependencies, acceptance and change control, which the sponsor and owner sign off.",
+            "enterpriseLabel": "Illustrative scenario"
+          }
         }
       ]
     },
@@ -2261,6 +2418,346 @@
             "lang": "python",
             "code": "# Size a deployment from traffic: peak concurrency via Little's law.\ndaily_requests = 200_000\npeak_factor = 3.0                       # peak hour vs average hour\navg_latency_s = 6.0                     # end-to-end per request\nrps_peak = daily_requests / 86_400 * peak_factor\nconcurrency = rps_peak * avg_latency_s  # L = lambda * W\nper_replica = 32                        # concurrent sequences one replica sustains at SLO (measure it)\nreplicas = -(-concurrency // per_replica) + 1   # ceil + 1 for headroom/failover\nprint(f\"peak {rps_peak:.1f} rps -> {concurrency:.0f} in flight -> {replicas:.0f} replicas\")"
           }
+        },
+        {
+          "id": "a-pilot",
+          "title": "Pilot to Production: Security Review, Data Residency and Procurement",
+          "why": "Most enterprise AI pilots stall between 'the demo works' and 'it's in production'. The gate is security, legal and procurement, and FDEs who plan for it from day one ship.",
+          "explainer": "A pilot proves value on a small scope; production requires the organisation to accept the risk. Expect a security questionnaire (often based on SIG, CAIQ or a custom form), evidence such as a SOC 2 Type II report or ISO 27001 certificate, and an architecture review covering data flows, encryption, identity, logging and model-provider data use. Legal will want a DPA, data residency commitments and sometimes standard contractual clauses for transfers. Procurement brings vendor onboarding, insurance and pricing approvals.\n\nPlan the gate from the start: collect evidence early, design for residency and zero data retention, and agree production criteria in the SOW.",
+          "resources": [
+            {
+              "title": "CSA Cloud Controls Matrix (CCM)",
+              "url": "https://cloudsecurityalliance.org/research/cloud-controls-matrix",
+              "kind": "framework",
+              "level": "reference",
+              "why": "CSA's cloud control framework: 197 control objectives in 17 domains, with the CAIQ questionnaire used in many vendor security reviews."
+            },
+            {
+              "title": "AICPA: SOC suite of services",
+              "url": "https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2",
+              "kind": "reference",
+              "level": "intro",
+              "why": "AICPA's overview of System and Organization Controls reports, including SOC 2, the attestation most enterprise security teams request from SaaS vendors."
+            },
+            {
+              "title": "European Commission: Standard Contractual Clauses",
+              "url": "https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/standard-contractual-clauses-scc_en",
+              "kind": "reference",
+              "level": "reference",
+              "why": "The Commission's page on SCCs under the GDPR for transferring personal data from controllers or processors in the EU/EEA to third countries."
+            },
+            {
+              "title": "AWS Well-Architected Generative AI Lens",
+              "url": "https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "A production-readiness checklist across security, reliability, cost and operations for generative AI workloads. Useful structure for the readiness pack."
+            },
+            {
+              "title": "OpenAI: Morgan Stanley customer story",
+              "url": "https://openai.com/index/morgan-stanley/",
+              "kind": "case",
+              "level": "intro",
+              "why": "How evals, daily regression tests and zero data retention helped Morgan Stanley take advisor AI tools from pilot to firm-wide use with over 98% adoption."
+            }
+          ],
+          "project": "Build a 'production readiness pack' for an AI assistant: data-flow diagram, completed CAIQ-style questionnaire, residency and retention design, eval report, runbook and rollback plan. Run a mock security review.",
+          "topics": [
+            {
+              "id": "a-pilot-sec",
+              "title": "Passing the security and architecture review",
+              "explainer": "Reviewers want to know what data goes where, who can access it and what happens when things go wrong. Bring a data-flow diagram that marks every system, region and trust boundary, including the model provider. Explain identity (SSO, SCIM, least-privilege service accounts), encryption in transit and at rest, key management, logging and retention, prompt-injection and data-exfiltration controls, and incident response. Have evidence ready: SOC 2 Type II report, penetration test summary, sub-processor list and the model provider's data-use terms (for example zero data retention). Answer questionnaires precisely; vague answers trigger follow-ups that cost weeks.",
+              "subtopics": [
+                {
+                  "id": "a-pilot-sec-s1",
+                  "title": "Data-flow diagram",
+                  "text": "Every hop, region and trust boundary, including model providers and logging."
+                },
+                {
+                  "id": "a-pilot-sec-s2",
+                  "title": "Evidence pack",
+                  "text": "SOC 2 Type II or ISO 27001, pen-test summary, sub-processors and policies, ready before asked."
+                },
+                {
+                  "id": "a-pilot-sec-s3",
+                  "title": "Questionnaires (CAIQ, SIG)",
+                  "text": "Standardized control questions; precise, consistent answers shorten review cycles."
+                },
+                {
+                  "id": "a-pilot-sec-s4",
+                  "title": "AI-specific controls",
+                  "text": "Prompt-injection defences, output filtering, no training on customer data and human approval for risky actions."
+                }
+              ]
+            },
+            {
+              "id": "a-pilot-legal",
+              "title": "Residency, legal and procurement",
+              "explainer": "Data residency means data (and often processing) stays in a specified jurisdiction such as the EU. Design for it: regional deployments, regional model endpoints, regional logs and backups, and no silent cross-region fallbacks. Legal artefacts typically include a data processing agreement (DPA), a sub-processor list and, for EU-to-third-country transfers, standard contractual clauses. Procurement covers vendor risk onboarding, insurance, security addenda, pricing approval and sometimes an AI-specific risk assessment. Put these on the project plan in week 1 with owners on both sides, because they run on calendar time, not engineering time.",
+              "subtopics": [
+                {
+                  "id": "a-pilot-legal-s1",
+                  "title": "Data residency by design",
+                  "text": "Regional compute, model endpoints, storage, logs and backups, with tested failover inside the region."
+                },
+                {
+                  "id": "a-pilot-legal-s2",
+                  "title": "DPA and transfer mechanisms",
+                  "text": "Data processing agreement, sub-processor list and SCCs when data leaves the EU/EEA."
+                },
+                {
+                  "id": "a-pilot-legal-s3",
+                  "title": "Procurement and vendor onboarding",
+                  "text": "Vendor risk forms, insurance, pricing approval and contract redlines on a parallel track."
+                },
+                {
+                  "id": "a-pilot-legal-s4",
+                  "title": "Production criteria",
+                  "text": "Agree go-live gates (eval thresholds, runbook, on-call, rollback) in the SOW, not at the end."
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "When should the security review start?",
+              "choices": [
+                "In week 1, in parallel with the pilot build",
+                "After the pilot succeeds",
+                "Only if the customer asks",
+                "After go-live"
+              ],
+              "answer": 0,
+              "why": "Reviews take calendar time; starting late is the main reason pilots stall."
+            },
+            {
+              "q": "An EU customer requires residency. Which design detail most often breaks it?",
+              "choices": [
+                "A silent fallback to a US model endpoint or US log storage",
+                "Using TLS",
+                "Using SSO",
+                "Having a runbook"
+              ],
+              "answer": 0,
+              "why": "Fallbacks, logs and backups are where data quietly leaves the region."
+            },
+            {
+              "q": "What evidence do security teams most commonly ask a SaaS vendor for?",
+              "choices": [
+                "A SOC 2 Type II report (or ISO 27001 certificate)",
+                "The model's parameter count",
+                "A product demo video",
+                "The team's GitHub stars"
+              ],
+              "answer": 0,
+              "why": "Independent attestation of controls is the standard starting point."
+            }
+          ],
+          "conceptIds": [
+            "fde-gate"
+          ],
+          "lesson": {
+            "intuition": "A pilot is a test drive; production is buying the car for the whole fleet. The test drive only needs a road and a driver. The fleet purchase needs inspections, insurance, a warranty and finance approval. FDEs who book the inspections on day one of the test drive are the ones whose cars actually get bought.",
+            "how": [
+              "Agree production criteria (evals, security, residency, ops) in the SOW.",
+              "Start security, legal and procurement tracks in week 1 with named owners.",
+              "Produce a data-flow diagram and an evidence pack early.",
+              "Design residency, retention and model-provider data use explicitly.",
+              "Hold a go/no-go review against the agreed gates; ship with a runbook and rollback plan."
+            ],
+            "example": "A 6-week pilot plan: weeks 1–6 build, while in parallel the security questionnaire (190 questions) is answered in week 1–2, the architecture review happens in week 3, the DPA and SCCs are negotiated in weeks 2–5 and procurement onboarding runs in weeks 1–4. Go/no-go is in week 6 against the gates: eval pass rate ≥ 0.9 on 300 cases, no high-risk findings open, EU-only data flows verified, runbook and on-call signed off. Starting these tracks at week 6 instead would typically add 8–12 weeks.",
+            "conceptual": true,
+            "mistakes": [
+              "Treating security review as a final step after the pilot.",
+              "Data-flow diagrams that omit the model provider, logs or backups.",
+              "Cross-region fallbacks that silently break residency commitments.",
+              "No agreed go-live gates, so 'production' is an endless negotiation."
+            ],
+            "enterprise": "A healthcare network's pilot succeeded clinically but waited four months for review because the vendor couldn't say where prompts were logged. The next deployment led with a data-flow diagram, regional logging, a signed BAA and zero-retention model endpoints, and passed review in three weeks.",
+            "takeaways": [
+              "Production is a risk decision; plan the gates from day one.",
+              "Bring a data-flow diagram and an evidence pack before you're asked.",
+              "Residency covers compute, model endpoints, logs and backups.",
+              "Run security, legal and procurement in parallel with the build."
+            ],
+            "diagram": "flowchart LR\n  P[\"Pilot build (weeks 1-6)\"] --> G{\"Go / no-go gate\"}\n  S[\"Security questionnaire + architecture review\"] --> G\n  L[\"DPA, SCCs, residency design\"] --> G\n  PR[\"Procurement + vendor onboarding\"] --> G\n  E[\"Eval report vs SOW thresholds\"] --> G\n  G -->|\"pass\"| PROD[\"Production + runbook + on-call\"]\n  G -->|\"fail\"| FIX[\"Fix findings, re-review\"]",
+            "diagramAlt": "The pilot build runs in parallel with the security questionnaire and architecture review, legal work on the DPA, SCCs and residency, procurement onboarding, and an eval report. All feed a go/no-go gate; passing leads to production with a runbook and on-call, and failing leads to fixing findings and re-review.",
+            "enterpriseLabel": "Illustrative scenario",
+            "case": {
+              "org": "Morgan Stanley",
+              "title": "Morgan Stanley uses AI evals to shape the future of financial services (OpenAI customer story)",
+              "url": "https://openai.com/index/morgan-stanley/",
+              "summary": "Morgan Stanley Wealth Management built an internal GPT-4 assistant for financial advisors and tested every AI use case with an evaluation framework before deployment, graded by advisors and prompt engineers. Daily regression tests of sample questions supported compliance, and OpenAI's zero data retention policy addressed the question of whether firm data would train public models. The firm reports over 98% adoption among advisor teams, with document access rising from 20% to 80%.",
+              "lesson": "Evals plus clear answers to the data-use question are what move a pilot through risk review to firm-wide use. Adoption follows trust."
+            }
+          }
+        },
+        {
+          "id": "a-entint",
+          "title": "Enterprise Integration: SSO, VPN/On-Prem and SAP, Salesforce and ServiceNow",
+          "why": "Agents create value only when they can read and act in the systems where work happens. In enterprises those are SSO-protected, often on-prem, and run on SAP, Salesforce and ServiceNow.",
+          "explainer": "Enterprise integration is a set of recurring problems. Identity: users sign in with corporate SSO (SAML or OIDC), are provisioned with SCIM, and agents call systems on their behalf with scoped tokens. Network: many systems sit on-prem or in private networks, reachable only through site-to-site VPN, private endpoints or an on-prem connector or agent that dials out. Systems of record: Salesforce (REST, Bulk and Streaming APIs), ServiceNow (Table API, Scripted REST, business rules and webhooks) and SAP (OData APIs via the SAP Business Accelerator Hub, often through SAP BTP).\n\nEach has rate limits, permission models and change processes you must respect.",
+          "resources": [
+            {
+              "title": "Microsoft Entra ID: What is single sign-on?",
+              "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/what-is-single-sign-on",
+              "kind": "docs",
+              "level": "intro",
+              "why": "Microsoft's overview of SSO for enterprise apps in Entra ID, covering SAML, OpenID Connect and password-based options and how to choose between them."
+            },
+            {
+              "title": "RFC 7644: SCIM protocol",
+              "url": "https://www.rfc-editor.org/rfc/rfc7644",
+              "kind": "spec",
+              "level": "reference",
+              "why": "The HTTP protocol for System for Cross-domain Identity Management: creating, updating, deactivating and querying users and groups across domains."
+            },
+            {
+              "title": "Azure VPN Gateway overview",
+              "url": "https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways",
+              "kind": "docs",
+              "level": "intermediate",
+              "why": "How a VPN gateway connects on-prem networks to cloud networks with IPsec/IKE site-to-site, VNet-to-VNet and point-to-site tunnels."
+            },
+            {
+              "title": "SAP Business Accelerator Hub",
+              "url": "https://api.sap.com/",
+              "kind": "reference",
+              "level": "reference",
+              "why": "SAP's catalog of APIs (OData, SOAP, REST), pre-packaged integrations, business services and samples for S/4HANA and other SAP products."
+            },
+            {
+              "title": "ServiceNow Table API (REST API reference)",
+              "url": "https://www.servicenow.com/docs/bundle/zurich-api-reference/page/integrate/inbound-rest/concept/c_TableAPI.html",
+              "kind": "docs",
+              "level": "reference",
+              "why": "ServiceNow's documentation for the Table API, which performs create, read, update and delete operations on tables such as incident. (The page renders with JavaScript; the content is known from the docs.)"
+            }
+          ],
+          "project": "Design and prototype an integration map for a support assistant: Okta SSO and SCIM, a ServiceNow incident read/write tool, a Salesforce account lookup, an SAP order-status OData call through an on-prem connector, with scoped credentials and an audit log.",
+          "topics": [
+            {
+              "id": "a-entint-net",
+              "title": "Identity and network paths",
+              "explainer": "Start with identity, because everything else depends on it. Integrate the customer's IdP for user login, map groups to roles, and use SCIM for lifecycle. For system-to-system calls, prefer OAuth client credentials or on-behalf-of tokens with minimal scopes over shared passwords, and store secrets in a vault. Network paths come next. Cloud SaaS is reachable over the internet with IP allow-lists. Private systems need a site-to-site VPN, private connectivity such as PrivateLink or ExpressRoute, or an outbound-only on-prem connector, which security teams usually prefer because no inbound ports open. Document every path in the integration map.",
+              "subtopics": [
+                {
+                  "id": "a-entint-net-s1",
+                  "title": "SSO and SCIM",
+                  "text": "Corporate login via SAML or OIDC; automatic provisioning and deprovisioning via SCIM."
+                },
+                {
+                  "id": "a-entint-net-s2",
+                  "title": "Service identities and scopes",
+                  "text": "OAuth client credentials or on-behalf-of tokens with least privilege; secrets in a vault, rotated."
+                },
+                {
+                  "id": "a-entint-net-s3",
+                  "title": "VPN and private connectivity",
+                  "text": "Site-to-site IPsec VPN or private endpoints for systems not on the internet."
+                },
+                {
+                  "id": "a-entint-net-s4",
+                  "title": "Outbound-only connectors",
+                  "text": "An agent or connector inside the network dials out to your service, so no inbound firewall holes are needed."
+                }
+              ]
+            },
+            {
+              "id": "a-entint-sor",
+              "title": "Integrating systems of record",
+              "explainer": "Salesforce exposes REST and SOAP APIs, a Bulk API for large data loads and streaming events, with per-org API limits and object- and field-level security that your integration user inherits. ServiceNow's Table API reads and writes records such as incidents, and business rules or outbound REST messages can notify you of changes. SAP systems expose OData and SOAP services, discoverable in the SAP Business Accelerator Hub, often fronted by SAP BTP or an integration platform. Across all three: use a dedicated integration user with minimal permissions, respect API limits with backoff, write back through official APIs only, and log every agent action for audit.",
+              "subtopics": [
+                {
+                  "id": "a-entint-sor-s1",
+                  "title": "Salesforce APIs",
+                  "text": "REST for records, Bulk for volume, Streaming or Change Data Capture for events; mind per-org API limits."
+                },
+                {
+                  "id": "a-entint-sor-s2",
+                  "title": "ServiceNow Table API and events",
+                  "text": "CRUD on tables such as incident; business rules and outbound REST for change notifications."
+                },
+                {
+                  "id": "a-entint-sor-s3",
+                  "title": "SAP OData and BTP",
+                  "text": "OData services described in the Business Accelerator Hub, often reached through BTP or middleware."
+                },
+                {
+                  "id": "a-entint-sor-s4",
+                  "title": "Integration users and audit",
+                  "text": "Dedicated least-privilege users per system, and an audit log of every read and write by the agent."
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Security forbids opening inbound firewall ports to an on-prem SAP system. Common solution?",
+              "choices": [
+                "An outbound-only connector inside the network that dials out to your service",
+                "Expose SAP directly to the internet",
+                "Ask users to email exports",
+                "Disable the firewall during business hours"
+              ],
+              "answer": 0,
+              "why": "Outbound-only connectors avoid inbound exposure."
+            },
+            {
+              "q": "Your Salesforce integration hits API limits during a nightly sync. Better approach?",
+              "choices": [
+                "Use the Bulk API or Change Data Capture instead of record-by-record REST calls",
+                "Create more integration users to bypass limits",
+                "Retry instantly in a loop",
+                "Ignore the errors"
+              ],
+              "answer": 0,
+              "why": "Bulk and event APIs are designed for volume within limits."
+            },
+            {
+              "q": "How should an agent write a work note to a ServiceNow incident?",
+              "choices": [
+                "Through the official Table API with a least-privilege integration user, logged for audit",
+                "By editing the database directly",
+                "With an admin password stored in the prompt",
+                "By screen-scraping the UI as an admin"
+              ],
+              "answer": 0,
+              "why": "Use supported APIs, least privilege and audit logging."
+            }
+          ],
+          "conceptIds": [
+            "enterprise-integration-map"
+          ],
+          "lesson": {
+            "intuition": "Integrating with an enterprise is like getting a contractor badge for a large office campus. First you need an identity (SSO), then a way in through the right gate (VPN or a connector), then permission to enter specific rooms (scoped integration users), and finally you must use the official forms in each department (SAP, Salesforce, ServiceNow APIs), with every visit signed in the logbook.",
+            "how": [
+              "Draw the integration map: users, IdP, network paths, systems, data and actions.",
+              "Set up SSO, SCIM and scoped service identities first.",
+              "Choose network paths: SaaS over TLS with allow-lists, private systems via VPN, private endpoints or outbound connectors.",
+              "Build one tool per system action through official APIs, respecting limits and permissions.",
+              "Log every agent read and write, and test with the customer's admins."
+            ],
+            "example": "A support assistant needs four integrations. Okta OIDC handles login, with SCIM for users. ServiceNow Table API reads incidents and writes work notes, as integration user svc_ai_triage with write access to only two fields. Salesforce REST looks up account tier, about 4,000 calls a day against a 100,000-call org limit. SAP order status comes from an S/4HANA OData service through an outbound connector in the customer's data centre. The integration map, scopes and audit log are in the security pack.",
+            "lang": "python",
+            "code": "# An integration map as data + a check that every tool call is scoped, logged and uses an approved network path.\nINTEGRATIONS = {\n  \"servicenow\": {\"path\": \"saas-tls\", \"auth\": \"oauth-client-credentials\", \"user\": \"svc_ai_triage\",\n                 \"allow\": {(\"incident\", \"read\"), (\"incident.work_notes\", \"write\")}},\n  \"salesforce\": {\"path\": \"saas-tls\", \"auth\": \"oauth-jwt-bearer\", \"user\": \"svc_ai_lookup\", \"allow\": {(\"Account\", \"read\")},\n                 \"daily_limit\": 100_000},\n  \"sap_s4\": {\"path\": \"outbound-connector\", \"auth\": \"oauth-client-credentials\", \"user\": \"SVC_AI_ORDERS\",\n             \"allow\": {(\"A_SalesOrder\", \"read\")}},\n}\nAPPROVED_PATHS = {\"saas-tls\", \"outbound-connector\", \"site-to-site-vpn\"}\nAUDIT, USAGE = [], {}\ndef call(system, obj, action, user, **kw):\n    cfg = INTEGRATIONS[system]\n    if cfg[\"path\"] not in APPROVED_PATHS: raise PermissionError(\"unapproved network path\")\n    if (obj, action) not in cfg[\"allow\"]: raise PermissionError(f\"{system}: {action} on {obj} not allowed\")\n    USAGE[system] = USAGE.get(system, 0) + 1\n    if USAGE[system] > cfg.get(\"daily_limit\", float(\"inf\")): raise RuntimeError(\"API limit reached; back off\")\n    AUDIT.append({\"on_behalf_of\": user, \"system\": system, \"as\": cfg[\"user\"], \"obj\": obj, \"action\": action, **kw})\n    return f\"ok: {system}.{obj}.{action}\"\nprint(call(\"servicenow\", \"incident\", \"read\", \"ana@corp.example\", id=\"INC0012\"))\nprint(call(\"servicenow\", \"incident.work_notes\", \"write\", \"ana@corp.example\", id=\"INC0012\"))\ntry: call(\"servicenow\", \"incident.state\", \"write\", \"ana@corp.example\", id=\"INC0012\")\nexcept PermissionError as e: print(\"blocked:\", e)\nprint(call(\"sap_s4\", \"A_SalesOrder\", \"read\", \"ana@corp.example\", id=\"4500012\"))\nprint(len(AUDIT), \"audited actions\")",
+            "mistakes": [
+              "Integration users with admin rights 'to save time'.",
+              "Opening inbound ports to on-prem systems instead of using outbound connectors or VPN.",
+              "Record-by-record API loops that exhaust Salesforce or ServiceNow limits.",
+              "Writing directly to databases or scraping UIs instead of using official APIs."
+            ],
+            "enterprise": "A utility's field-ops assistant needed SAP PM work orders that lived on-prem. The customer's network team rejected a VPN into their core zone but approved an outbound connector in a DMZ, reaching three OData services with a read-only technical user. The integration map became the reference for two later AI projects.",
+            "takeaways": [
+              "Identity first: SSO, SCIM and scoped service identities.",
+              "Pick a network path security can accept; outbound connectors are often easiest.",
+              "Use official APIs with least-privilege integration users and respect limits.",
+              "Audit every agent action across systems."
+            ],
+            "diagram": "flowchart LR\n  U[\"Employee\"] -->|\"SSO (SAML / OIDC)\"| IDP[\"Okta / Entra\"]\n  IDP -->|\"tokens + SCIM\"| APP[\"AI assistant\"]\n  APP -->|\"Table API, scoped user\"| SN[\"ServiceNow\"]\n  APP -->|\"REST / Bulk, scoped user\"| SF[\"Salesforce\"]\n  APP <-->|\"outbound connector\"| CON[\"On-prem connector\"]\n  CON -->|\"OData\"| SAP[\"SAP S/4HANA (on-prem)\"]\n  APP --> AUD[(\"Audit log\")]",
+            "diagramAlt": "An employee signs in through Okta or Entra with SAML or OIDC; the IdP issues tokens and SCIM provisioning to the AI assistant. The assistant calls ServiceNow's Table API and Salesforce REST or Bulk APIs with scoped users, reaches an on-prem SAP S/4HANA system over OData via an outbound connector, and writes every action to an audit log.",
+            "enterpriseLabel": "Illustrative scenario"
+          }
         }
       ]
     },
@@ -2933,6 +3430,335 @@
             "enterpriseLabel": "Illustrative scenario",
             "lang": "python",
             "code": "# Product metrics for an agent, computed from conversation outcomes.\nconvos = [\n  {\"resolved\": True,  \"escalated\": False, \"minutes\": 1.5, \"repeat_within_7d\": False},\n  {\"resolved\": True,  \"escalated\": False, \"minutes\": 2.0, \"repeat_within_7d\": True},\n  {\"resolved\": False, \"escalated\": True,  \"minutes\": 6.0, \"repeat_within_7d\": False},\n  {\"resolved\": True,  \"escalated\": False, \"minutes\": 1.0, \"repeat_within_7d\": False},\n]\nn = len(convos)\nprint(\"resolution rate\", sum(c[\"resolved\"] for c in convos)/n)\nprint(\"escalation rate\", sum(c[\"escalated\"] for c in convos)/n)\nprint(\"repeat-contact rate\", sum(c[\"repeat_within_7d\"] for c in convos)/n)\nprint(\"avg handle minutes\", sum(c[\"minutes\"] for c in convos)/n)"
+          }
+        },
+        {
+          "id": "a-adoption",
+          "title": "Change Management, Adoption and Stakeholder Communication",
+          "why": "A deployed assistant nobody uses has zero ROI. Adoption is designed: champions, training, workflow fit, feedback loops and steady communication with every stakeholder.",
+          "explainer": "AI changes how people work, so it triggers the usual change dynamics (fear of replacement, distrust, habit) plus new ones (unpredictable outputs, unclear accountability). Change models help structure the work. Prosci's ADKAR (Awareness, Desire, Knowledge, Ability, Reinforcement) looks at the individual; Kotter's 8 steps look at the organisation.\n\nIn practice: embed the tool in the existing workflow rather than a new tab, recruit champions in each team, train with real tasks, make feedback one click, publish what changed because of feedback, and measure usage and outcomes by team. Communicate on a rhythm: weekly to the working team, monthly to sponsors, and with clear messages about what the AI does and doesn't do.",
+          "resources": [
+            {
+              "title": "Prosci: The ADKAR Model",
+              "url": "https://www.prosci.com/methodology/adkar",
+              "kind": "framework",
+              "level": "intro",
+              "why": "Prosci's research-based individual change model (Awareness, Desire, Knowledge, Ability, Reinforcement), used to diagnose where people are stuck."
+            },
+            {
+              "title": "Kotter: The 8-Step Process for Leading Change",
+              "url": "https://www.kotterinc.com/methodology/8-steps/",
+              "kind": "framework",
+              "level": "intro",
+              "why": "John Kotter's organisational change framework, from creating a sense of urgency and building a guiding coalition to anchoring new approaches in the culture."
+            },
+            {
+              "title": "Microsoft HAX Toolkit",
+              "url": "https://www.microsoft.com/en-us/haxtoolkit/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "Guidelines for human-AI interaction (set expectations, support correction, explain behaviour) that directly affect whether users trust and adopt an assistant."
+            },
+            {
+              "title": "OpenAI: Morgan Stanley customer story",
+              "url": "https://openai.com/index/morgan-stanley/",
+              "kind": "case",
+              "level": "intro",
+              "why": "How Morgan Stanley reached over 98% adoption among advisor teams, with evals, human review of outputs and clear data-use commitments building trust."
+            }
+          ],
+          "project": "Write an adoption plan for an AI assistant rolling out to 400 support agents: stakeholder map with messages, champion network, training plan, in-workflow feedback, an adoption dashboard and a 90-day communication calendar.",
+          "topics": [
+            {
+              "id": "a-adoption-change",
+              "title": "Designing for adoption",
+              "explainer": "People adopt tools that make their day easier and that they trust. Put the AI where work already happens (inside the ticketing tool, CRM or IDE), not in a separate portal. Explain clearly what it does, where it's weak, and that the human stays accountable. Recruit champions, respected peers who get early access and help shape the tool. Train with real scenarios from the users' own queue. Address job-security fears directly with leadership messaging about how roles will change. Use ADKAR to diagnose stalls: low usage with high awareness often means low ability (training) or low reinforcement (no follow-up).",
+              "subtopics": [
+                {
+                  "id": "a-adoption-change-s1",
+                  "title": "In-workflow placement",
+                  "text": "Embed AI in the tools people already use; every extra click costs adoption."
+                },
+                {
+                  "id": "a-adoption-change-s2",
+                  "title": "Champions network",
+                  "text": "Respected peers in each team get early access, give feedback and coach colleagues."
+                },
+                {
+                  "id": "a-adoption-change-s3",
+                  "title": "Training with real tasks",
+                  "text": "Short, hands-on sessions using the team's own cases beat generic demos."
+                },
+                {
+                  "id": "a-adoption-change-s4",
+                  "title": "ADKAR diagnosis",
+                  "text": "Find which stage (awareness, desire, knowledge, ability or reinforcement) is the bottleneck for each group."
+                }
+              ]
+            },
+            {
+              "id": "a-adoption-comms",
+              "title": "Stakeholder communication and feedback loops",
+              "explainer": "Different stakeholders need different messages. Executives want outcomes against the business case. Process owners want workflow impact and risks. Users want 'what's in it for me' and how to get help. Security and legal want evidence of control. Set a cadence: a weekly working-team update, a monthly steering readout with metrics, and release notes users actually see. Close the loop on feedback: thumbs-down and comments become triaged issues, fixes ship, and you tell users what changed because of them. Report adoption honestly, broken down by team, along with the outcome metrics; vanity totals hide where the rollout is failing.",
+              "subtopics": [
+                {
+                  "id": "a-adoption-comms-s1",
+                  "title": "Stakeholder-specific messages",
+                  "text": "Outcomes for executives, workflow for owners, benefits and help for users, controls for risk teams."
+                },
+                {
+                  "id": "a-adoption-comms-s2",
+                  "title": "Communication cadence",
+                  "text": "Weekly team updates, monthly steering readouts and visible release notes."
+                },
+                {
+                  "id": "a-adoption-comms-s3",
+                  "title": "Closing the feedback loop",
+                  "text": "Triage feedback, ship fixes and announce 'you said, we did'."
+                },
+                {
+                  "id": "a-adoption-comms-s4",
+                  "title": "Adoption metrics by segment",
+                  "text": "Active users, usage per task and outcome metrics by team, not just totals."
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Usage is high in two teams and near zero in three others with the same tool. First step?",
+              "choices": [
+                "Segment metrics by team and interview users to find the ADKAR bottleneck",
+                "Send a company-wide reminder email",
+                "Remove the tool",
+                "Make usage mandatory immediately"
+              ],
+              "answer": 0,
+              "why": "Diagnose why each group is stuck before acting."
+            },
+            {
+              "q": "Where should a new AI assistant live for support agents?",
+              "choices": [
+                "Inside the ticketing tool they already use",
+                "In a separate new portal",
+                "Only in a weekly email",
+                "In a PDF guide"
+              ],
+              "answer": 0,
+              "why": "In-workflow placement removes friction."
+            },
+            {
+              "q": "What turns user feedback into trust?",
+              "choices": [
+                "Visibly shipping fixes and telling users what changed because of their feedback",
+                "Collecting feedback without responding",
+                "Hiding known issues",
+                "Annual surveys only"
+              ],
+              "answer": 0,
+              "why": "Closing the loop shows feedback matters."
+            }
+          ],
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "Rolling out AI is like introducing a new colleague. People need to know what the newcomer is good at, where they make mistakes, and who's still responsible. They warm up faster when respected teammates vouch for them, and when their complaints visibly change how the newcomer works.",
+            "how": [
+              "Map stakeholders and what each needs to hear.",
+              "Embed the tool in existing workflows; recruit champions per team.",
+              "Train with real tasks; set clear expectations about limits and accountability.",
+              "Instrument usage and outcomes by team; diagnose stalls with ADKAR.",
+              "Run a steady communication cadence and close every feedback loop."
+            ],
+            "example": "Rollout to 400 agents in 4 waves of 100. Wave 1 has 12 champions. Week-2 dashboards show 85% weekly active users in two teams but 20% in the night shift. Interviews reveal the night shift was never trained (knowledge) and the tool times out on their VPN (ability). After training and a fix, night-shift usage reaches 70% by week 6. Monthly steering readouts track handle time, down from 9.5 to 7.8 minutes, alongside CSAT.",
+            "conceptual": true,
+            "mistakes": [
+              "Launching in a separate portal no one opens.",
+              "Measuring adoption only as a company-wide total.",
+              "Ignoring job-security concerns instead of addressing them openly.",
+              "Collecting feedback but never showing what changed."
+            ],
+            "enterprise": "An insurer's claims copilot sat at 15% usage after launch. Moving it into the claims system's side panel, naming champions per office and publishing monthly 'you said, we did' notes raised weekly use to 72% in a quarter, and the steering committee extended funding.",
+            "takeaways": [
+              "Adoption is designed, not announced.",
+              "Embed AI in existing workflows and use champions.",
+              "Segment adoption metrics and diagnose with ADKAR.",
+              "Communicate on a cadence and close feedback loops visibly."
+            ],
+            "diagram": "flowchart LR\n  SM[\"Stakeholder map + messages\"] --> PL[\"Pilot wave with champions\"]\n  PL --> TR[\"Training on real tasks\"]\n  TR --> USE[\"In-workflow usage\"]\n  USE --> FB[\"One-click feedback\"]\n  FB --> FIX[\"Fixes shipped\"]\n  FIX --> NOTE[\"You said, we did\"]\n  NOTE --> USE\n  USE --> DASH[\"Adoption + outcome dashboard by team\"]\n  DASH --> ST[\"Monthly steering readout\"]",
+            "diagramAlt": "Adoption loop: a stakeholder map leads to a pilot wave with champions, training on real tasks and in-workflow usage. One-click feedback becomes shipped fixes announced as 'you said, we did', feeding back into usage. Usage feeds an adoption and outcome dashboard by team, reported in a monthly steering readout.",
+            "enterpriseLabel": "Illustrative scenario",
+            "case": {
+              "org": "Morgan Stanley",
+              "title": "Morgan Stanley uses AI evals to shape the future of financial services (OpenAI customer story)",
+              "url": "https://openai.com/index/morgan-stanley/",
+              "summary": "Morgan Stanley Wealth Management built an internal GPT-4 assistant for financial advisors and tested every AI use case with an evaluation framework before deployment, graded by advisors and prompt engineers. Daily regression tests of sample questions supported compliance, and OpenAI's zero data retention policy addressed the question of whether firm data would train public models. The firm reports over 98% adoption among advisor teams, with document access rising from 20% to 80%.",
+              "lesson": "Evals plus clear answers to the data-use question are what move a pilot through risk review to firm-wide use. Adoption follows trust."
+            }
+          }
+        },
+        {
+          "id": "a-roi",
+          "title": "Measuring Business Impact and ROI",
+          "why": "Budgets for AI renew on evidence. A baseline, a credible comparison and a cost model turn 'users like it' into a business case.",
+          "explainer": "ROI starts before the build: capture a baseline of the metric you'll move (handle time, resolution rate, cycle time, error rate) and its current cost. After launch, compare against that baseline credibly: ideally with a randomized holdout or A/B test, otherwise a staggered rollout or a matched comparison group, and be explicit about seasonality and other confounders. Value is translated into money (hours saved × loaded cost, revenue retained, errors avoided) and weighed against total cost of ownership: model and infrastructure spend, licences, people, integration and ongoing operations.\n\nReport ranges and guardrails (quality, CSAT, risk), not just a headline number.",
+          "resources": [
+            {
+              "title": "Trustworthy Online Controlled Experiments (Kohavi, Tang, Xu)",
+              "url": "https://experimentguide.com/",
+              "kind": "book",
+              "level": "advanced",
+              "why": "The practical guide to A/B tests and holdouts from experimentation leaders at Microsoft, Google and LinkedIn: metrics, pitfalls and trustworthy analysis."
+            },
+            {
+              "title": "GitHub: Quantifying Copilot's impact on developer productivity",
+              "url": "https://github.blog/news-insights/research/research-quantifying-github-copilots-impact-on-developer-productivity-and-happiness/",
+              "kind": "case",
+              "level": "intro",
+              "why": "A randomized controlled experiment with 95 developers showing a 55% faster task completion with a confidence interval. A model for credible AI impact measurement."
+            },
+            {
+              "title": "FinOps Foundation: FinOps for AI",
+              "url": "https://www.finops.org/wg/finops-for-ai-overview/",
+              "kind": "guide",
+              "level": "intermediate",
+              "why": "How to manage AI costs and tokenomics, allocate spend and build unit economics, which are the cost side of the ROI model."
+            },
+            {
+              "title": "Klarna: AI assistant handles two-thirds of customer service chats",
+              "url": "https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/",
+              "kind": "case",
+              "level": "intro",
+              "why": "Company-reported before/after metrics (resolution time, repeat inquiries, estimated profit impact). A useful example of the metrics an ROI readout uses."
+            }
+          ],
+          "project": "Build an ROI model and measurement plan for an AI support assistant: baseline from 8 weeks of ticket data, a 10% holdout design, value and TCO calculations, sensitivity analysis and a one-page executive readout.",
+          "topics": [
+            {
+              "id": "a-roi-measure",
+              "title": "Baselines and credible comparisons",
+              "explainer": "Without a baseline, every number is an anecdote. Before launch, record the outcome metric and its variation over several weeks, plus guardrails such as CSAT, accuracy and escalation rate. The strongest comparison is a randomized holdout: a share of users or tickets stays without AI, so seasonality affects both groups equally. If that isn't possible, use a staggered rollout (teams switch on at different times) or a difference-in-differences comparison against similar teams. Run long enough to cover weekly cycles and novelty effects, and report confidence intervals. Measure outcomes, not usage; usage is an input.",
+              "subtopics": [
+                {
+                  "id": "a-roi-measure-s1",
+                  "title": "Baseline before launch",
+                  "text": "Several weeks of the target and guardrail metrics, with their natural variance."
+                },
+                {
+                  "id": "a-roi-measure-s2",
+                  "title": "Randomized holdout or A/B",
+                  "text": "Keep a control group without AI so trends and seasonality cancel out."
+                },
+                {
+                  "id": "a-roi-measure-s3",
+                  "title": "Staggered rollout and diff-in-diff",
+                  "text": "When randomization isn't possible, compare changes against similar untreated teams."
+                },
+                {
+                  "id": "a-roi-measure-s4",
+                  "title": "Confidence intervals and duration",
+                  "text": "Cover weekly cycles and novelty effects; report uncertainty, not just point estimates."
+                }
+              ]
+            },
+            {
+              "id": "a-roi-model",
+              "title": "Value, total cost and the business case",
+              "explainer": "Translate measured effects into money with explicit assumptions. Time saved × volume × loaded hourly cost gives capacity value; be honest about whether capacity is redeployed or actually reduces cost. Add revenue effects (conversion, retention) and avoided costs (errors, penalties) only with evidence. On the cost side, include model and API spend, infrastructure, vendor licences, build and integration effort, and ongoing run costs (evals, monitoring, support and content upkeep). Compute payback period and ROI, then run a sensitivity analysis on the two or three assumptions that matter most. Present a range and the guardrail metrics alongside the headline.",
+              "subtopics": [
+                {
+                  "id": "a-roi-model-s1",
+                  "title": "Value translation",
+                  "text": "Hours saved × loaded cost, revenue retained and errors avoided, each with a stated assumption."
+                },
+                {
+                  "id": "a-roi-model-s2",
+                  "title": "Total cost of ownership",
+                  "text": "Tokens, infrastructure, licences, build, integration and ongoing operations."
+                },
+                {
+                  "id": "a-roi-model-s3",
+                  "title": "Payback and ROI",
+                  "text": "Payback months = upfront cost ÷ monthly net benefit; ROI = (benefit − cost) ÷ cost."
+                },
+                {
+                  "id": "a-roi-model-s4",
+                  "title": "Sensitivity and guardrails",
+                  "text": "Show how ROI moves with key assumptions, and report quality and risk metrics with it."
+                }
+              ]
+            }
+          ],
+          "quiz": [
+            {
+              "q": "Handle time fell 15% after launch, but it also fell in a team without the tool. What does this suggest?",
+              "choices": [
+                "Part of the drop is a trend or seasonal effect; compare against the control",
+                "The AI caused the full 15%",
+                "The data is wrong",
+                "Stop measuring"
+              ],
+              "answer": 0,
+              "why": "Control groups separate the AI's effect from background change."
+            },
+            {
+              "q": "Which is an outcome metric rather than an input?",
+              "choices": [
+                "Average handle time per ticket",
+                "Number of prompts sent",
+                "Daily active users",
+                "Tokens consumed"
+              ],
+              "answer": 0,
+              "why": "Usage and tokens are inputs; outcomes are what the business pays for."
+            },
+            {
+              "q": "Monthly net benefit is $40k and upfront cost is $200k. Payback period?",
+              "choices": [
+                "5 months",
+                "2 months",
+                "8 months",
+                "40 months"
+              ],
+              "answer": 0,
+              "why": "200,000 ÷ 40,000 = 5."
+            }
+          ],
+          "conceptIds": [],
+          "lesson": {
+            "intuition": "ROI is a before-and-after photo taken from the same angle, in the same light. The baseline is the 'before'. A control group makes sure the light didn't just change on its own. The cost model is the price tag. Executives trust the photo only if you show both pictures, how you took them, and the price.",
+            "how": [
+              "Capture a multi-week baseline of outcome and guardrail metrics.",
+              "Design the comparison: randomized holdout, staggered rollout or diff-in-diff.",
+              "Measure outcomes over enough time and report confidence intervals.",
+              "Translate effects into money with explicit assumptions; build total cost of ownership.",
+              "Compute payback and ROI, run sensitivity analysis, and present a range plus guardrails."
+            ],
+            "example": "Baseline: 42,000 tickets/month, 9.5 min average handle time, $38/hour loaded cost. With a 10% holdout over 8 weeks, AI-assisted tickets average 7.6 min versus 9.4 min in the holdout, a 1.8-minute (19%) effect, with a 95% CI of 1.4–2.2 min. Value: 37,800 assisted tickets × 1.8 min = 1,134 hours ≈ $43,100/month. Costs: $6,000/month for tokens and infrastructure plus $4,000/month to operate, so net ≈ $33,100/month. With $180k upfront, payback is about 5.4 months.",
+            "lang": "python",
+            "code": "import random, statistics, math\n# Holdout-based effect estimate with a bootstrap CI, then value, TCO, payback and a sensitivity table.\nrng = random.Random(42)\nholdout = [max(1, rng.gauss(9.4, 3.0)) for _ in range(4_200)]     # minutes, tickets without AI\ntreated = [max(1, rng.gauss(7.6, 3.0)) for _ in range(37_800)]    # minutes, AI-assisted tickets\neffect = statistics.mean(holdout) - statistics.mean(treated)\nboots = sorted(statistics.mean(rng.choices(holdout, k=800)) - statistics.mean(rng.choices(treated, k=800)) for _ in range(2000))\nlo, hi = boots[50], boots[1949]\nprint(f\"effect {effect:.2f} min/ticket (95% CI ~{lo:.2f}-{hi:.2f})\")\ndef roi(effect_min, tickets=37_800, loaded_hr=38.0, run_cost=10_000, upfront=180_000):\n    value = tickets * effect_min / 60 * loaded_hr\n    net = value - run_cost\n    payback = upfront / net if net > 0 else math.inf\n    return value, net, payback\nv, net, pb = roi(effect)\nprint(f\"value ${v:,.0f}/mo, net ${net:,.0f}/mo, payback {pb:.1f} months\")\nprint(\"sensitivity (effect min -> payback months):\")\nfor e in (lo, effect, hi):\n    print(f\"  {e:.2f} -> {roi(e)[2]:.1f}\")",
+            "mistakes": [
+              "No baseline before launch.",
+              "Attributing all improvement to AI without a control group.",
+              "Reporting usage (prompts, DAU) as impact.",
+              "Leaving ongoing run and people costs out of TCO."
+            ],
+            "enterprise": "A telecom's steering committee had rejected two AI business cases built on vendor benchmarks. The third team ran a 10% randomized holdout for 8 weeks, reported a handle-time effect with confidence intervals, full TCO and a sensitivity table, and got approval to scale to all regions.",
+            "takeaways": [
+              "Baseline first; no baseline, no ROI.",
+              "Use holdouts or staggered rollouts to isolate the AI's effect.",
+              "Measure outcomes, not usage.",
+              "Present value, full TCO, payback, sensitivity and guardrails together."
+            ],
+            "diagram": "flowchart LR\n  BL[\"Baseline (weeks before launch)\"] --> EXP{\"Comparison design\"}\n  EXP --> HO[\"Randomized holdout\"]\n  EXP --> ST[\"Staggered rollout / diff-in-diff\"]\n  HO --> EF[\"Effect + confidence interval\"]\n  ST --> EF\n  EF --> VAL[\"Value: hours x cost, revenue, errors avoided\"]\n  TCO[\"TCO: tokens, infra, licences, build, ops\"] --> ROI[\"ROI, payback, sensitivity\"]\n  VAL --> ROI\n  ROI --> RD[\"Exec readout with guardrails\"]",
+            "diagramAlt": "A baseline captured before launch feeds a comparison design, either a randomized holdout or a staggered rollout with difference-in-differences, producing an effect with a confidence interval. The effect becomes value, which combines with total cost of ownership into ROI, payback and sensitivity, presented in an executive readout with guardrail metrics.",
+            "enterpriseLabel": "Illustrative scenario",
+            "case": {
+              "org": "Klarna",
+              "title": "Klarna AI assistant handles two-thirds of customer service chats in its first month (press release, Feb 2024)",
+              "url": "https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/",
+              "summary": "Klarna reported its AI assistant's first-month impact against its prior human baseline: 2.3 million conversations (two-thirds of customer service chats), work it equated to 700 full-time agents, customer satisfaction on par with human agents, a 25% drop in repeat inquiries, and errands resolved in under 2 minutes versus 11 before. It estimated a $40 million profit improvement in 2024.",
+              "lesson": "An ROI readout pairs volume and speed gains with quality guardrails (satisfaction, repeat contacts) and a money estimate. Treat company-reported figures as claims and build your own controlled measurement."
+            }
           }
         }
       ]
