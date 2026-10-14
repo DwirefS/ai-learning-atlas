@@ -12,6 +12,7 @@ for s in cur["shared_core"]["subjects"]+[s for t in cur["tracks"] for l in t["le
 for c in con: titles.append(c["title"])
 for c in con: units.append(("concept:"+c["id"],c["title"]+" "+c["summary"]+" "+c["body"]+" "+c["example"]))
 for p in cur.get("projects",[]): units.append(("project:"+p["id"],json.dumps(p)))
+for k,c in cur.get("capstones",{}).items(): units.append(("capstone:"+k,json.dumps(c))); titles.append(c["title"])
 rows=[];out=sys.argv[1] if len(sys.argv)>1 else str(ROOT/"docs/coverage_audit.csv")
 for topic,rx,st,src in ITEMS:
     r=re.compile(rx,re.I); hits=[(u,len(r.findall(t))) for u,t in units if r.search(t)]

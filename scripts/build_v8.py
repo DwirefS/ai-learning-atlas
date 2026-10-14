@@ -19,6 +19,7 @@ def subjects():
         for l in t["levels"]: yield from l["subjects"]
 S=list(subjects()); errs=[]
 for s in S:
+    if s["id"] not in LES: continue   # added by a later build (v10+)
     L=dict(LES[s["id"]]); subs=L.pop("subs")
     for t in s["topics"]:
         for st in t["subtopics"]:

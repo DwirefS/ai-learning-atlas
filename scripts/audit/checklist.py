@@ -177,3 +177,6 @@ ITEMS=[
 import sys as _s; from pathlib import Path as _P; _s.path.insert(0,str(_P(__file__).resolve().parents[1]/"v7"))
 from content7 import AUDIT_ITEMS as _AI
 ITEMS+= [(t,rx,"practitioner roadmap",src) for t,rx,src in _AI]
+_s.path.insert(0,str(_P(__file__).resolve().parents[1]/"v10"))
+from extras10 import AUDIT as _A10, SRC as _SRC10
+ITEMS+= [(t,rx,"practitioner roadmap",_SRC10) for t,rx in _A10]
