@@ -1,4 +1,4 @@
-# Sapient Edge — AI Learning Atlas (v9)
+# Sapient Edge — AI Learning Atlas (v10)
 
 **A free, offline "Khan Academy for AI engineering", centered on agentic AI.** 129 full lessons, each with an intuition, a step-by-step walkthrough, a diagram, a worked example, runnable code (or a note that it is conceptual), common mistakes, a real sourced case study where one exists (otherwise a labelled illustrative scenario), key takeaways, a quiz with explanations, and annotated resources. There are 11 interactive explainers. Mastery levels go Familiar → Proficient → Mastered.
 
@@ -16,29 +16,55 @@ Everything is centered on agentic AI and on the data engineering agents depend o
 
 ## At a glance
 
-| | v3 | v7 | v8 | v9 |
-|---|---|---|---|---|
-| Full lessons (intuition, how, diagram, example, mistakes, enterprise, takeaways, quiz, annotated resources) | – | – | **129** | 129 |
-| Per-lesson diagrams (with alt text) | – | 0 | **129** | 129 |
-| Interactive explainers (dependency-free JS/SVG) | – | – | **11** | 11 |
-| Subtopic explanations | – | 0 | **782** | 782 |
-| Annotated resources (why + level) | – | 0 | **275** | 275 (page-specific) |
-| Words of teaching content (curriculum JSON) | – | 82,537 | **151,084** | **166,637** |
-| Real case studies with verified source URL | – | – | – | **44** (31 sources) |
-| Lessons with code (Python 96, YAML 13, bash 5, SQL 2, Rego 1) | – | – | 2 | **117** |
-| Lessons marked conceptual (no code by design) | – | – | – | **12** |
-| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** | 13 | 13 |
-| Tracks (+ Shared Core) | 5 | **7** | 7 | 7 |
-| Subjects | 91 | **129** | 129 | 129 |
-| Topics (each with its own explainer) | 198 | **328** | 328 | 328 |
-| Subtopics | 990 | **1,644** | 1,644 | 1,644 |
-| Quiz questions (≥3 per subject, with explanations) | 283 | **412** | 412 | 412 |
-| Unique resource URLs (link-checked) | 130 | **275** | 275 | 275 |
-| Concept cards (diagram + worked example) | 41 | **57** | 57 | 57 |
-| Capstone projects | 6 | **8** | 8 | 8 |
-| Project ladder builds (4 tiers) | – | **28** | 28 | 28 |
-| Learning paths | 5 | **7** | 7 | 7 |
-| Glossary terms | 104 | **143** | 143 | 143 |
+| | v3 | v7 | v8 | v9 | v10 |
+|---|---|---|---|---|---|
+| Full lessons (intuition, how, diagram, example, mistakes, enterprise, takeaways, quiz, annotated resources) | – | – | **129** | 129 | **146** |
+| Per-lesson diagrams (with alt text) | – | 0 | **129** | 129 | **146** |
+| Interactive explainers (dependency-free JS/SVG) | – | – | **11** | 11 | 11 |
+| Subtopic explanations | – | 0 | **782** | 782 | **918** |
+| Annotated resources (why + level) | – | 0 | **275** | 275 (page-specific) | **349** unique (602 entries) |
+| Words of teaching content (curriculum JSON) | – | 82,537 | **151,084** | **166,637** | **192,676** |
+| Real case studies with verified source URL | – | – | – | **44** (31 sources) | **56** (41 sources) |
+| Lessons with code (v10: Python 109, YAML 13, bash 6, SQL 2, Rego 1) | – | – | 2 | **117** | **131** |
+| Lessons marked conceptual (no code by design) | – | – | – | **12** | **15** |
+| Role cards (mission, day-to-day, skills, tools, interview signals, capstone, mapped curriculum) | – | **13** | 13 | 13 | 13 |
+| Tracks (+ Shared Core) | 5 | **7** | 7 | 7 | **8** |
+| Subjects | 91 | **129** | 129 | 129 | **146** |
+| Topics (each with its own explainer) | 198 | **328** | 328 | 328 | **362** |
+| Subtopics | 990 | **1,644** | 1,644 | 1,644 | **1,780** |
+| Quiz questions (≥3 per subject, with explanations) | 283 | **412** | 412 | 412 | **463** |
+| Unique resource URLs (link-checked) | 130 | **275** | 275 | 275 | **349** |
+| Concept cards (diagram + worked example) | 41 | **57** | 57 | 57 | **59** |
+| Capstone projects | 6 | **8** | 8 | 8 | **9** |
+| Project ladder builds (4 tiers) | – | **28** | 28 | 28 | 28 |
+| Learning paths | 5 | **7** | 7 | 7 | **8** |
+| Glossary terms | 104 | **143** | 143 | 143 | **159** |
+
+## What's new in v10: backend foundations and FDE engagement craft
+
+Source: Dhanush N, "Forward Deployed Engineer: The Ultimate Roadmap". A coverage grep against it found gaps in PostgreSQL, MongoDB, webhooks, DSA and SAML, and thin coverage of GraphQL, SOWs and change management. v10 fills them at the full v9 lesson bar.
+
+- **New track: Backend & Software Foundations (12 lessons, L1–L4).**
+  - Python and TypeScript; DSA; Git, Linux and the CLI; debugging.
+  - REST vs GraphQL vs gRPC; PostgreSQL (indexing, transactions, pgvector); MongoDB and document stores.
+  - OAuth2, OIDC, SAML SSO, RBAC and ABAC; caching, queues and background jobs; webhooks and event-driven integration.
+  - API design and versioning; rate limits, retries, timeouts and idempotency.
+- **Five FDE engagement-craft lessons in the Architect track.**
+  - Discovery, requirements and SOW scoping with success metrics.
+  - Pilot to production: security review, data residency and procurement.
+  - Enterprise integration: SSO, VPN/on-prem, SAP, Salesforce and ServiceNow.
+  - Change management, adoption and stakeholder communication.
+  - ROI baseline and business impact.
+- **Two new concept cards:** the FDE pilot-to-production gate and the enterprise integration map.
+- **12 new real case studies,** each with a verified source URL: Dropbox, Cloudflare, GitLab, GitHub, Notion, Discord, Slack, Stripe (×2), Morgan Stanley (×2) and Klarna. The other 5 new lessons use labelled illustrative scenarios.
+- **New FDE capstone:** ship an AI support assistant into an existing product, with SSO, a ticketing integration, evals and an ROI report.
+- **Mapping and coverage.**
+  - Role mappings updated: FDE, AI Engineer, Data Engineer, Solutions Architect and Product.
+  - The Universal path now includes all 17 new lessons.
+  - New untimed path: "Forward Deployed Engineer (Dhanush N roadmap)" (33 steps, 11 sections).
+  - 16 new glossary terms.
+  - 34 attributed roadmap topics added to `docs/coverage_audit.csv`. All 34 are covered.
+- Build: `python3 scripts/build_v10.py` (runs build_v9 → … → v3, then adds the v10 content from `scripts/v10/`).
 
 ## What's new in v9: real cases, real code, real annotations
 
@@ -125,7 +151,8 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 | `index.html` | App shell (curriculum + concepts embedded) |
 | `assets/js/app.js` | UI logic (routes, lessons, mastery, XP/badges) |
 | `assets/js/widgets.js` | 11 interactive explainers (no dependencies) |
-| `scripts/build_v9.py` | Current build: runs build_v8, then adds case studies, code or conceptual flags and page-specific resource notes, validates them, re-embeds `index.html` |
+| `scripts/build_v10.py` | Current build: runs build_v9, then adds the Backend track, FDE craft lessons, concepts, capstone, paths, roles and glossary from `scripts/v10/`, validates the full lesson bar, re-embeds `index.html` |
+| `scripts/build_v9.py` | v9 build: runs build_v8, then adds case studies, code or conceptual flags and page-specific resource notes, validates them, re-embeds `index.html` |
 | `scripts/v9/test_snippets.py` | Syntax-checks and runs the lesson code snippets |
 | `scripts/qa/qa9.py` | Headless-Chrome QA of all lessons (desktop + mobile) |
 | `scripts/build_v8.py` | v8 build: runs the v7→v3 chain, merges `scripts/v8/lessons/*` and resource notes, validates the lesson bar, re-embeds `index.html` |
@@ -139,16 +166,13 @@ Progress, XP, rank and streaks are saved in your browser (`localStorage`). Use *
 
 ## Link check
 
-All 275 resource URLs were re-checked on 2026-10-12 for v9, and 270 passed the automated check. None of the 5 exceptions is a dead link:
+All 349 unique resource URLs were re-checked on 2026-10-14 for v10, and 346 passed the automated check. None of the 3 exceptions is a dead link:
 
 - ISO/IEC 42001 (iso.org) returns 403 to scripted clients.
-- Three docs.vllm.ai pages returned 429 (rate-limited).
-- The Stanford CS336 Spring 2025 site timed out once, then answered 301 on retry.
+- openai.com/index/morgan-stanley returns 403 to curl. Its content was verified with a browser-style fetch.
+- The Stanford CS336 Spring 2025 site timed out (it has answered on retry before).
 
-The 31 case-study source URLs were also checked:
-
-- 28 returned 200 to curl.
-- Uber, OpenAI and DoorDash block curl (403/406). Their content was verified with a browser-style fetch.
+The case-study source URLs were checked when the cases were written. Sources that block curl (Uber, OpenAI, DoorDash) were verified with a browser-style fetch.
 
 See `docs/resources_linkcheck.csv`.
 
